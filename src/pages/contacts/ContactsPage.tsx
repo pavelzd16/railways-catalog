@@ -32,6 +32,13 @@ const CONTACTS = [
     href: 'tel:+79625270005',
   },
   {
+    id: 'phone-3',
+    icon: FiPhone,
+    title: 'Телефон',
+    value: '+7 (960) 039-01-01',
+    href: 'tel:+79600390101',
+  },
+  {
     id: 'email',
     icon: FiMail,
     title: 'Email',
