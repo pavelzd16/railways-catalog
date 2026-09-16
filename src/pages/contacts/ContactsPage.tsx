@@ -28,8 +28,8 @@ const CONTACTS = [
     id: 'phone-2',
     icon: FiPhone,
     title: 'Телефон',
-    value: '+7 (962) 559-73-00',
-    href: 'tel:+79625597300',
+    value: '+7 (962) 527-00-05',
+    href: 'tel:+79625270005',
   },
   {
     id: 'email',
