@@ -27,6 +27,13 @@ export function HomeContacts() {
             +7 (962) 527-00-05
           </a>
           <a
+            href="tel:+79600390101"
+            className="flex items-center gap-3 text-lg font-bold hover:text-primary"
+          >
+            <FiPhone className="text-primary" />
+            +7 (960) 039-01-01
+          </a>
+          <a
             href="mailto:zakaz@traer.ru"
             className="flex items-center gap-3 text-lg hover:text-primary"
           >

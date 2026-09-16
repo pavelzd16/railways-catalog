@@ -85,7 +85,7 @@ export function getMetadata(urlValue: string, data: PageData): Metadata {
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ИНВИА.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ИНВИА'
-  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', '@type': 'Organization', name: 'ООО «ИНВИА»', url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: ['+7-843-227-00-05', '+7-962-527-00-05'], email: 'zakaz@traer.ru' })
+  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', '@type': 'Organization', name: 'ООО «ИНВИА»', url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: ['+7-843-227-00-05', '+7-962-527-00-05', '+7-960-039-01-01'], email: 'zakaz@traer.ru' })
   const socialDescription = summary(description)
   return { title, description: searchDescription || socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }
 }
