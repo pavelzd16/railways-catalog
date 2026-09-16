@@ -45,7 +45,7 @@ Production-сборка запускается командой `node dist/serve
 
 ## Мессенджеры
 
-Номер мессенджеров по умолчанию — `+7 (962) 559-73-00` (`DEFAULT_MESSENGER_PHONE` в `MessengerLinks.tsx`): Telegram и WhatsApp открывают чат с ним, кнопка MAX без `VITE_MAX_URL` показывает номер. `VITE_MESSENGER_PHONE` из одних нулей считается незаданным. Подставить номер или реальные `VITE_TELEGRAM_URL` / `VITE_WHATSAPP_URL`; для MAX указать `VITE_MAX_URL` профиля. Полный URL имеет приоритет над номером. После изменения `VITE_*` пересобрать фронтенд.
+Номер мессенджеров по умолчанию — `+7 (960) 039-01-01` (`DEFAULT_MESSENGER_PHONE` в `MessengerLinks.tsx`): Telegram и WhatsApp открывают чат с ним, кнопка MAX без `VITE_MAX_URL` показывает номер. `VITE_MESSENGER_PHONE` из одних нулей считается незаданным. Подставить номер или реальные `VITE_TELEGRAM_URL` / `VITE_WHATSAPP_URL`; для MAX указать `VITE_MAX_URL` профиля. Полный URL имеет приоритет над номером. После изменения `VITE_*` пересобрать фронтенд.
 
 Примечание о Meta в подвале составлено с учётом [перечня Минюста](https://www.minjust.gov.ru/ru/documents/7822/): решение о Facebook и Instagram не распространяется на WhatsApp.
 

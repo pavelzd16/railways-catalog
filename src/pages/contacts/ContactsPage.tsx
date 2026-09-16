@@ -25,13 +25,6 @@ const CONTACTS = [
     href: 'tel:+78432270005',
   },
   {
-    id: 'phone-2',
-    icon: FiPhone,
-    title: 'Телефон',
-    value: '+7 (962) 527-00-05',
-    href: 'tel:+79625270005',
-  },
-  {
     id: 'phone-3',
     icon: FiPhone,
     title: 'Телефон',
