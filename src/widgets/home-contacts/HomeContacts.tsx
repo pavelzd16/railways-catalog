@@ -20,11 +20,11 @@ export function HomeContacts() {
             +7 (843) 227-00-05
           </a>
           <a
-            href="tel:+79625597300"
+            href="tel:+79625270005"
             className="flex items-center gap-3 text-lg font-bold hover:text-primary"
           >
             <FiPhone className="text-primary" />
-            +7 (962) 559-73-00
+            +7 (962) 527-00-05
           </a>
           <a
             href="mailto:zakaz@traer.ru"
