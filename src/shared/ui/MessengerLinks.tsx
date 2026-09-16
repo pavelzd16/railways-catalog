@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FiMessageCircle, FiSend } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
 import { Dialog } from './Dialog'
@@ -23,6 +23,18 @@ const messengers = [
   { label: 'WhatsApp', icon: FaWhatsapp, href: safeUrl(import.meta.env.VITE_WHATSAPP_URL) || (configuredPhone ? `https://wa.me/${digits}` : '') },
 ]
 
+// Коллтрекинг Gudok ищет в тексте страницы хвост «59-73-00» и меняет его на «27-00-05»:
+// номер мессенджеров превращался в чужой +7 (962) 527-00-05. В Shadow DOM скрипт не
+// заглядывает, поэтому номер выводится оттуда (ссылки wa.me и t.me Gudok не трогает).
+function PhoneText() {
+  const ref = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    const host = ref.current
+    if (host) (host.shadowRoot ?? host.attachShadow({ mode: 'open' })).textContent = phone
+  }, [])
+  return <span ref={ref} />
+}
+
 export function MessengerLinks({ compact = false, showPhone = false }: { compact?: boolean; showPhone?: boolean }) {
   const [placeholder, setPlaceholder] = useState('')
   return <div>
@@ -33,9 +45,9 @@ export function MessengerLinks({ compact = false, showPhone = false }: { compact
         return href ? <a key={label} href={href} aria-label={label} title={label} target="_blank" rel="noopener noreferrer" className={className}>{content}</a> : <button key={label} type="button" aria-label={label} title={label} className={className} onClick={() => setPlaceholder(label)}>{content}</button>
       })}
     </div>
-    {showPhone && <p className="mt-2 text-sm font-normal text-muted-foreground">{phone}</p>}
+    {showPhone && <p className="mt-2 text-sm font-normal text-muted-foreground"><PhoneText /></p>}
     <Dialog open={!!placeholder} onOpenChange={() => setPlaceholder('')} title={placeholder} description="Контакт для связи">
-      <p className="text-xl font-bold">{phone}</p>
+      <p className="text-xl font-bold"><PhoneText /></p>
       <p className="mt-3 text-sm text-muted-foreground">Найдите нас в {placeholder} по этому номеру.</p>
     </Dialog>
   </div>

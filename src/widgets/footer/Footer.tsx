@@ -53,9 +53,6 @@ export function Footer() {
               >
                 +7 (843) 227-00-05
               </a>
-              <a href="tel:+79625270005" className="footer-muted block">
-                +7 (962) 527-00-05
-              </a>
               <a href="tel:+79600390101" className="footer-muted block">
                 +7 (960) 039-01-01
               </a>

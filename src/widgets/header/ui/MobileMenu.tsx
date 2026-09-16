@@ -257,19 +257,6 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
               </a>
 
               <a
-                href="tel:+79625270005"
-                className="
-                  mb-3 flex min-h-12 items-center
-                  gap-3 rounded-lg
-                  bg-muted px-4
-                  text-sm font-semibold
-                "
-              >
-                <FiPhone className="h-5 w-5 text-primary" />
-                <div>+7 (962) 527-00-05</div>
-              </a>
-
-              <a
                 href="tel:+79600390101"
                 className="
                   mb-3 flex min-h-12 items-center
