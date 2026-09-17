@@ -35,6 +35,7 @@ export function onRenderHtml(pageContext: PageContextServer) {
       <html lang="ru"><head>
       <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta name="theme-color" content="#1c1f22" /><link rel="icon" href="/favicon.ico" />
+      <meta name="google-site-verification" content="Gb-69uubJew9MOxsK3Cl-z5IAMLNVpHmYKjMNE-o-bI" />
       <title>${meta.title}</title><meta name="description" content="${meta.description}" />
       <meta name="robots" content="${meta.robots}" /><link rel="canonical" href="${meta.canonical}" />
       <meta property="og:type" content="website" /><meta property="og:site_name" content="ИНВИА" /><meta property="og:locale" content="ru_RU" />
