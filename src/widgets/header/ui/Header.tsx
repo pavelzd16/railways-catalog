@@ -117,7 +117,7 @@ export function Header() {
               />
               <a
                 href="mailto:zakaz@traer.ru"
-                className="rounded-sm text-current/70 transition-colors hover:text-current"
+                className="rounded-sm font-bold text-current/70 transition-colors hover:text-current"
               >
                 zakaz@traer.ru
               </a>
