@@ -1,6 +1,7 @@
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { Button } from '@/shared/ui/Button'
+import { CopyButton } from '@/shared/ui/CopyButton'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
 import { useState } from 'react'
@@ -37,6 +38,7 @@ const CONTACTS = [
     title: 'Email',
     value: 'zakaz@traer.ru',
     href: 'mailto:zakaz@traer.ru',
+    copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты' },
   },
   {
     id: 'work-hours',
@@ -152,6 +154,7 @@ function ContactCard({
   value,
   subvalue,
   href,
+  copy,
   wide,
 }: {
   icon: React.ElementType
@@ -159,15 +162,30 @@ function ContactCard({
   value: React.ReactNode
   subvalue?: string
   href?: string
+  copy?: { value: string; label: string }
   wide?: boolean
 }) {
+  // Кнопку нельзя класть внутрь ссылки, поэтому у карточки с «Скопировать»
+  // ссылкой служит только сам адрес, а не вся карточка.
   const content = (
     <div className={`h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50 ${wide ? 'sm:col-span-2 xl:col-span-2' : ''}`}>
       <div className="mb-3 text-primary">
         <Icon className="h-6 w-6" />
       </div>
       <div className="mb-1 text-sm text-muted-foreground">{title}</div>
-      <div className="font-bold text-foreground">{value}</div>
+      {copy ? (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <a
+            href={href}
+            className="rounded-sm font-bold text-foreground transition-colors hover:text-primary"
+          >
+            {value}
+          </a>
+          <CopyButton value={copy.value} label={copy.label} className="-my-0.5" />
+        </div>
+      ) : (
+        <div className="font-bold text-foreground">{value}</div>
+      )}
 
       {subvalue && (
         <div className="mt-1 text-xs text-muted-foreground">{subvalue}</div>
@@ -175,7 +193,7 @@ function ContactCard({
     </div>
   )
 
-  if (href) {
+  if (href && !copy) {
     return (
       <a href={href} className="block h-full">
         {content}

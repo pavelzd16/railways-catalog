@@ -8,6 +8,7 @@ import { CatalogSearch } from './CatalogSearch'
 import { useCart } from '@/entities/cart/model/use-cart'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
+import { CopyButton } from '@/shared/ui/CopyButton'
 
 const links = [
   ['Услуги', '/services'],
@@ -81,9 +82,6 @@ export function Header() {
               ))}
             </nav>
             <div className="hidden items-center gap-5 md:flex">
-              <a href="mailto:zakaz@traer.ru" className="hover:text-primary">
-                zakaz@traer.ru
-              </a>
               <span>Пн–Пт, 8:00–17:00</span>
               <MessengerLinks compact />
             </div>
@@ -107,14 +105,32 @@ export function Header() {
           <div className="hidden min-w-0 max-w-xl flex-1 md:block">
             <CatalogSearch />
           </div>
-          <a
-            href="tel:+78432270005"
-            className="ml-auto flex h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-2 font-bold hover:opacity-75"
-            aria-label="Позвонить: +7 (843) 227-00-05"
-          >
-            <FiPhone className="h-5 w-5" />
-            <span className="hidden md:inline">+7 (843) 227-00-05</span>
-          </a>
+          {/* Почта над телефоном: кнопка копирования стоит в одном столбце
+              с иконкой телефона, адрес — ровно над номером. */}
+          <div className="ml-auto flex shrink-0 flex-col justify-center">
+            <div className="hidden items-center gap-2 px-2 text-sm md:flex">
+              <CopyButton
+                compact
+                value="zakaz@traer.ru"
+                label="Скопировать адрес почты"
+                className="-mx-0.5"
+              />
+              <a
+                href="mailto:zakaz@traer.ru"
+                className="rounded-sm font-bold text-current/70 transition-colors hover:text-current"
+              >
+                zakaz@traer.ru
+              </a>
+            </div>
+            <a
+              href="tel:+78432270005"
+              className="flex h-11 items-center gap-2 whitespace-nowrap rounded-lg px-2 font-bold hover:opacity-75 md:h-8"
+              aria-label="Позвонить: +7 (843) 227-00-05"
+            >
+              <FiPhone className="h-5 w-5" />
+              <span className="hidden md:inline">+7 (843) 227-00-05</span>
+            </a>
+          </div>
           <Link
             to="/cart"
             aria-label={`Корзина${totalItems ? `, товаров: ${totalItems}` : ''}`}
