@@ -4,6 +4,7 @@ import { Select } from '@/shared/ui/Select'
 import { GRUPPY, IZDELIYA, izdelie } from '../model/dannye.ts'
 import { perevestiIzdelie } from '../model/raschet.ts'
 import { Itog, Pole, Ssylka } from './common'
+import { PoiskIzdeliya } from './PoiskIzdeliya'
 import { chislo, fmt } from '../model/format.ts'
 
 const EDINICY = [
@@ -11,31 +12,44 @@ const EDINICY = [
   { value: 'kg', label: 'килограммов' },
   { value: 't', label: 'тонн' },
 ]
+const VSE = 'vse'
 
 export function IzdeliyaTab() {
-  const [gruppa, setGruppa] = useState<string>(GRUPPY[0])
-  const [id, setId] = useState(IZDELIYA.find((item) => item.gruppa === GRUPPY[0])!.id)
+  const [gruppa, setGruppa] = useState<string>(VSE)
+  const [id, setId] = useState(IZDELIYA[0].id)
   const [kolvo, setKolvo] = useState('100')
   const [ed, setEd] = useState<'sht' | 'kg' | 't'>('sht')
 
-  const vGruppe = IZDELIYA.filter((item) => item.gruppa === gruppa)
   const item = izdelie(id)
   const n = chislo(kolvo)
   const result = n > 0 ? perevestiIzdelie(id, n, ed) : null
 
   const vybratGruppu = (next: string) => {
     setGruppa(next)
-    setId(IZDELIYA.find((row) => row.gruppa === next)!.id)
+    if (next !== VSE && izdelie(id).gruppa !== next) {
+      setId(IZDELIYA.find((row) => row.gruppa === next)!.id)
+    }
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <div className="space-y-4">
-        <Pole label="Вид изделия">
-          <Select value={gruppa} onChange={(e) => vybratGruppu(e.target.value)} options={GRUPPY.map((g) => ({ value: g, label: g }))} />
+        <Pole
+          label="Изделие"
+          hint="Можно писать руками — подскажем полные названия. Пустое поле показывает весь список."
+        >
+          <PoiskIzdeliya
+            value={id}
+            gruppa={gruppa === VSE ? undefined : gruppa}
+            onChange={(next) => { setId(next); if (gruppa !== VSE) setGruppa(izdelie(next).gruppa) }}
+          />
         </Pole>
-        <Pole label="Изделие">
-          <Select value={id} onChange={(e) => setId(e.target.value)} options={vGruppe.map((row) => ({ value: row.id, label: row.name }))} />
+        <Pole label="Вид изделия" hint="Сужает подсказки в поле выше">
+          <Select
+            value={gruppa}
+            onChange={(e) => vybratGruppu(e.target.value)}
+            options={[{ value: VSE, label: 'Все виды' }, ...GRUPPY.map((g) => ({ value: g, label: g }))]}
+          />
         </Pole>
         <div className="grid grid-cols-[1fr_1.2fr] gap-3">
           <Pole label="Количество">
@@ -58,7 +72,7 @@ export function IzdeliyaTab() {
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              Масса одной штуки — {fmt(item.kgNaSht)} кг. <Ssylka istochnik={item.istochnik} />
+              {item.name}. Масса одной штуки — {fmt(item.kgNaSht)} кг. <Ssylka istochnik={item.istochnik} />
             </p>
             <p className="text-xs text-muted-foreground">
               Масса теоретическая, по номинальным размерам изделия. При пересчёте веса в штуки

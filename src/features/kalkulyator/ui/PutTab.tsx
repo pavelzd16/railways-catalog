@@ -34,7 +34,7 @@ function vedomostTekstom(v: VvodPuti, rows: Stroka[]): string {
 export function PutTab() {
   const [dlinaKm, setDlinaKm] = useState('1')
   const [relsId, setRelsId] = useState<PutRels>('R65')
-  const [dlinaRelsa, setDlinaRelsa] = useState('25')
+  const [dlinaRelsa, setDlinaRelsa] = useState('12.5')
   const [shpaly, setShpaly] = useState<Shpaly>('zhb')
   const [epura, setEpura] = useState('1840')
   const [nakladkaId, setNakladkaId] = useState(DLYA_RELSA.R65.nakladki[0])

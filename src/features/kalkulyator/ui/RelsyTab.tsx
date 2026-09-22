@@ -16,7 +16,7 @@ export function RelsyTab() {
   const [relsId, setRelsId] = useState('R65')
   const [kolvo, setKolvo] = useState('1000')
   const [ed, setEd] = useState<'m' | 't' | 'sht'>('m')
-  const [dlina, setDlina] = useState('25')
+  const [dlina, setDlina] = useState('12,5')
 
   const r = rels(relsId)
   const n = chislo(kolvo)

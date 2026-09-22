@@ -80,3 +80,24 @@ test('options offered for each rail exist and invalid input is reported', () => 
   assert.equal(proveritPut({ ...put, relsId: 'R75' }).length, 1)
   assert.equal(proveritPut({ ...put, dlinaKm: 0, epura: 10 }).length, 2)
 })
+
+test('rail lengths offer 12,5 m first, since that is what most orders use', async () => {
+  const { DLINY_RELSA } = await import('../src/features/kalkulyator/model/dannye.ts')
+  assert.deepEqual(DLINY_RELSA, [12.5, 25])
+})
+
+test('typing in the item field finds products by any word order and any multiplication sign', async () => {
+  const { naytiIzdeliya } = await import('../src/features/kalkulyator/model/poisk.ts')
+  const names = (zapros, gruppa) => naytiIzdeliya(zapros, gruppa).map((item) => item.name)
+  assert.deepEqual(names('клеммный болт'), names('болт клеммный'))
+  assert.equal(names('болт клеммный').length, 3)
+  assert.ok(names('костыль 16x16').every((n) => n.includes('16×16')))
+  assert.deepEqual(names('костыль 16х16'), names('костыль 16×16'))
+  assert.equal(names('16*16*205')[0], 'Костыль 16×16×205')
+  assert.ok(names('гост 22343').includes('Клемма жёсткая ПК'))
+  assert.deepEqual(names('шпала'), [])
+  assert.equal(naytiIzdeliya('').length, IZDELIYA.length)
+  assert.ok(names('болт', 'Костыли').length === 0, 'вид изделия сужает поиск')
+  assert.ok(names('', 'Костыли').length === 6)
+  assert.ok(names('НАКЛАДКА р65').length === 5, 'регистр и ё не мешают')
+})
