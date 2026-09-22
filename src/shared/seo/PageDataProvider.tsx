@@ -4,6 +4,7 @@ import { categoryApi } from '@/entities/category/api/category.api'
 import { productApi } from '@/entities/product/api/product.api'
 import { serviceApi } from '@/entities/service/api/service.api'
 import { detailRoute, productPath, type PageData } from './route-data'
+import { movedProductSlug } from './product-slug-moves'
 import { getMetadata } from './metadata'
 import { applyMetadata } from './apply-metadata'
 import { PageDataContext, CategoriesContext } from './page-context'
@@ -41,7 +42,10 @@ export function PageDataProvider({ initial, children }: { initial: PageData; chi
     const route = detailRoute(pathname)
     if (!route) return
     let cancelled = false
-    const request = route.kind === 'product' ? productApi.getBySlug(route.slug) : serviceApi.getBySlug(route.slug)
+    const moved = route.kind === 'product' ? movedProductSlug(route.slug) : undefined
+    const request = route.kind === 'product'
+      ? productApi.getBySlug(route.slug).catch((error) => { if (moved && error?.response?.status === 404) return productApi.getBySlug(moved); throw error })
+      : serviceApi.getBySlug(route.slug)
     request.then((value) => {
       if (cancelled) return
       const next = { url, siteUrl: initial.siteUrl, ssr: false, status: 200, [route.kind]: value }
