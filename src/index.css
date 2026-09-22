@@ -215,6 +215,12 @@ button:disabled {
 .site-footer .footer-muted {
   color: #c5cad0;
 }
+/* Тёмная подсказка «Скопировано» на тёмном подвале сливалась с фоном. */
+.site-footer .copy-hint {
+  background: #fff;
+  color: hsl(var(--foreground));
+  --tw-ring-color: rgb(0 0 0 / 0.1);
+}
 .site-footer a {
   transition: color 0.18s;
 }

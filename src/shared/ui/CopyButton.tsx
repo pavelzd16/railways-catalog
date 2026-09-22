@@ -60,7 +60,7 @@ export function CopyButton({
         </button>
         <span
           role="status"
-          className={`pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-bold text-white shadow-md ring-1 ring-white/20 transition-opacity duration-200 ${copied ? 'opacity-100' : 'opacity-0'}`}
+          className={`copy-hint pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-bold text-white shadow-md ring-1 ring-white/20 transition-opacity duration-200 ${copied ? 'opacity-100' : 'opacity-0'}`}
         >
           {copied ? 'Скопировано' : ''}
         </span>
