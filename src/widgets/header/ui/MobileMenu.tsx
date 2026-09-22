@@ -221,10 +221,6 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
                 Доставка
               </MobileNavLink>
 
-              <MobileNavLink to="/price" onClick={closeMenu}>
-                Прайс
-              </MobileNavLink>
-
               <MobileNavLink to="/calculator" onClick={closeMenu}>
                 Калькулятор
               </MobileNavLink>

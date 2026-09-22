@@ -17,7 +17,6 @@ const COPY_EMAIL = 'Скопировать адрес почты'
 const links = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
-  ['Прайс', '/price'],
   ['Калькулятор', '/calculator'],
   ['О компании', '/about'],
   ['Контакты', '/contacts'],

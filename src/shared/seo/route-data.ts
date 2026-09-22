@@ -35,5 +35,5 @@ export function rendersOnServer(pathname: string): boolean {
 }
 
 export function isKnownPath(pathname: string): boolean {
-  return !!detailRoute(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/price', '/calculator', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
+  return !!detailRoute(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
 }
