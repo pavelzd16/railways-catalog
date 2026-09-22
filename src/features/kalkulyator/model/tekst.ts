@@ -37,7 +37,7 @@ export function tekstIzdeliya(id: string, itog: { sht: number; kg: number }): st
 
 export function tekstVedomosti(v: VvodPuti, rows: Stroka[]): string {
   return [
-    `${NACHALO}: ${fmt(v.dlinaKm)} км пути, рельсы ${v.relsId.replace('R', 'Р')}, ` +
+    `${NACHALO}: ${fmt(v.dlinaM, 1)} м пути, рельсы ${v.relsId.replace('R', 'Р')}, ` +
       `${v.shpaly === 'zhb' ? 'ж/б' : 'деревянные'} шпалы, эпюра ${v.epura} шт/км.`,
     ...rows.map((row) => `— ${row.name}: ${fmt(row.sht, 0)} шт.${row.tonny === null ? '' : `, ${fmt(row.tonny, 3)} т`}`),
     `Итого по позициям с массой: ${fmt(itogoTonn(rows), 3)} т.`,

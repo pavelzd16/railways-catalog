@@ -38,7 +38,7 @@ test('pieces from weight are whole and never exceed the weight', () => {
 })
 
 const put = {
-  dlinaKm: 1, relsId: 'R65', dlinaRelsa: 25, shpaly: 'zhb', epura: 1840,
+  dlinaM: 1000, relsId: 'R65', dlinaRelsa: 25, shpaly: 'zhb', epura: 1840,
   nakladkaId: 'nakl-r65-1', boltId: 'bs-m27-160', podkladkaZhbId: 'p-1kb65',
   podkladkaDerId: 'p-d65', kostylId: 'k-16-165', kostyleyNaPodkladku: 5,
 }
@@ -62,7 +62,7 @@ test('one kilometre of R65 track on concrete sleepers', () => {
 })
 
 test('wooden sleepers use spike plates and the chosen number of spikes', () => {
-  const rows = rasschitatPut({ ...put, relsId: 'R50', dlinaRelsa: 12.5, shpaly: 'der', epura: 2000, dlinaKm: 0.5, nakladkaId: 'nakl-r50-2', boltId: 'bs-m24-150', podkladkaDerId: 'p-d50', kostyleyNaPodkladku: 3 })
+  const rows = rasschitatPut({ ...put, relsId: 'R50', dlinaRelsa: 12.5, shpaly: 'der', epura: 2000, dlinaM: 500, nakladkaId: 'nakl-r50-2', boltId: 'bs-m24-150', podkladkaDerId: 'p-d50', kostyleyNaPodkladku: 3 })
   assert.equal(rows[0].sht, 80)
   assert.equal(rows[1].sht, 1000)
   assert.equal(rows.find((row) => row.name.startsWith('Болт стыковой')).sht, 80 * 4)
@@ -78,7 +78,8 @@ test('options offered for each rail exist and invalid input is reported', () => 
   }
   assert.deepEqual(proveritPut(put), [])
   assert.equal(proveritPut({ ...put, relsId: 'R75' }).length, 1)
-  assert.equal(proveritPut({ ...put, dlinaKm: 0, epura: 10 }).length, 2)
+  assert.equal(proveritPut({ ...put, dlinaM: 0, epura: 10 }).length, 2)
+  assert.equal(proveritPut({ ...put, dlinaM: 600000 }).length, 1, 'больше 500 км не считаем')
 })
 
 test('rail lengths offer 12,5 m first, since that is what most orders use', async () => {
@@ -124,7 +125,7 @@ test('every tab produces a shareable text that names the source and the standard
   assert.match(izTonny, /999,81 кг/, 'меньше тонны показываем в килограммах')
 
   const vedomost = prosto(tekstVedomosti(put, rasschitatPut(put)))
-  assert.match(vedomost, /^Расчёт с калькулятора traer\.ru: 1 км пути, рельсы Р65, ж\/б шпалы, эпюра 1840 шт\/км\./)
+  assert.match(vedomost, /^Расчёт с калькулятора traer\.ru: 1 000 м пути, рельсы Р65, ж\/б шпалы, эпюра 1840 шт\/км\./)
   assert.match(vedomost, /— Шпала железобетонная: 1 840 шт\.$/m, 'без массы — без веса в строке')
   assert.match(vedomost, /Итого по позициям с массой: 174,418 т\.$/)
 })

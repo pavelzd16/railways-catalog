@@ -21,7 +21,7 @@ const KOSTYLI = ['k-16-165', 'k-16-205', 'k-16-230', 'k-16-280']
 const varianty = (ids: string[]) => ids.map((id) => ({ value: id, label: izdelie(id).name }))
 
 export function PutTab() {
-  const [dlinaKm, setDlinaKm] = useState('1')
+  const [dlinaM, setDlinaM] = useState('1000')
   const [relsId, setRelsId] = useState<PutRels>('R65')
   const [dlinaRelsa, setDlinaRelsa] = useState('12.5')
   const [shpaly, setShpaly] = useState<Shpaly>('zhb')
@@ -45,7 +45,7 @@ export function PutTab() {
   }
 
   const vvod: VvodPuti = {
-    dlinaKm: chislo(dlinaKm), relsId, dlinaRelsa: chislo(dlinaRelsa), shpaly, epura: chislo(epura),
+    dlinaM: chislo(dlinaM), relsId, dlinaRelsa: chislo(dlinaRelsa), shpaly, epura: chislo(epura),
     nakladkaId, boltId, podkladkaZhbId, podkladkaDerId, kostylId, kostyleyNaPodkladku: chislo(kostyley),
   }
   const oshibki = proveritPut(vvod)
@@ -54,8 +54,8 @@ export function PutTab() {
   return (
     <div className="space-y-8">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Pole label="Длина участка, км">
-          <Input inputMode="decimal" value={dlinaKm} onChange={(e) => setDlinaKm(e.target.value)} error={!(vvod.dlinaKm > 0)} />
+        <Pole label="Длина участка, м" hint="1 000 м = 1 км">
+          <Input inputMode="decimal" value={dlinaM} onChange={(e) => setDlinaM(e.target.value)} error={!(vvod.dlinaM > 0)} />
         </Pole>
         <Pole label="Тип рельса">
           <Select value={relsId} onChange={(e) => vybratRels(e.target.value as PutRels)} options={RELSY_PUTI} />

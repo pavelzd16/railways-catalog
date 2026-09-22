@@ -24,7 +24,8 @@ export type Shpaly = 'zhb' | 'der'
 export type PutRels = 'R50' | 'R65' | 'R75'
 
 export type VvodPuti = {
-  dlinaKm: number
+  /** длина участка в метрах */
+  dlinaM: number
   relsId: PutRels
   dlinaRelsa: number
   shpaly: Shpaly
@@ -92,7 +93,7 @@ export const OTVERSTIY_POD_KOSTYLI = 5
 
 export function proveritPut(v: VvodPuti): string[] {
   const oshibki: string[] = []
-  if (!(v.dlinaKm > 0 && v.dlinaKm <= 500)) oshibki.push('Длина пути — от 0,001 до 500 км')
+  if (!(v.dlinaM > 0 && v.dlinaM <= 500000)) oshibki.push('Длина пути — от 1 до 500 000 м')
   if (!(v.dlinaRelsa >= 6 && v.dlinaRelsa <= 100)) oshibki.push('Длина рельса — от 6 до 100 м')
   if (!(v.epura >= 1000 && v.epura <= 3000)) oshibki.push('Эпюра — от 1000 до 3000 шпал на км')
   if (v.shpaly === 'zhb' && DLYA_RELSA[v.relsId].podkladkiZhb.length === 0) oshibki.push('Для Р75 подкладки КБ стандартом не предусмотрены — выберите деревянные шпалы')
@@ -108,10 +109,10 @@ function stroka(id: string, sht: number, primechanie?: string): Stroka {
 /** Ведомость материалов на участок звеньевого пути (две рельсовые нити). */
 export function rasschitatPut(v: VvodPuti): Stroka[] {
   const r = rels(v.relsId)
-  const relsovVNiti = Math.ceil((v.dlinaKm * 1000) / v.dlinaRelsa - 1e-9)
+  const relsovVNiti = Math.ceil(v.dlinaM / v.dlinaRelsa - 1e-9)
   const relsov = relsovVNiti * 2
   const stykov = relsov
-  const shpal = Math.ceil(v.dlinaKm * v.epura - 1e-9)
+  const shpal = Math.ceil((v.dlinaM / 1000) * v.epura - 1e-9)
   const otverstiy = OTVERSTIYA[v.nakladkaId]
   const boltov = stykov * otverstiy
   const podkladok = shpal * 2

@@ -29,7 +29,7 @@ export function CalculatorPage() {
           tabs={[
             { id: 'relsy', label: 'Рельсы', content: <RelsyTab /> },
             { id: 'krepezh', label: 'Крепёж и детали', content: <IzdeliyaTab /> },
-            { id: 'put', label: 'Путь на километр', content: <PutTab /> },
+            { id: 'put', label: 'Материалы на путь', content: <PutTab /> },
           ]}
         />
 
