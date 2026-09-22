@@ -31,6 +31,8 @@ export type VvodPuti = {
   shpaly: Shpaly
   /** шпал на километр */
   epura: number
+  /** своё число шпал на участок; не задано — считаем по эпюре */
+  shpalSvoi?: number
   nakladkaId: string
   boltId: string
   /** только для ж/б шпал */
@@ -95,7 +97,11 @@ export function proveritPut(v: VvodPuti): string[] {
   const oshibki: string[] = []
   if (!(v.dlinaM > 0 && v.dlinaM <= 500000)) oshibki.push('Длина пути — от 1 до 500 000 м')
   if (!(v.dlinaRelsa >= 6 && v.dlinaRelsa <= 100)) oshibki.push('Длина рельса — от 6 до 100 м')
-  if (!(v.epura >= 1000 && v.epura <= 3000)) oshibki.push('Эпюра — от 1000 до 3000 шпал на км')
+  if (v.shpalSvoi === undefined) {
+    if (!(v.epura >= 1000 && v.epura <= 3000)) oshibki.push('Эпюра — от 1000 до 3000 шпал на км')
+  } else if (!(Number.isInteger(v.shpalSvoi) && v.shpalSvoi >= 1 && v.shpalSvoi <= 1000000)) {
+    oshibki.push('Число шпал — целое, от 1 до 1 000 000')
+  }
   if (v.shpaly === 'zhb' && DLYA_RELSA[v.relsId].podkladkiZhb.length === 0) oshibki.push('Для Р75 подкладки КБ стандартом не предусмотрены — выберите деревянные шпалы')
   if (v.shpaly === 'der' && !(Number.isInteger(v.kostyleyNaPodkladku) && v.kostyleyNaPodkladku >= 1 && v.kostyleyNaPodkladku <= 8)) oshibki.push('Костылей на подкладку — от 1 до 8')
   return oshibki
@@ -112,7 +118,7 @@ export function rasschitatPut(v: VvodPuti): Stroka[] {
   const relsovVNiti = Math.ceil(v.dlinaM / v.dlinaRelsa - 1e-9)
   const relsov = relsovVNiti * 2
   const stykov = relsov
-  const shpal = Math.ceil((v.dlinaM / 1000) * v.epura - 1e-9)
+  const shpal = v.shpalSvoi ?? Math.ceil((v.dlinaM / 1000) * v.epura - 1e-9)
   const otverstiy = OTVERSTIYA[v.nakladkaId]
   const boltov = stykov * otverstiy
   const podkladok = shpal * 2
@@ -129,7 +135,8 @@ export function rasschitatPut(v: VvodPuti): Stroka[] {
       name: v.shpaly === 'zhb' ? 'Шпала железобетонная' : 'Шпала деревянная',
       sht: shpal,
       tonny: null,
-      primechanie: `эпюра ${v.epura} шт/км; масса шпалы стандартом не установлена`,
+      primechanie: (v.shpalSvoi === undefined ? `эпюра ${v.epura} шт/км` : 'число задано вручную') +
+        '; масса шпалы стандартом не установлена',
     },
     stroka(v.nakladkaId, stykov * 2, `2 накладки на стык, стык на каждый рельс`),
     stroka(v.boltId, boltov, `${otverstiy} болтов на стык — по числу отверстий накладки`),

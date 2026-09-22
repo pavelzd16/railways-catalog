@@ -32,6 +32,8 @@ export function PutTab() {
   const [podkladkaDerId, setPodkladkaDerId] = useState(DLYA_RELSA.R65.podkladkiDer[0])
   const [kostylId, setKostylId] = useState(KOSTYLI[0])
   const [kostyley, setKostyley] = useState(String(OTVERSTIY_POD_KOSTYLI))
+  const [schitatShpaly, setSchitatShpaly] = useState<'epura' | 'svoi'>('epura')
+  const [shpalSvoi, setShpalSvoi] = useState('')
 
   const nabor = DLYA_RELSA[relsId]
   const vybratRels = (next: PutRels) => {
@@ -46,6 +48,7 @@ export function PutTab() {
 
   const vvod: VvodPuti = {
     dlinaM: chislo(dlinaM), relsId, dlinaRelsa: chislo(dlinaRelsa), shpaly, epura: chislo(epura),
+    shpalSvoi: schitatShpaly === 'svoi' ? chislo(shpalSvoi) : undefined,
     nakladkaId, boltId, podkladkaZhbId, podkladkaDerId, kostylId, kostyleyNaPodkladku: chislo(kostyley),
   }
   const oshibki = proveritPut(vvod)
@@ -77,21 +80,47 @@ export function PutTab() {
             ]}
           />
         </Pole>
-        <Pole label="Эпюра, шпал на 1 км" hint="Укажите по проекту">
-          <div className="flex gap-2">
-            <Input className="min-w-0" inputMode="numeric" value={epura} onChange={(e) => setEpura(e.target.value)} error={!(vvod.epura >= 1000 && vvod.epura <= 3000)} />
-            {['1840', '2000'].map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setEpura(value)}
-                className="shrink-0 rounded-lg border border-border px-3 text-sm font-semibold hover:border-primary hover:text-primary"
-              >
-                {value}
-              </button>
-            ))}
-          </div>
+        <Pole label="Число шпал">
+          <Select
+            value={schitatShpaly}
+            onChange={(e) => {
+              const next = e.target.value as 'epura' | 'svoi'
+              setSchitatShpaly(next)
+              // переходя на своё число, подставляем посчитанное — его удобно поправить
+              if (next === 'svoi' && !shpalSvoi && rows.length) setShpalSvoi(String(rows[1].sht))
+            }}
+            options={[
+              { value: 'epura', label: 'Считать по эпюре' },
+              { value: 'svoi', label: 'Указать своё число' },
+            ]}
+          />
         </Pole>
+        {schitatShpaly === 'epura' ? (
+          <Pole label="Эпюра, шпал на 1 км" hint="Укажите по проекту">
+            <div className="flex gap-2">
+              <Input className="min-w-0" inputMode="numeric" value={epura} onChange={(e) => setEpura(e.target.value)} error={!(vvod.epura >= 1000 && vvod.epura <= 3000)} />
+              {['1840', '2000'].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEpura(value)}
+                  className="shrink-0 rounded-lg border border-border px-3 text-sm font-semibold hover:border-primary hover:text-primary"
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+          </Pole>
+        ) : (
+          <Pole label="Шпал на участок, шт." hint="Своё число: подкладки и скрепления считаются от него">
+            <Input
+              inputMode="numeric"
+              value={shpalSvoi}
+              onChange={(e) => setShpalSvoi(e.target.value)}
+              error={!(chislo(shpalSvoi) >= 1)}
+            />
+          </Pole>
+        )}
         <Pole label="Накладка">
           <Select value={nakladkaId} onChange={(e) => setNakladkaId(e.target.value)} options={varianty(nabor.nakladki)} />
         </Pole>

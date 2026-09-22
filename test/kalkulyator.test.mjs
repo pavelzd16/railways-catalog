@@ -129,3 +129,23 @@ test('every tab produces a shareable text that names the source and the standard
   assert.match(vedomost, /— Шпала железобетонная: 1 840 шт\.$/m, 'без массы — без веса в строке')
   assert.match(vedomost, /Итого по позициям с массой: 174,418 т\.$/)
 })
+
+test('the sleeper count can be entered by hand instead of being derived from the spacing', async () => {
+  const { tekstVedomosti } = await import('../src/features/kalkulyator/model/tekst.ts')
+  const svoi = { ...put, shpalSvoi: 1500 }
+  const rows = rasschitatPut(svoi)
+  assert.equal(rows[1].sht, 1500, 'берём введённое число, а не эпюру')
+  assert.match(rows[1].primechanie, /число задано вручную/)
+  assert.equal(rows.find((row) => row.name.startsWith('Подкладка')).sht, 3000, 'подкладки считаются от введённого числа')
+  assert.equal(rows.find((row) => row.name.startsWith('Болт закладной')).sht, 6000)
+  assert.equal(rows[0].sht, rasschitatPut(put)[0].sht, 'рельсы от числа шпал не зависят')
+
+  assert.deepEqual(proveritPut(svoi), [])
+  assert.deepEqual(proveritPut({ ...put, shpalSvoi: 0 }), ['Число шпал — целое, от 1 до 1 000 000'])
+  assert.deepEqual(proveritPut({ ...put, shpalSvoi: 1500.5 }), ['Число шпал — целое, от 1 до 1 000 000'])
+  assert.deepEqual(proveritPut({ ...put, shpalSvoi: 1500, epura: 10 }), [], 'при своём числе эпюра не проверяется')
+
+  const tekst = tekstVedomosti(svoi, rows).replace(/\u00a0/g, ' ')
+  assert.match(tekst, /число шпал задано вручную\./)
+  assert.match(tekst, /— Шпала железобетонная: 1 500 шт\.$/m)
+})
