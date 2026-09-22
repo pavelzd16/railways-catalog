@@ -215,6 +215,12 @@ button:disabled {
 .site-footer .footer-muted {
   color: #c5cad0;
 }
+/* Свои правила подвала: у кнопок копирования цвет наведения — как у ссылок,
+   утилиты Tailwind тут проигрывают правилу .site-footer .footer-muted. */
+.site-footer .copy-value:hover,
+.site-footer .copy-icon:hover {
+  color: hsl(var(--accent));
+}
 /* Тёмная подсказка «Скопировано» на тёмном подвале сливалась с фоном. */
 .site-footer .copy-hint {
   background: #fff;
