@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
+import { CopyButton } from '@/shared/ui/CopyButton'
 import { FiDownload, FiPhone } from 'react-icons/fi'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 import { Button } from '@/shared/ui/Button'
@@ -56,9 +57,16 @@ export function Footer() {
               <a href="tel:+79600390101" className="footer-muted block">
                 +7 (960) 039-01-01
               </a>
-              <a href="mailto:zakaz@traer.ru" className="footer-muted block">
-                zakaz@traer.ru
-              </a>
+              <div className="flex items-center gap-2">
+                <a href="mailto:zakaz@traer.ru" className="footer-muted">
+                  zakaz@traer.ru
+                </a>
+                <CopyButton
+                  compact
+                  value="zakaz@traer.ru"
+                  label="Скопировать адрес почты"
+                />
+              </div>
               <div className="pt-3"><MessengerLinks /></div>
               <p className="footer-muted pt-2">
                 422549, Республика Татарстан, г. Зеленодольск, ул. Московская,
