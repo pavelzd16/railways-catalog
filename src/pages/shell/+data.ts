@@ -3,6 +3,7 @@ import { redirect, render } from 'vike/abort'
 import { apiOrigins, siteUrl } from '@/renderer/server-config'
 import { fetchFromApi } from '@/renderer/api-fetch'
 import { detailRoute, isKnownPath, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
+import { movedProductSlug } from '@/shared/seo/product-slug-moves'
 
 export async function data(pageContext: PageContextServer): Promise<PageData> {
   const url = new URL(pageContext.urlOriginal, siteUrl)
@@ -15,7 +16,9 @@ export async function data(pageContext: PageContextServer): Promise<PageData> {
     : Promise.resolve(undefined)
   if (route) {
     try {
-      const response = await fetchFromApi(apiOrigins, `/api/${route.kind}/${encodeURIComponent(route.slug)}`, 8000)
+      let response = await fetchFromApi(apiOrigins, `/api/${route.kind}/${encodeURIComponent(route.slug)}`, 8000)
+      const moved = route.kind === 'product' && response.status === 404 ? movedProductSlug(route.slug) : undefined
+      if (moved) response = await fetchFromApi(apiOrigins, `/api/product/${encodeURIComponent(moved)}`, 8000)
       if (response.status === 404) result.status = 404
       else if (!response.ok) result.status = 503
       else {

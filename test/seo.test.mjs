@@ -181,3 +181,15 @@ test('www and the retired domain redirect to the same page on traer.ru; the main
   assert.equal(publicRequestUrl('http://127.0.0.1:3011/catalog/', site), 'http://127.0.0.1:3011/catalog/')
   assert.equal(publicRequestUrl('http://localhost:3000/x', 'http://localhost:3000'), 'http://localhost:3000/x')
 })
+
+test('moved product slugs lead straight to a current slug', async () => {
+  const { PRODUCT_SLUG_MOVES, movedProductSlug } = await import('../src/shared/seo/product-slug-moves.ts')
+  const olds = Object.keys(PRODUCT_SLUG_MOVES)
+  const news = Object.values(PRODUCT_SLUG_MOVES)
+  assert.equal(new Set(news).size, news.length)
+  for (const slug of news) assert.equal(movedProductSlug(slug), undefined)
+  assert.ok(olds.every((slug) => /^[a-z0-9-]+$/.test(slug)) && news.every((slug) => /^[a-z0-9-]+$/.test(slug)))
+  assert.equal(movedProductSlug('bashmak-kolesosbrasyvayushchij-ksb-r'), 'bashmak-kolesosbrasyvayushchij-ksb-r-tm0376')
+  assert.equal(movedProductSlug('__proto__'), undefined)
+  assert.equal(movedProductSlug('bolt'), undefined)
+})
