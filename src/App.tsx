@@ -16,6 +16,7 @@ import { ToastContainer } from 'react-toastify'
 import { AdminPage } from './pages/admin'
 import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
+import { CalculatorPage } from './pages/calculator/CalculatorPage'
 
 export function App() {
   return (
@@ -47,6 +48,7 @@ export function App() {
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
         <Route path="/price" element={<PricePage />} />
+        <Route path="/calculator" element={<CalculatorPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
 
