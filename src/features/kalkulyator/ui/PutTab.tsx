@@ -1,14 +1,13 @@
 import { useState } from 'react'
-import { toast } from 'react-toastify'
-import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { Select } from '@/shared/ui/Select'
-import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { DLINY_RELSA, izdelie } from '../model/dannye.ts'
 import {
   DLYA_RELSA, OTVERSTIY_POD_KOSTYLI, itogoTonn, proveritPut, rasschitatPut,
-  type PutRels, type Shpaly, type Stroka, type VvodPuti,
+  type PutRels, type Shpaly, type VvodPuti,
 } from '../model/raschet.ts'
+import { tekstVedomosti } from '../model/tekst.ts'
+import { DeystviyaRascheta } from './DeystviyaRascheta'
 import { Itog, Pole, Ssylka } from './common'
 import { chislo, fmt } from '../model/format.ts'
 
@@ -20,16 +19,6 @@ const RELSY_PUTI: { value: PutRels; label: string }[] = [
 const KOSTYLI = ['k-16-165', 'k-16-205', 'k-16-230', 'k-16-280']
 
 const varianty = (ids: string[]) => ids.map((id) => ({ value: id, label: izdelie(id).name }))
-
-function vedomostTekstom(v: VvodPuti, rows: Stroka[]): string {
-  const lines = rows.map((row) => `— ${row.name}: ${fmt(row.sht, 0)} шт.${row.tonny === null ? '' : `, ${fmt(row.tonny, 3)} т`}`)
-  return [
-    `Расчёт с калькулятора traer.ru: ${fmt(v.dlinaKm)} км пути, рельсы ${v.relsId.replace('R', 'Р')}, ` +
-      `${v.shpaly === 'zhb' ? 'ж/б' : 'деревянные'} шпалы, эпюра ${v.epura} шт/км.`,
-    ...lines,
-    `Итого по позициям с массой: ${fmt(itogoTonn(rows), 3)} т.`,
-  ].join('\n')
-}
 
 export function PutTab() {
   const [dlinaKm, setDlinaKm] = useState('1')
@@ -43,7 +32,6 @@ export function PutTab() {
   const [podkladkaDerId, setPodkladkaDerId] = useState(DLYA_RELSA.R65.podkladkiDer[0])
   const [kostylId, setKostylId] = useState(KOSTYLI[0])
   const [kostyley, setKostyley] = useState(String(OTVERSTIY_POD_KOSTYLI))
-  const [zayavka, setZayavka] = useState(false)
 
   const nabor = DLYA_RELSA[relsId]
   const vybratRels = (next: PutRels) => {
@@ -62,15 +50,6 @@ export function PutTab() {
   }
   const oshibki = proveritPut(vvod)
   const rows = oshibki.length ? [] : rasschitatPut(vvod)
-
-  const kopirovat = async () => {
-    try {
-      await navigator.clipboard.writeText(vedomostTekstom(vvod, rows))
-      toast.success('Ведомость скопирована')
-    } catch {
-      toast.error('Не удалось скопировать — выделите таблицу вручную')
-    }
-  }
 
   return (
     <div className="space-y-8">
@@ -198,20 +177,9 @@ export function PutTab() {
             спецификацию определяет проект.
           </p>
 
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={() => setZayavka(true)}>Запросить цену по расчёту</Button>
-            <Button variant="secondary" onClick={kopirovat}>Скопировать ведомость</Button>
-          </div>
+          <DeystviyaRascheta tekst={tekstVedomosti(vvod, rows)} chtoKopiruem="Ведомость" />
         </>
       )}
-
-      {zayavka && <RequestFormModal
-        open
-        onOpenChange={setZayavka}
-        title="Запрос цены по расчёту"
-        description="Ведомость уже в комментарии — добавьте адрес доставки и сроки"
-        comment={rows.length ? vedomostTekstom(vvod, rows) : undefined}
-      />}
     </div>
   )
 }

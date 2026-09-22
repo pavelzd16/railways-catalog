@@ -101,3 +101,30 @@ test('typing in the item field finds products by any word order and any multipli
   assert.ok(names('', 'Костыли').length === 6)
   assert.ok(names('НАКЛАДКА р65').length === 5, 'регистр и ё не мешают')
 })
+
+test('every tab produces a shareable text that names the source and the standard', async () => {
+  const { tekstRelsov, tekstIzdeliya, tekstVedomosti } = await import('../src/features/kalkulyator/model/tekst.ts')
+
+  const prosto = (s) => s.replace(/ /g, ' ')
+
+  const relsy = prosto(tekstRelsov('R65', 12.5, perevestiRelsy('R65', 1000, 'm', 12.5)))
+  assert.match(relsy, /^Расчёт с калькулятора traer\.ru: рельс Р65\./)
+  assert.match(relsy, /64,88 т/)
+  assert.match(relsy, /80 рельсов длиной 12,5 м/)
+  assert.match(relsy, /ГОСТ Р 51685-2013, приложение Д, таблица Д\.1/)
+
+  const krepezh = prosto(tekstIzdeliya('bs-m24-150', perevestiIzdelie('bs-m24-150', 100, 'sht')))
+  assert.match(krepezh, /^Расчёт с калькулятора traer\.ru: Болт стыковой М24×150\./)
+  assert.match(krepezh, /100 шт\./)
+  assert.match(krepezh, /58,5 кг/)
+  assert.match(krepezh, /ГОСТ 11530-2014/)
+
+  const izTonny = prosto(tekstIzdeliya('k-16-165', perevestiIzdelie('k-16-165', 1, 't')))
+  assert.match(izTonny, /2 645 шт\./)
+  assert.match(izTonny, /999,81 кг/, 'меньше тонны показываем в килограммах')
+
+  const vedomost = prosto(tekstVedomosti(put, rasschitatPut(put)))
+  assert.match(vedomost, /^Расчёт с калькулятора traer\.ru: 1 км пути, рельсы Р65, ж\/б шпалы, эпюра 1840 шт\/км\./)
+  assert.match(vedomost, /— Шпала железобетонная: 1 840 шт\.$/m, 'без массы — без веса в строке')
+  assert.match(vedomost, /Итого по позициям с массой: 174,418 т\.$/)
+})

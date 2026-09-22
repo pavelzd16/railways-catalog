@@ -3,6 +3,8 @@ import { Input } from '@/shared/ui/Input'
 import { Select } from '@/shared/ui/Select'
 import { DLINY_RELSA, RELSY, rels } from '../model/dannye.ts'
 import { perevestiRelsy } from '../model/raschet.ts'
+import { tekstRelsov } from '../model/tekst.ts'
+import { DeystviyaRascheta } from './DeystviyaRascheta'
 import { Itog, Pole, Ssylka } from './common'
 import { chislo, fmt } from '../model/format.ts'
 
@@ -25,7 +27,8 @@ export function RelsyTab() {
   const result = ok ? perevestiRelsy(relsId, n, ed, l) : null
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <div className="space-y-4">
         <Pole label="Тип рельса">
           <Select
@@ -81,6 +84,9 @@ export function RelsyTab() {
           </p>
         )}
       </div>
+      </div>
+
+      <DeystviyaRascheta tekst={result ? tekstRelsov(relsId, l, result) : null} />
     </div>
   )
 }

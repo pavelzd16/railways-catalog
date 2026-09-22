@@ -3,6 +3,8 @@ import { Input } from '@/shared/ui/Input'
 import { Select } from '@/shared/ui/Select'
 import { GRUPPY, IZDELIYA, izdelie } from '../model/dannye.ts'
 import { perevestiIzdelie } from '../model/raschet.ts'
+import { tekstIzdeliya } from '../model/tekst.ts'
+import { DeystviyaRascheta } from './DeystviyaRascheta'
 import { Itog, Pole, Ssylka } from './common'
 import { PoiskIzdeliya } from './PoiskIzdeliya'
 import { chislo, fmt } from '../model/format.ts'
@@ -32,7 +34,8 @@ export function IzdeliyaTab() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
       <div className="space-y-4">
         <Pole
           label="Изделие"
@@ -85,6 +88,9 @@ export function IzdeliyaTab() {
           </p>
         )}
       </div>
+      </div>
+
+      <DeystviyaRascheta tekst={result ? tekstIzdeliya(id, result) : null} />
     </div>
   )
 }
