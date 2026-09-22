@@ -11,6 +11,7 @@ import { getImageUrl } from '@/shared/lib/product-helpers'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
+import { PriceNote } from '@/shared/ui/PriceNote'
 import { ProductImage } from '@/shared/ui/ProductImage'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
@@ -189,6 +190,7 @@ export function ProductPage() {
                   </span>
                 </div>
               )}
+              <PriceNote variant="chip" className="mt-3" />
             </div>
 
             <div className="mb-6 rounded-lg bg-muted p-4">

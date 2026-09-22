@@ -8,6 +8,7 @@ import { formatSpec, plainText } from '@/shared/lib/plain-text'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { productPath } from '@/shared/seo/route-data'
 import { ProductImage } from '@/shared/ui/ProductImage'
+import { PriceNote } from '@/shared/ui/PriceNote'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import './catalog-list.css'
 
@@ -124,6 +125,7 @@ export function CatalogList({ products }: { products: Product[] }) {
                       / {unit}
                     </span>
                   )}
+                  <PriceNote className="mt-0.5" />
                 </td>
                 <td className="catalog-list-cart">
                   <AddToCartButton product={product} variant="accent" />

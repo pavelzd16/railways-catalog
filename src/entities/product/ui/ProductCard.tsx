@@ -6,6 +6,7 @@ import type { Product } from '../model/types'
 import { formatPrice, getConditionLabel } from '@/shared/lib/catalog-helpers'
 import { CatalogImage } from '@/shared/ui/CatalogImage'
 import { Button } from '@/shared/ui/Button'
+import { PriceNote } from '@/shared/ui/PriceNote'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { AddToCartButton } from '@/features/cart/ui/AddToCartButton'
 
@@ -68,6 +69,7 @@ export function ProductCard({ product }: { product: Product }) {
                 / {unit}
               </span>
             )}
+            <PriceNote className="mt-1" />
           </p>
           <div className="flex items-center gap-2">
             <Button

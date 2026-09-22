@@ -1,4 +1,5 @@
 import { Badge } from '@/shared/ui/Badge'
+import { PriceNote } from '@/shared/ui/PriceNote'
 import { formatPrice, getSpecValue } from '@/shared/lib/catalog-helpers'
 import { useCatalog } from '@/pages/catalog/model/use-catalog'
 
@@ -55,6 +56,7 @@ export function PriceTable() {
                             от {formatPrice(product.price)} ₽
                           </span>
                         )}
+                        <PriceNote className="mt-0.5" />
                       </td>
                       <td className="py-4 px-4">{getStockBadge(product.stock)}</td>
                     </tr>
@@ -79,13 +81,16 @@ export function PriceTable() {
                     <span className="text-xs text-muted-foreground">
                       Масса: {getSpecValue(product, 'weight') || '—'}
                     </span>
-                    {!product.price ? (
-                      <span className="font-semibold text-primary">По запросу</span>
-                    ) : (
-                      <span className="font-semibold text-primary text-lg">
-                        от {formatPrice(product.price)} ₽
-                      </span>
-                    )}
+                    <div className="text-right">
+                      {!product.price ? (
+                        <span className="font-semibold text-primary">По запросу</span>
+                      ) : (
+                        <span className="font-semibold text-primary text-lg">
+                          от {formatPrice(product.price)} ₽
+                        </span>
+                      )}
+                      <PriceNote className="mt-0.5 ml-auto" />
+                    </div>
                   </div>
                 </div>
               ))}
