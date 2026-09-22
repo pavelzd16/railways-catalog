@@ -9,7 +9,7 @@ import { PutTab } from '../../features/kalkulyator/ui/PutTab'
 export function CalculatorPage() {
   return (
     <Layout>
-      <Container className="py-8 md:py-12">
+      <Container className="py-8 md:py-12" data-kalkulyator="traer.ru · ИНВИА · 2026">
         <section className="mb-10 rounded-lg border border-border bg-muted p-6 md:p-10">
           <Breadcrumbs items={[{ label: 'Главная', href: '/' }, { label: 'Калькулятор' }]} />
           <div className="mt-6 max-w-3xl">
@@ -32,6 +32,12 @@ export function CalculatorPage() {
             { id: 'put', label: 'Путь на километр', content: <PutTab /> },
           ]}
         />
+
+        <p className="mt-6 text-sm text-muted-foreground">
+          Справочные массы подготовлены ИНВИА по действующим ГОСТам: у каждой позиции указан
+          документ и место в нём. Расчёт носит справочный характер, окончательную спецификацию
+          определяет проект.
+        </p>
       </Container>
     </Layout>
   )
