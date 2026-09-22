@@ -8,7 +8,11 @@ import { CatalogSearch } from './CatalogSearch'
 import { useCart } from '@/entities/cart/model/use-cart'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
-import { CopyButton } from '@/shared/ui/CopyButton'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { useCopy } from '@/shared/ui/use-copy'
+
+const EMAIL = 'zakaz@traer.ru'
+const COPY_EMAIL = 'Скопировать адрес почты'
 
 const links = [
   ['Услуги', '/services'],
@@ -23,6 +27,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const email = useCopy(EMAIL)
   const { totalItems } = useCart()
   useEffect(() => {
     const scroll = () => {
@@ -109,18 +114,14 @@ export function Header() {
               с иконкой телефона, адрес — ровно над номером. */}
           <div className="ml-auto flex shrink-0 flex-col justify-center">
             <div className="hidden items-center gap-2 px-2 text-sm md:flex">
-              <CopyButton
-                compact
-                value="zakaz@traer.ru"
-                label="Скопировать адрес почты"
-                className="-mx-0.5"
-              />
-              <a
-                href="mailto:zakaz@traer.ru"
-                className="rounded-sm font-bold text-current transition-colors hover:text-primary"
+              <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
+              <CopyValue
+                state={email}
+                label={COPY_EMAIL}
+                className="font-bold text-current hover:text-primary"
               >
-                zakaz@traer.ru
-              </a>
+                {EMAIL}
+              </CopyValue>
             </div>
             <a
               href="tel:+78432270005"

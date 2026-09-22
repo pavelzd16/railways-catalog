@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
-import { CopyButton } from '@/shared/ui/CopyButton'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { useCopy } from '@/shared/ui/use-copy'
 import { FiDownload, FiPhone } from 'react-icons/fi'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 import { Button } from '@/shared/ui/Button'
@@ -16,6 +17,7 @@ const companyLinks = [
 export function Footer() {
   const { categories, isLoading } = useCategories()
   const [callbackOpen, setCallbackOpen] = useState(false)
+  const email = useCopy('zakaz@traer.ru')
   return (
     <footer className="site-footer">
       <div className="container mx-auto px-6 py-12 xl:px-8">
@@ -58,14 +60,14 @@ export function Footer() {
                 +7 (960) 039-01-01
               </a>
               <div className="flex items-center gap-2">
-                <a href="mailto:zakaz@traer.ru" className="footer-muted">
-                  zakaz@traer.ru
-                </a>
-                <CopyButton
-                  compact
-                  value="zakaz@traer.ru"
+                <CopyValue
+                  state={email}
                   label="Скопировать адрес почты"
-                />
+                  className="footer-muted"
+                >
+                  zakaz@traer.ru
+                </CopyValue>
+                <CopyButton state={email} compact label="Скопировать адрес почты" />
               </div>
               <div className="pt-3"><MessengerLinks /></div>
               <p className="footer-muted pt-2">

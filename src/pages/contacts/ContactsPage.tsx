@@ -1,7 +1,8 @@
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { Button } from '@/shared/ui/Button'
-import { CopyButton } from '@/shared/ui/CopyButton'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { useCopy } from '@/shared/ui/use-copy'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
 import { useState } from 'react'
@@ -37,7 +38,6 @@ const CONTACTS = [
     icon: FiMail,
     title: 'Email',
     value: 'zakaz@traer.ru',
-    href: 'mailto:zakaz@traer.ru',
     copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты' },
   },
   {
@@ -165,8 +165,9 @@ function ContactCard({
   copy?: { value: string; label: string }
   wide?: boolean
 }) {
-  // Кнопку нельзя класть внутрь ссылки, поэтому у карточки с «Скопировать»
-  // ссылкой служит только сам адрес, а не вся карточка.
+  // У карточки с «Скопировать» нажатие и на адрес, и на кнопку копирует его:
+  // состояние у них общее, но это две разные кнопки.
+  const email = useCopy(copy?.value ?? '')
   const content = (
     <div className={`h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50 ${wide ? 'sm:col-span-2 xl:col-span-2' : ''}`}>
       <div className="mb-3 text-primary">
@@ -175,13 +176,14 @@ function ContactCard({
       <div className="mb-1 text-sm text-muted-foreground">{title}</div>
       {copy ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <a
-            href={href}
-            className="rounded-sm font-bold text-foreground transition-colors hover:text-primary"
+          <CopyValue
+            state={email}
+            label={copy.label}
+            className="font-bold text-foreground hover:text-primary"
           >
             {value}
-          </a>
-          <CopyButton value={copy.value} label={copy.label} className="-my-0.5" />
+          </CopyValue>
+          <CopyButton state={email} label={copy.label} className="-my-0.5" />
         </div>
       ) : (
         <div className="font-bold text-foreground">{value}</div>
