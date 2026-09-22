@@ -27,6 +27,8 @@ interface RequestFormModalProps {
   productId?: string
   /** Короткая форма обратного звонка: без email и вложений */
   callback?: boolean
+  /** Начальный текст комментария (форма берёт его при монтировании) */
+  comment?: string
 }
 
 export function RequestFormModal({
@@ -37,12 +39,13 @@ export function RequestFormModal({
   serviceId,
   productId,
   callback = false,
+  comment,
 }: RequestFormModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
-    comment: '',
+    comment: comment ?? '',
     policyAccepted: false,
   })
 

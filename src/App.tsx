@@ -5,7 +5,6 @@ import { AboutPage } from './pages/about/AboutPage'
 import { CatalogPage } from './pages/catalog/ui/CatalogPage'
 import { ContactsPage } from './pages/contacts/ContactsPage'
 import { DeliveryPage } from './pages/delivery/DeliveryPage'
-import { PricePage } from './pages/price/PricePage'
 import { ServicesPage } from './pages/services/ServicesPage'
 import { ServicePage } from './pages/service/ServicePage'
 import { CartPage } from './pages/cart/CartPage'
@@ -16,6 +15,7 @@ import { ToastContainer } from 'react-toastify'
 import { AdminPage } from './pages/admin'
 import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
+import { CalculatorPage } from './pages/calculator/CalculatorPage'
 
 export function App() {
   return (
@@ -46,7 +46,7 @@ export function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
-        <Route path="/price" element={<PricePage />} />
+        <Route path="/calculator" element={<CalculatorPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
 

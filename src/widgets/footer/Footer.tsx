@@ -10,7 +10,7 @@ import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 const companyLinks = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
-  ['Прайс', '/price'],
+  ['Калькулятор', '/calculator'],
   ['О компании', '/about'],
   ['Контакты', '/contacts'],
 ]
