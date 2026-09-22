@@ -67,7 +67,7 @@ export function Header() {
             <span>Зеленодольск · Поставки по России и СНГ</span>
             <nav
               aria-label="Основная навигация"
-              className="hidden items-center gap-4 xl:flex"
+              className="hidden items-center gap-4 lg:flex"
             >
               {links.map(([label, to]) => (
                 <NavLink
@@ -117,7 +117,7 @@ export function Header() {
               />
               <a
                 href="mailto:zakaz@traer.ru"
-                className="rounded-sm font-bold text-current/70 transition-colors hover:text-current"
+                className="rounded-sm font-bold text-current transition-colors hover:text-primary"
               >
                 zakaz@traer.ru
               </a>
