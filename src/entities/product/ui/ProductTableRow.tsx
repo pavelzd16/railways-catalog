@@ -4,6 +4,7 @@ import { formatPrice, getSpecValue } from '@/shared/lib/catalog-helpers'
 import type { Product } from '../model/types'
 import { Badge } from '@/shared/ui/Badge'
 import { Button } from '@/shared/ui/Button'
+import { PriceNote } from '@/shared/ui/PriceNote'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { MdNoPhotography, MdEdit, MdDelete } from 'react-icons/md'
 
@@ -89,6 +90,7 @@ export function ProductTableRow({ product, onEdit, onDelete }: ProductTableRowPr
               {formatPrice(product.price)} ₽
             </span>
           )}
+          <PriceNote className="mt-0.5" />
         </td>
 
         <td className="py-4 px-4">
@@ -160,13 +162,16 @@ export function ProductTableRow({ product, onEdit, onDelete }: ProductTableRowPr
             <p className="text-xs text-muted-foreground">Масса: {weight}</p>
           </div>
           
-          {!product.price ? (
-            <span className="text-sm font-semibold text-primary">По запросу</span>
-          ) : (
-            <span className="text-lg font-bold text-primary">
-              {formatPrice(product.price)} ₽
-            </span>
-          )}
+          <div className="text-right">
+            {!product.price ? (
+              <span className="text-sm font-semibold text-primary">По запросу</span>
+            ) : (
+              <span className="text-lg font-bold text-primary">
+                {formatPrice(product.price)} ₽
+              </span>
+            )}
+            <PriceNote className="mt-0.5 ml-auto" />
+          </div>
         </div>
 
         {(onEdit || onDelete) && (
