@@ -7,3 +7,4 @@ export {
 export { transliterate, slugify, sanitizeSlug } from "./slugify";
 export { getImageUrl } from "./product-helpers";
 export { normalizeText } from './string-helpers'
+export { useDebouncedValue } from './use-debounced-value'

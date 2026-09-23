@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Pagination } from '@/shared/ui/Pagination'
+import { useDebouncedValue } from '@/shared/lib'
 import { useAdminCategories, CategoriesSection } from '@/features/admin-categories'
 import { useAdminProducts, ProductFormModal, DeleteProductDialog } from '@/features/admin-products'
 
@@ -25,6 +26,8 @@ export function AdminProductsPage() {
     loadCategories,
   } = useAdminCategories()
 
+  const debouncedSearch = useDebouncedValue(searchQuery)
+
   const {
     products: productsList,
     pagination,
@@ -33,7 +36,11 @@ export function AdminProductsPage() {
     updateProduct,
     deleteProduct,
     handlePageChange,
-  } = useAdminProducts()
+  } = useAdminProducts({
+    search: debouncedSearch,
+    category: selectedCategory,
+    subcategory: selectedSubcategory,
+  })
 
   const currentCategory = useMemo(
     () => categoriesList.find((c: Category) => c.slug === selectedCategory),
@@ -41,28 +48,6 @@ export function AdminProductsPage() {
   )
 
   const filteredSubcategories = currentCategory?.subcategories ?? []
-
-  const filteredProducts = useMemo(() => {
-    let result = productsList
-
-    if (selectedCategory) {
-      result = result.filter((p: Product) => p.categorySlug === selectedCategory)
-    }
-
-    if (selectedSubcategory) {
-      result = result.filter((p: Product) => p.subcategorySlug === selectedSubcategory)
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
-      result = result.filter((p: Product) =>
-        p.title.toLowerCase().includes(query) ||
-        p.sku.toLowerCase().includes(query)
-      )
-    }
-
-    return result
-  }, [selectedCategory, selectedSubcategory, searchQuery, productsList])
 
   const categoryOptions = useMemo(
     () =>
@@ -148,7 +133,7 @@ export function AdminProductsPage() {
         <div className="py-12 text-center">
           <p className="text-muted-foreground">Загрузка продуктов...</p>
         </div>
-      ) : filteredProducts.length > 0 ? (
+      ) : productsList.length > 0 ? (
         <>
           <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
             <table className="w-full">
@@ -165,7 +150,7 @@ export function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => (
+                {productsList.map((product) => (
                   <ProductTableRow
                     key={product.id}
                     product={product}
@@ -181,7 +166,7 @@ export function AdminProductsPage() {
           </div>
 
           <div className="space-y-4 md:hidden">
-            {filteredProducts.map((product) => (
+            {productsList.map((product) => (
               <ProductTableRow
                 key={product.id}
                 product={product}
