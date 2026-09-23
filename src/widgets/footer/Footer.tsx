@@ -14,10 +14,13 @@ const companyLinks = [
   ['О компании', '/about'],
   ['Контакты', '/contacts'],
 ]
+const COPY_PHONE = 'Скопировать номер телефона'
 export function Footer() {
   const { categories, isLoading } = useCategories()
   const [callbackOpen, setCallbackOpen] = useState(false)
   const email = useCopy('zakaz@traer.ru')
+  const phoneMain = useCopy('+7 (843) 227-00-05')
+  const phoneSales = useCopy('+7 (965) 615-50-59')
   return (
     <footer className="site-footer">
       <div className="container mx-auto px-6 py-12 xl:px-8">
@@ -50,15 +53,26 @@ export function Footer() {
           <div>
             <h2 className="mb-4 text-base font-bold">Контакты</h2>
             <div className="space-y-2 text-sm">
-              <a
-                href="tel:+78432270005"
-                className="block whitespace-nowrap text-base font-bold"
-              >
-                +7 (843) 227-00-05
-              </a>
-              <a href="tel:+79600390101" className="footer-muted block">
-                +7 (960) 039-01-01
-              </a>
+              <div className="flex items-center gap-2">
+                <CopyValue
+                  state={phoneMain}
+                  label={COPY_PHONE}
+                  className="whitespace-nowrap text-base font-bold"
+                >
+                  +7 (843) 227-00-05
+                </CopyValue>
+                <CopyButton state={phoneMain} compact label={COPY_PHONE} />
+              </div>
+              <div className="flex items-center gap-2">
+                <CopyValue
+                  state={phoneSales}
+                  label={COPY_PHONE}
+                  className="footer-muted whitespace-nowrap"
+                >
+                  +7 (965) 615-50-59
+                </CopyValue>
+                <CopyButton state={phoneSales} compact label={COPY_PHONE} />
+              </div>
               <div className="flex items-center gap-2">
                 <CopyValue
                   state={email}

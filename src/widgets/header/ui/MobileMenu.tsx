@@ -6,11 +6,57 @@ import { Link } from 'react-router'
 import { getCategoryUrl, getSubcategoryUrl } from '@/shared/lib'
 import { MobileNavLink } from '@/widgets/header/ui/MobileNavLink'
 import { Button } from '@/shared/ui/Button'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { useCopy } from '@/shared/ui/use-copy'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 
 interface MobileMenuProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+const COPY_PHONE = 'Скопировать номер телефона'
+
+/**
+ * Телефон в меню: значок трубки звонит, номер и значок рядом копируют номер.
+ * Значок копирования стоит у номера, а не у края: подсказку «Скопировано»
+ * под ним иначе обрезает край экрана.
+ */
+function PhoneRow({
+  phone,
+  href,
+  note,
+}: {
+  phone: string
+  href: string
+  note?: string
+}) {
+  const copy = useCopy(phone)
+  return (
+    <div className="mb-3 flex min-h-12 items-center gap-1 rounded-lg bg-muted pl-1 pr-3 text-sm font-semibold">
+      <a
+        href={href}
+        aria-label={`Позвонить: ${phone}`}
+        title="Позвонить"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-primary hover:bg-primary/10"
+      >
+        <FiPhone className="h-5 w-5" />
+      </a>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <CopyValue state={copy} label={COPY_PHONE} className="hover:text-primary">
+            {phone}
+          </CopyValue>
+          <CopyButton compact state={copy} label={COPY_PHONE} />
+        </div>
+        {note && (
+          <div className="mt-0.5 text-xs font-normal text-muted-foreground">
+            {note}
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 function MobileMenuSkeleton() {
@@ -236,38 +282,12 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
 
             <div className="mt-auto border-t border-border pt-5">
               <div className="mb-3"><MessengerLinks /></div>
-              <a
+              <PhoneRow
+                phone="+7 (843) 227-00-05"
                 href="tel:+78432270005"
-                className="
-                  mb-3 flex min-h-12 items-center
-                  gap-3 rounded-lg
-                  bg-muted px-4
-                  text-sm font-semibold
-                "
-              >
-                <FiPhone className="h-5 w-5 text-primary" />
-
-                <div>
-                  <div>+7 (843) 227-00-05</div>
-
-                  <div className="mt-0.5 text-xs font-normal text-muted-foreground">
-                    Отдел продаж
-                  </div>
-                </div>
-              </a>
-
-              <a
-                href="tel:+79600390101"
-                className="
-                  mb-3 flex min-h-12 items-center
-                  gap-3 rounded-lg
-                  bg-muted px-4
-                  text-sm font-semibold
-                "
-              >
-                <FiPhone className="h-5 w-5 text-primary" />
-                <div>+7 (960) 039-01-01</div>
-              </a>
+                note="Отдел продаж"
+              />
+              <PhoneRow phone="+7 (965) 615-50-59" href="tel:+79656155059" />
 
               <Button
                 className="w-full"
