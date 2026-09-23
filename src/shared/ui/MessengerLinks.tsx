@@ -6,7 +6,7 @@ import { Dialog } from './Dialog'
 // Номер мессенджеров отдела продаж. В секрете боевой сборки VITE_MESSENGER_PHONE может
 // оставаться заглушка из нулей — прочитать и поправить секрет нельзя, поэтому заглушку
 // считаем незаданной и берём этот номер.
-const DEFAULT_MESSENGER_PHONE = '+7 (960) 039-01-01'
+const DEFAULT_MESSENGER_PHONE = '+7 (965) 615-50-59'
 const isRealPhone = (value: string | undefined) => {
   const valueDigits = (value ?? '').replace(/\D/g, '')
   return /^\d{10,15}$/.test(valueDigits) && !/^7?0+$/.test(valueDigits)
