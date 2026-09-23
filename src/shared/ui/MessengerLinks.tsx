@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { FiMessageCircle, FiSend } from 'react-icons/fi'
 import { FaWhatsapp } from 'react-icons/fa'
+import { CopyButton, CopyValue } from './CopyButton'
 import { Dialog } from './Dialog'
+import { useCopy } from './use-copy'
 
 // Номер мессенджеров отдела продаж. В секрете боевой сборки VITE_MESSENGER_PHONE может
 // оставаться заглушка из нулей — прочитать и поправить секрет нельзя, поэтому заглушку
@@ -25,6 +27,7 @@ const messengers = [
 
 export function MessengerLinks({ compact = false, showPhone = false }: { compact?: boolean; showPhone?: boolean }) {
   const [placeholder, setPlaceholder] = useState('')
+  const phoneCopy = useCopy(phone)
   return <div>
     <div className="flex flex-wrap items-center gap-2" aria-label="Мессенджеры">
       {messengers.map(({ label, icon: Icon, href }) => {
@@ -33,7 +36,10 @@ export function MessengerLinks({ compact = false, showPhone = false }: { compact
         return href ? <a key={label} href={href} aria-label={label} title={label} target="_blank" rel="noopener noreferrer" className={className}>{content}</a> : <button key={label} type="button" aria-label={label} title={label} className={className} onClick={() => setPlaceholder(label)}>{content}</button>
       })}
     </div>
-    {showPhone && <p className="mt-2 text-sm font-normal text-muted-foreground">{phone}</p>}
+    {showPhone && <div className="mt-2 flex items-center gap-2 text-sm font-normal text-muted-foreground">
+      <CopyValue state={phoneCopy} label="Скопировать номер телефона" className="whitespace-nowrap hover:text-primary">{phone}</CopyValue>
+      <CopyButton compact state={phoneCopy} label="Скопировать номер телефона" />
+    </div>}
     <Dialog open={!!placeholder} onOpenChange={() => setPlaceholder('')} title={placeholder} description="Контакт для связи">
       <p className="text-xl font-bold">{phone}</p>
       <p className="mt-3 text-sm text-muted-foreground">Найдите нас в {placeholder} по этому номеру.</p>

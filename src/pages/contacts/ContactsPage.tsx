@@ -25,13 +25,15 @@ const CONTACTS = [
     title: 'Телефон',
     value: '+7 (843) 227-00-05',
     href: 'tel:+78432270005',
+    copy: { value: '+7 (843) 227-00-05', label: 'Скопировать номер телефона' },
   },
   {
     id: 'phone-3',
     icon: FiPhone,
     title: 'Телефон',
-    value: '+7 (960) 039-01-01',
-    href: 'tel:+79600390101',
+    value: '+7 (965) 615-50-59',
+    href: 'tel:+79656155059',
+    copy: { value: '+7 (965) 615-50-59', label: 'Скопировать номер телефона' },
   },
   {
     id: 'email',
@@ -165,25 +167,36 @@ function ContactCard({
   copy?: { value: string; label: string }
   wide?: boolean
 }) {
-  // У карточки с «Скопировать» нажатие и на адрес, и на кнопку копирует его:
-  // состояние у них общее, но это две разные кнопки.
-  const email = useCopy(copy?.value ?? '')
+  // У карточки с «Скопировать» нажатие и на значение, и на кнопку копирует его:
+  // состояние у них общее, но это две разные кнопки. Звонок у телефона — по значку.
+  const copyState = useCopy(copy?.value ?? '')
   const content = (
     <div className={`h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50 ${wide ? 'sm:col-span-2 xl:col-span-2' : ''}`}>
       <div className="mb-3 text-primary">
-        <Icon className="h-6 w-6" />
+        {href && copy ? (
+          <a
+            href={href}
+            aria-label={`Позвонить: ${copy.value}`}
+            title="Позвонить"
+            className="-m-2 flex w-fit rounded-md p-2 hover:bg-primary/10"
+          >
+            <Icon className="h-6 w-6" />
+          </a>
+        ) : (
+          <Icon className="h-6 w-6" />
+        )}
       </div>
       <div className="mb-1 text-sm text-muted-foreground">{title}</div>
       {copy ? (
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <CopyValue
-            state={email}
+            state={copyState}
             label={copy.label}
-            className="font-bold text-foreground hover:text-primary"
+            className="whitespace-nowrap font-bold text-foreground hover:text-primary"
           >
             {value}
           </CopyValue>
-          <CopyButton state={email} label={copy.label} className="-my-0.5" />
+          <CopyButton state={copyState} label={copy.label} className="-my-0.5" />
         </div>
       ) : (
         <div className="font-bold text-foreground">{value}</div>

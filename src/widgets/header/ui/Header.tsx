@@ -13,6 +13,8 @@ import { useCopy } from '@/shared/ui/use-copy'
 
 const EMAIL = 'zakaz@traer.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'
+const PHONE = '+7 (843) 227-00-05'
+const COPY_PHONE = 'Скопировать номер телефона'
 
 const links = [
   ['Услуги', '/services'],
@@ -28,6 +30,7 @@ export function Header() {
   const [requestOpen, setRequestOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const email = useCopy(EMAIL)
+  const phone = useCopy(PHONE)
   const { totalItems } = useCart()
   useEffect(() => {
     const scroll = () => {
@@ -110,8 +113,8 @@ export function Header() {
           <div className="hidden min-w-0 max-w-xl flex-1 md:block">
             <CatalogSearch />
           </div>
-          {/* Почта над телефоном: кнопка копирования стоит в одном столбце
-              с иконкой телефона, адрес — ровно над номером. */}
+          {/* Почта над телефоном: кнопки копирования стоят в одном столбце,
+              адрес — ровно над номером. */}
           <div className="ml-auto flex shrink-0 flex-col justify-center">
             <div className="hidden items-center gap-2 px-2 text-sm md:flex">
               <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
@@ -123,14 +126,25 @@ export function Header() {
                 {EMAIL}
               </CopyValue>
             </div>
+            {/* На телефоне — значок звонка, на широком экране номер
+                копируется так же, как почта. */}
             <a
               href="tel:+78432270005"
-              className="flex h-11 items-center gap-2 whitespace-nowrap rounded-lg px-2 font-bold hover:opacity-75 md:h-8"
-              aria-label="Позвонить: +7 (843) 227-00-05"
+              className="flex h-11 items-center rounded-lg px-2 hover:opacity-75 md:hidden"
+              aria-label={`Позвонить: ${PHONE}`}
             >
               <FiPhone className="h-5 w-5" />
-              <span className="hidden md:inline">+7 (843) 227-00-05</span>
             </a>
+            <div className="hidden h-8 items-center gap-2 px-2 md:flex">
+              <CopyButton compact state={phone} label={COPY_PHONE} className="-mx-0.5" />
+              <CopyValue
+                state={phone}
+                label={COPY_PHONE}
+                className="whitespace-nowrap font-bold text-current hover:text-primary"
+              >
+                {PHONE}
+              </CopyValue>
+            </div>
           </div>
           <Link
             to="/cart"
