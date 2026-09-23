@@ -2,6 +2,7 @@ import { FiPhone, FiMail, FiArrowRight } from 'react-icons/fi'
 import { Link } from 'react-router'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
+import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
 const COPY_PHONE = 'Скопировать номер телефона'
 const COPY_EMAIL = 'Скопировать адрес почты'
 export function HomeContacts() {
@@ -9,7 +10,7 @@ export function HomeContacts() {
   // звонок — по значку телефона слева.
   const phoneMain = useCopy('+7 (843) 227-00-05')
   const phoneSales = useCopy('+7 (965) 615-50-59')
-  const email = useCopy('zakaz@traer.ru')
+  const email = useCopy('zakaz@traer.ru', EMAIL_COPY_GOAL)
   return (
     <section className="border-t border-border bg-muted py-12 md:py-16">
       <div className="container mx-auto grid gap-8 px-6 md:grid-cols-2 xl:px-8">

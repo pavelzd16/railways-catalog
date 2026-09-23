@@ -36,8 +36,22 @@ export function metrikaHit(url: string, referrer: string): void {
  */
 export const FORM_GOAL = 'forma'
 
-/** Засчитывает цель в Метрике. */
+/**
+ * Цель «Копирование почты»: нажатие на адрес zakaz@traer.ru или на значок
+ * копирования рядом с ним — в шапке, подвале, на главной и в «Контактах».
+ */
+export const EMAIL_COPY_GOAL = 'pochta'
+
+/**
+ * Засчитывает цель в Метрике. Ошибка счётчика сюда не выходит: действие,
+ * ради которого засчитывается цель (отправка формы, копирование), не должно
+ * от неё зависеть.
+ */
 export function metrikaReachGoal(goal: string): void {
   if (!metrikaId || typeof window.ym !== 'function') return
-  window.ym(Number(metrikaId), 'reachGoal', goal)
+  try {
+    window.ym(Number(metrikaId), 'reachGoal', goal)
+  } catch {
+    // Счётчик сломан или заблокирован — цель теряется, сайт работает.
+  }
 }
