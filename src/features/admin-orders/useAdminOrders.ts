@@ -1,8 +1,10 @@
-import { useCallback, useState, useEffect } from 'react'
+import { useCallback, useState, useEffect, useRef } from 'react'
 import { toast } from 'react-toastify'
-import type { Order, OrderStatus, GetOrdersParams } from '@/entities/order/model/types'
+import type { Order, OrderStatus } from '@/entities/order/model/types'
 import type { PaginationMeta } from '@/shared/api'
 import { orderApi } from '@/entities/order/api/order.api'
+import { useDebouncedValue } from '@/shared/lib'
+import { ADMIN_ORDERS_PER_PAGE, adminOrdersQuery } from './adminOrdersQuery'
 
 interface UseAdminOrdersReturn {
   orders: Order[]
@@ -25,7 +27,7 @@ export function useAdminOrders(): UseAdminOrdersReturn {
   const [orders, setOrders] = useState<Order[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    limit: 20,
+    limit: ADMIN_ORDERS_PER_PAGE,
     total: 0,
     totalPages: 0,
     hasNextPage: false,
@@ -37,36 +39,32 @@ export function useAdminOrders(): UseAdminOrdersReturn {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
-  const [currentPage, setCurrentPage] = useState(1)
+  const debouncedSearch = useDebouncedValue(searchQuery)
+  const requestRef = useRef(0)
+  const pageRef = useRef(1)
 
-  const loadOrders = useCallback(async (params?: GetOrdersParams) => {
+  const loadOrders = useCallback(async (page: number = 1) => {
+    pageRef.current = page
+    const attempt = ++requestRef.current
     setIsLoading(true)
     setError(null)
     try {
-      const response = await orderApi.getAll({
-        page: currentPage,
-        search: searchQuery || undefined,
-        status: statusFilter === 'all' ? undefined : statusFilter,
-        ...params,
-      })
+      const response = await orderApi.getAll(
+        adminOrdersQuery({ search: debouncedSearch, status: statusFilter }, page),
+      )
+      if (attempt !== requestRef.current) return
       setOrders(response.items)
       setPagination(response.pagination)
     } catch (err: any) {
+      if (attempt !== requestRef.current) return
       setError(err.message || 'Ошибка загрузки заказов')
     } finally {
-      setIsLoading(false)
+      if (attempt === requestRef.current) setIsLoading(false)
     }
-  }, [currentPage, searchQuery, statusFilter])
+  }, [debouncedSearch, statusFilter])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1)
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  useEffect(() => {
-    loadOrders()
+    loadOrders(1)
   }, [loadOrders])
 
   const loadOrderById = useCallback(async (id: string): Promise<Order | null> => {
@@ -99,8 +97,12 @@ export function useAdminOrders(): UseAdminOrdersReturn {
   )
 
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page)
-  }, [])
+    loadOrders(page)
+  }, [loadOrders])
+
+  const reloadOrders = useCallback(async () => {
+    await loadOrders(pageRef.current)
+  }, [loadOrders])
 
   return {
     orders,
@@ -116,6 +118,6 @@ export function useAdminOrders(): UseAdminOrdersReturn {
     updateOrderStatus,
     setSelectedOrder,
     handlePageChange,
-    reloadOrders: loadOrders,
+    reloadOrders,
   }
 }

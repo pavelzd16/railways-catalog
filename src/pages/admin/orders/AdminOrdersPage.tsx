@@ -14,10 +14,10 @@ import { ORDER_STATUS_LABELS, ORDER_STATUS_VARIANTS } from '@/entities/order/mod
 
 const statusOptions = [
   { value: 'all', label: 'Все статусы' },
-  { value: 'new', label: 'Новый' },
-  { value: 'processing', label: 'В обработке' },
-  { value: 'completed', label: 'Выполнен' },
-  { value: 'cancelled', label: 'Отменён' },
+  ...(Object.keys(ORDER_STATUS_LABELS) as OrderStatus[]).map((status) => ({
+    value: status,
+    label: ORDER_STATUS_LABELS[status],
+  })),
 ]
 
 function formatDate(dateString: string) {
