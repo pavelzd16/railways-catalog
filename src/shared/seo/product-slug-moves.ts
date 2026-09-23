@@ -155,6 +155,14 @@ export const PRODUCT_SLUG_MOVES: Readonly<Record<string, string>> = {
   "zhelezobetonnye-shpaly-shs-ars-k": "shpala-zhelezobetonnaya-shs-ars-k-dlya-krivyh", // TM-0125
   "znak-opustit-nozh-otkryt-krylya": "znak-opustit-nozh-otkryt-krylya-tm0561", // TM-0561
   "znak-vklyuchit-tok-na-elektrovoze": "znak-vklyuchit-tok-na-elektrovoze-tm0551", // TM-0551
+
+  // 23.09.2026 — четыре карточки из импорта brjansk.tdtransmet.ru, где прежний адрес повторял
+  // не обозначение по стандарту, а их описательную формулировку. Остальные адреса импорта
+  // оставлены: они транслит обозначений по ГОСТ («nakladka-r-43»), совпадение вынужденное.
+  "nakladka-stykovaya-kr70-kr80-kr100-kr120": "nakladka-stykovaya-kranovyh-relsov-kr70-kr120", // TM-0087
+  "prokladka-tsp-328-pod-podkladku-kb-65": "prokladka-podkladochnaya-tsp-328-kb-65", // TM-0065
+  "prokladki-amortizatory-dlya-strelochnyh-perevodov": "prokladka-amortiziruyushchaya-strelochnogo-perevoda", // TM-0074
+  "tortsevoj-zakrepitel-dlya-shpal": "zakrepitel-tortsevoj-derevyannoj-shpaly", // TM-0004
 }
 
 /** Нынешний slug для прежнего адреса карточки; undefined, если адрес не переносили. */
