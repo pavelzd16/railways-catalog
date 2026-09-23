@@ -3,6 +3,7 @@ import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { Button } from '@/shared/ui/Button'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
+import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
 import { useState } from 'react'
@@ -40,7 +41,7 @@ const CONTACTS = [
     icon: FiMail,
     title: 'Email',
     value: 'zakaz@traer.ru',
-    copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты' },
+    copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты', goal: EMAIL_COPY_GOAL },
   },
   {
     id: 'work-hours',
@@ -164,12 +165,12 @@ function ContactCard({
   value: React.ReactNode
   subvalue?: string
   href?: string
-  copy?: { value: string; label: string }
+  copy?: { value: string; label: string; goal?: string }
   wide?: boolean
 }) {
   // У карточки с «Скопировать» нажатие и на значение, и на кнопку копирует его:
   // состояние у них общее, но это две разные кнопки. Звонок у телефона — по значку.
-  const copyState = useCopy(copy?.value ?? '')
+  const copyState = useCopy(copy?.value ?? '', copy?.goal)
   const content = (
     <div className={`h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary/50 ${wide ? 'sm:col-span-2 xl:col-span-2' : ''}`}>
       <div className="mb-3 text-primary">

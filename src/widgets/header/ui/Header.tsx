@@ -10,6 +10,7 @@ import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
+import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
 
 const EMAIL = 'zakaz@traer.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'
@@ -29,7 +30,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const email = useCopy(EMAIL)
+  const email = useCopy(EMAIL, EMAIL_COPY_GOAL)
   const phone = useCopy(PHONE)
   const { totalItems } = useCart()
   useEffect(() => {

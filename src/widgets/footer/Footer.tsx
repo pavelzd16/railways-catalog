@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
+import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
 import { FiDownload, FiPhone } from 'react-icons/fi'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 import { Button } from '@/shared/ui/Button'
@@ -18,7 +19,7 @@ const COPY_PHONE = 'Скопировать номер телефона'
 export function Footer() {
   const { categories, isLoading } = useCategories()
   const [callbackOpen, setCallbackOpen] = useState(false)
-  const email = useCopy('zakaz@traer.ru')
+  const email = useCopy('zakaz@traer.ru', EMAIL_COPY_GOAL)
   const phoneMain = useCopy('+7 (843) 227-00-05')
   const phoneSales = useCopy('+7 (965) 615-50-59')
   return (
