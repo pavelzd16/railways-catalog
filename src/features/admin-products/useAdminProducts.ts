@@ -1,37 +1,43 @@
 import { categoryApi, type Category } from '@/entities/category'
 import { productApi, type CreateProductDto, type Product, type UpdateProductDto } from '@/entities/product'
 import type { PaginationMeta } from '@/shared/api'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { ADMIN_PRODUCTS_PER_PAGE, adminProductsQuery, type AdminProductsFilters } from './adminProductsQuery'
 
-const ITEMS_PER_PAGE = 20
-
-export function useAdminProducts() {
+export function useAdminProducts(filters: AdminProductsFilters = {}) {
+  const { search = '', category = '', subcategory = '' } = filters
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>({
     total: 0,
     page: 1,
-    limit: ITEMS_PER_PAGE,
+    limit: ADMIN_PRODUCTS_PER_PAGE,
     totalPages: 0,
     hasNextPage: false,
     hasPreviousPage: false,
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const requestRef = useRef(0)
 
   const loadProducts = useCallback(async (page: number = 1) => {
+    const request = ++requestRef.current
     setIsLoading(true)
     setError(null)
     try {
-      const response = await productApi.getAll({ page, limit: ITEMS_PER_PAGE })
+      const response = await productApi.getAll(
+        adminProductsQuery({ search, category, subcategory }, page),
+      )
+      if (request !== requestRef.current) return
       setProducts(response.items)
       setPagination(response.pagination)
     } catch (err) {
+      if (request !== requestRef.current) return
       setError(err instanceof Error ? err.message : 'Failed to load products')
     } finally {
-      setIsLoading(false)
+      if (request === requestRef.current) setIsLoading(false)
     }
-  }, [])
+  }, [search, category, subcategory])
 
   const loadCategories = useCallback(async () => {
     try {
@@ -92,9 +98,12 @@ export function useAdminProducts() {
   }, [])
 
   useEffect(() => {
-    loadProducts()
+    loadProducts(1)
+  }, [loadProducts])
+
+  useEffect(() => {
     loadCategories()
-  }, [loadProducts, loadCategories])
+  }, [loadCategories])
 
   const handlePageChange = useCallback((page: number) => {
     loadProducts(page)
