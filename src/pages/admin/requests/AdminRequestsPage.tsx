@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import type { Request } from '@/entities/request/model/types'
 import { RequestTableRow } from '@/entities/request/ui/RequestTableRow'
 import { Select } from '@/shared/ui/Select'
 import { Input } from '@/shared/ui/Input'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Pagination } from '@/shared/ui/Pagination'
+import { useDebouncedValue } from '@/shared/lib'
 import { useAdminRequests, DeleteRequestDialog } from '@/features/admin-requests'
 
 export function AdminRequestsPage() {
@@ -12,36 +13,15 @@ export function AdminRequestsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [deletingRequest, setDeletingRequest] = useState<Request | null>(null)
 
+  const debouncedSearch = useDebouncedValue(searchQuery)
+
   const {
     requests,
     pagination,
     isLoading,
     deleteRequest,
     handlePageChange,
-  } = useAdminRequests()
-
-  const filteredRequests = useMemo(() => {
-    let result = requests
-
-    if (selectedType === 'service') {
-      result = result.filter((r) => r.serviceId)
-    } else if (selectedType === 'product') {
-      result = result.filter((r) => r.productId)
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim()
-      result = result.filter(
-        (r) =>
-          r.name.toLowerCase().includes(query) ||
-          r.phone.includes(query) ||
-          (r.email && r.email.toLowerCase().includes(query)) ||
-          (r.comment && r.comment.toLowerCase().includes(query)),
-      )
-    }
-
-    return result
-  }, [selectedType, searchQuery, requests])
+  } = useAdminRequests({ search: debouncedSearch, type: selectedType })
 
   return (
     <div className="p-4 md:p-6">
@@ -84,7 +64,7 @@ export function AdminRequestsPage() {
         <div className="py-12 text-center">
           <p className="text-muted-foreground">Загрузка заявок...</p>
         </div>
-      ) : filteredRequests.length > 0 ? (
+      ) : requests.length > 0 ? (
         <>
           <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
             <table className="w-full">
@@ -100,7 +80,7 @@ export function AdminRequestsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredRequests.map((request) => (
+                {requests.map((request) => (
                   <RequestTableRow
                     key={request.id}
                     request={request}
@@ -115,7 +95,7 @@ export function AdminRequestsPage() {
           </div>
 
           <div className="space-y-4 md:hidden">
-            {filteredRequests.map((request) => (
+            {requests.map((request) => (
               <RequestTableRow
                 key={request.id}
                 request={request}

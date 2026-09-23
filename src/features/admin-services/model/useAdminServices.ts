@@ -1,25 +1,31 @@
-import { useState, useEffect, useCallback } from 'react'
-import type { Service, CreateServiceDto, UpdateServiceDto, GetServicesParams } from '@/entities/service/model/types'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import type { Service, CreateServiceDto, UpdateServiceDto } from '@/entities/service/model/types'
 import type { PaginationMeta } from '@/shared/api'
 import { serviceApi } from '@/entities/service/api/service.api'
+import {
+  ADMIN_SERVICES_PER_PAGE,
+  adminServicesQuery,
+  type AdminServicesFilters,
+} from './adminServicesQuery'
 
 interface UseAdminServicesReturn {
   services: Service[]
   pagination: PaginationMeta
   isLoading: boolean
   error: string | null
-  loadServices: (params?: GetServicesParams) => Promise<void>
+  loadServices: (page?: number) => Promise<void>
   createService: (dto: CreateServiceDto, image: File | null) => Promise<void>
   updateService: (id: string, dto: UpdateServiceDto, image: File | null) => Promise<void>
   deleteService: (id: string) => Promise<void>
   handlePageChange: (page: number) => void
 }
 
-export function useAdminServices(): UseAdminServicesReturn {
+export function useAdminServices(filters: AdminServicesFilters = {}): UseAdminServicesReturn {
+  const { search = '' } = filters
   const [services, setServices] = useState<Service[]>([])
   const [pagination, setPagination] = useState<PaginationMeta>({
     page: 1,
-    limit: 20,
+    limit: ADMIN_SERVICES_PER_PAGE,
     total: 0,
     totalPages: 0,
     hasNextPage: false,
@@ -27,33 +33,35 @@ export function useAdminServices(): UseAdminServicesReturn {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
+  const requestRef = useRef(0)
+  const pageRef = useRef(1)
 
-  const loadServices = useCallback(async (params?: GetServicesParams) => {
+  const loadServices = useCallback(async (page: number = 1) => {
+    pageRef.current = page
+    const attempt = ++requestRef.current
     setIsLoading(true)
     setError(null)
     try {
-      const response = await serviceApi.getAll({
-        page: currentPage,
-        ...params,
-      })
+      const response = await serviceApi.getAll(adminServicesQuery({ search }, page))
+      if (attempt !== requestRef.current) return
       setServices(response.items)
       setPagination(response.pagination)
     } catch (err: any) {
+      if (attempt !== requestRef.current) return
       setError(err.message || 'Ошибка загрузки услуг')
     } finally {
-      setIsLoading(false)
+      if (attempt === requestRef.current) setIsLoading(false)
     }
-  }, [currentPage])
+  }, [search])
 
   useEffect(() => {
-    loadServices()
+    loadServices(1)
   }, [loadServices])
 
   const createService = useCallback(async (dto: CreateServiceDto, image: File | null) => {
     try {
       await serviceApi.create(dto, image)
-      await loadServices()
+      await loadServices(pageRef.current)
     } catch (err: any) {
       throw new Error(err.message || 'Ошибка создания услуги')
     }
@@ -62,7 +70,7 @@ export function useAdminServices(): UseAdminServicesReturn {
   const updateService = useCallback(async (id: string, dto: UpdateServiceDto, image: File | null) => {
     try {
       await serviceApi.update(id, dto, image)
-      await loadServices()
+      await loadServices(pageRef.current)
     } catch (err: any) {
       throw new Error(err.message || 'Ошибка обновления услуги')
     }
@@ -71,15 +79,15 @@ export function useAdminServices(): UseAdminServicesReturn {
   const deleteService = useCallback(async (id: string) => {
     try {
       await serviceApi.delete(id)
-      await loadServices()
+      await loadServices(pageRef.current)
     } catch (err: any) {
       throw new Error(err.message || 'Ошибка удаления услуги')
     }
   }, [loadServices])
 
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page)
-  }, [])
+    loadServices(page)
+  }, [loadServices])
 
   return {
     services,

@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
 import { EmptyState } from '@/shared/ui/EmptyState'
 import { Pagination } from '@/shared/ui/Pagination'
+import { useDebouncedValue } from '@/shared/lib'
 import { useAdminServices, ServiceFormModal, DeleteServiceDialog } from '@/features/admin-services'
 
 export function AdminServicesPage() {
@@ -13,6 +14,8 @@ export function AdminServicesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [deletingService, setDeletingService] = useState<Service | null>(null)
+
+  const debouncedSearch = useDebouncedValue(searchQuery)
 
   const {
     services,
@@ -22,15 +25,7 @@ export function AdminServicesPage() {
     updateService,
     deleteService,
     handlePageChange,
-  } = useAdminServices()
-
-  const filteredServices = searchQuery.trim()
-    ? services.filter(
-        (service) =>
-          service.title.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-          service.slug.toLowerCase().includes(searchQuery.toLowerCase().trim())
-      )
-    : services
+  } = useAdminServices({ search: debouncedSearch })
 
   return (
     <div className="p-4 md:p-6">
@@ -64,7 +59,7 @@ export function AdminServicesPage() {
         <div className="py-12 text-center">
           <p className="text-muted-foreground">Загрузка услуг...</p>
         </div>
-      ) : filteredServices.length > 0 ? (
+      ) : services.length > 0 ? (
         <>
           <div className="hidden overflow-x-auto rounded-xl border border-border bg-card md:block">
             <table className="w-full">
@@ -79,7 +74,7 @@ export function AdminServicesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredServices.map((service) => (
+                {services.map((service) => (
                   <ServiceTableRow
                     key={service.id}
                     service={service}
@@ -95,7 +90,7 @@ export function AdminServicesPage() {
           </div>
 
           <div className="space-y-4 md:hidden">
-            {filteredServices.map((service) => (
+            {services.map((service) => (
               <ServiceTableRow
                 key={service.id}
                 service={service}
