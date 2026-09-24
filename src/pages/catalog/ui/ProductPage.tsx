@@ -15,6 +15,7 @@ import { PriceNote } from '@/shared/ui/PriceNote'
 import { ProductImage } from '@/shared/ui/ProductImage'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
+import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
 import { useState } from 'react'
 import { FiFileText, FiSettings, FiShoppingCart, FiTruck } from 'react-icons/fi'
 import { Link, useParams } from 'react-router'
@@ -192,6 +193,12 @@ export function ProductPage() {
               )}
               <PriceNote variant="chip" className="mt-3" />
             </div>
+
+            <VolumeTiers
+              categorySlug={product.category?.slug}
+              className="mb-6"
+              onRequest={() => setRequestFormOpen(true)}
+            />
 
             <div className="mb-6 rounded-lg bg-muted p-4">
               <div className="mb-1 text-sm text-muted-foreground">Наличие</div>
