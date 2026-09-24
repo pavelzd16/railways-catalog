@@ -26,11 +26,16 @@ const links = [
   ['Контакты', '/contacts'],
 ]
 
-/** Номер на широком экране: нажатие на номер или значок копирует его, как почту. */
-function HeaderPhone({ phone }: { phone: string }) {
+/**
+ * Номер на широком экране: нажатие на номер или значок копирует его, как почту.
+ * `small` — второй номер шрифтом почты, чтобы столбик не спорил с городским.
+ */
+function HeaderPhone({ phone, small }: { phone: string; small?: boolean }) {
   const copy = useCopy(phone)
   return (
-    <div className="hidden h-6 items-center gap-2 px-2 md:flex">
+    <div
+      className={`hidden h-6 items-center gap-2 px-2 md:flex ${small ? 'text-sm' : ''}`}
+    >
       <CopyButton compact state={copy} label={COPY_PHONE} className="-mx-0.5" />
       <CopyValue
         state={copy}
@@ -127,8 +132,9 @@ export function Header() {
             <CatalogMegaMenu />
           </div>
           {/* Поиск не растягивается на всю свободную ширину: иначе на экранах
-              уже xl он отжимает номер телефона и тот остаётся одной иконкой. */}
-          <div className="hidden min-w-0 max-w-xl flex-1 md:block">
+              уже xl он отжимает номер телефона и тот остаётся одной иконкой.
+              Не шире 300 px — на больших мониторах длинная строка ни к чему. */}
+          <div className="hidden min-w-0 max-w-75 flex-1 md:block">
             <CatalogSearch />
           </div>
           {/* Почта и два номера столбиком: кнопки копирования стоят в одном
@@ -153,7 +159,7 @@ export function Header() {
               <FiPhone className="h-5 w-5" />
             </a>
             <HeaderPhone phone={PHONE} />
-            <HeaderPhone phone={PHONE_2} />
+            <HeaderPhone phone={PHONE_2} small />
           </div>
           <Link
             to="/cart"
@@ -168,11 +174,16 @@ export function Header() {
             )}
           </Link>
           <div className="hidden shrink-0 xl:block">
+            {/* Срок перезвона прямо на кнопке. Две строки по высоте 56 px —
+                помещаются и в сжатую шапку (72 px). */}
             <Button
-              className="whitespace-nowrap px-4!"
+              className="flex-col gap-0! whitespace-nowrap px-4! py-1.5! leading-tight"
               onClick={() => setRequestOpen(true)}
             >
               Заказать звонок
+              <span className="text-xs font-medium opacity-90">
+                перезвоним за 15 мин
+              </span>
             </Button>
           </div>
           <button
