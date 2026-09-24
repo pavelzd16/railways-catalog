@@ -1,6 +1,26 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { FiSearch } from 'react-icons/fi'
+import { useTypingPlaceholder } from './use-typing-placeholder'
+
+/**
+ * Примеры, которые печатаются в пустом поле. Каждый проверен на поиске
+ * traer.ru 24.09.2026 — по нему находятся товары.
+ */
+const EXAMPLES = [
+  'Рельс Р65',
+  'Шпала Ш1-1',
+  'Накладка 1Р-65',
+  'Подкладка КБ-65',
+  'Рельс крановый КР-80',
+  'Болт закладной',
+  'Клемма ПК',
+  'Костыль путевой',
+  'Брус переводной',
+  'Стрелочный перевод Р65',
+] as const
+
+const STILL_PLACEHOLDER = 'Название или артикул товара'
 
 interface CatalogSearchProps {
   className?: string
@@ -22,6 +42,12 @@ function SearchForm({
 }: CatalogSearchProps & { initialValue: string }) {
   const navigate = useNavigate()
   const [value, setValue] = useState(initialValue)
+  const [focused, setFocused] = useState(false)
+  const placeholder = useTypingPlaceholder(
+    EXAMPLES,
+    STILL_PLACEHOLDER,
+    focused || value !== '',
+  )
   const submit = (event: FormEvent) => {
     event.preventDefault()
     const params = new URLSearchParams()
@@ -40,8 +66,10 @@ function SearchForm({
         aria-label="Поиск по каталогу"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Рельс Р65, шпала Ш-1, накладка…"
-        className="h-12 min-w-0 flex-1 rounded-l-lg bg-transparent pl-3 text-sm outline-offset-[-3px] placeholder:text-muted-foreground"
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder={placeholder}
+        className="h-12 min-w-0 flex-1 text-ellipsis rounded-l-lg bg-transparent pl-3 text-sm outline-offset-[-3px] placeholder:text-muted-foreground"
       />
       <button
         type="submit"

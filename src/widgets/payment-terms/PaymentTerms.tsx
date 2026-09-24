@@ -1,12 +1,19 @@
 import type { ReactNode } from 'react'
-import { LuCircleCheck, LuFileCheck, LuReceiptRussianRuble, LuReceiptText, LuWallet } from 'react-icons/lu'
+import {
+  LuCircleCheck,
+  LuFileCheck,
+  LuFilePenLine,
+  LuReceiptRussianRuble,
+  LuReceiptText,
+  LuWallet,
+} from 'react-icons/lu'
 import { Link } from 'react-router'
 import { Card, CardContent } from '../../shared/ui/Card'
 import { SectionHeading } from '../../shared/ui/SectionHeading'
 
 /**
  * Оплата и документы на странице доставки. Условия — от пользователя (24.09.2026):
- * с НДС 22 % и без НДС, предоплата 100 %, полный пакет документов. Текст свой,
+ * с НДС 22 % и без НДС, предоплата 100 %, полный пакет документов, ЭДО — СБИС. Текст свой,
  * сверен шинглами с promputsnab, vsp74 и tdtransmet.
  */
 const OPTIONS: { icon: ReactNode; title: string; text: string }[] = [
@@ -78,14 +85,25 @@ export function PaymentTerms() {
             </p>
           </div>
 
-          <ul className="grid content-center gap-x-8 gap-y-3 sm:grid-cols-2">
-            {DOCUMENTS.map((doc) => (
-              <li key={doc} className="flex items-start gap-3 text-sm text-foreground">
-                <LuCircleCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
-                {doc}
-              </li>
-            ))}
-          </ul>
+          <div className="flex flex-col justify-center gap-6">
+            <ul className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+              {DOCUMENTS.map((doc) => (
+                <li key={doc} className="flex items-start gap-3 text-sm text-foreground">
+                  <LuCircleCheck aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
+                  {doc}
+                </li>
+              ))}
+            </ul>
+
+            {/* ЭДО — СБИС (со слов пользователя, 24.09.2026). */}
+            <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <LuFilePenLine aria-hidden className="mt-0.5 size-5 shrink-0 text-primary" />
+              <p className="text-sm leading-relaxed text-foreground">
+                <strong className="font-bold">Электронный документооборот — СБИС.</strong>{' '}
+                Документы можно получать в электронном виде, с электронной подписью.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </section>
