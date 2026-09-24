@@ -168,11 +168,16 @@ export function Header() {
             )}
           </Link>
           <div className="hidden shrink-0 xl:block">
+            {/* Срок перезвона прямо на кнопке. Две строки по высоте 56 px —
+                помещаются и в сжатую шапку (72 px). */}
             <Button
-              className="whitespace-nowrap px-4!"
+              className="flex-col gap-0! whitespace-nowrap px-4! py-1.5! leading-tight"
               onClick={() => setRequestOpen(true)}
             >
               Заказать звонок
+              <span className="text-xs font-medium opacity-90">
+                перезвоним за 15 мин
+              </span>
             </Button>
           </div>
           <button
