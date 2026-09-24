@@ -6,12 +6,26 @@ import { cn } from '@/shared/lib/cn'
  * от 24.09.2026). Столбики-ступеньки растут к вагону: чем больше партия, тем
  * выгоднее тонна.
  */
-const TIERS = [
-  { volume: 'от 1 т', name: 'Розница', step: 'h-1/4 bg-primary/25' },
-  { volume: 'от 10 т', name: 'Мелкий опт', step: 'h-2/4 bg-primary/45' },
-  { volume: 'от 18 т', name: 'Опт', step: 'h-3/4 bg-primary/70' },
-  { volume: 'Вагон', name: 'Вагонная цена', step: 'h-full bg-primary' },
+const NAMES = ['Розница', 'Мелкий опт', 'Опт', 'Вагонная цена']
+const STEPS = [
+  'h-1/4 bg-primary/25',
+  'h-2/4 bg-primary/45',
+  'h-3/4 bg-primary/70',
+  'h-full bg-primary',
 ]
+
+/** Объёмы ступеней: рельсы и шпалы берут крупнее, остальное — от тонны. */
+const VOLUMES_HEAVY = ['от 10 т', 'от 15 т', 'от 20 т', 'от 40 т']
+const VOLUMES_DEFAULT = ['от 1 т', 'от 10 т', 'от 18 т', 'Вагон']
+
+/** Рельсы и шпалы, включая крановые и старогодные (по разделу или подразделу). */
+const HEAVY_SECTIONS = new Set([
+  'zheleznodorozhnye-relsy',
+  'kranovye-relsy',
+  'zhd-shpaly',
+  'starogodnye-relsy',
+  'starogodnye-shpaly',
+])
 
 /** Разделы, где товар продают штуками и комплектами, а не тоннами. */
 const PIECE_CATEGORIES = new Set([
@@ -27,13 +41,25 @@ const PIECE_CATEGORIES = new Set([
 export interface VolumeTiersProps {
   /** Раздел товара: для штучных разделов блок не показываем. */
   categorySlug?: string
+  /** Подраздел — по нему узнаём старогодные рельсы и шпалы. */
+  subcategorySlug?: string
   /** Открыть форму заявки — чтобы менеджер назвал цену под объём. */
   onRequest?: () => void
   className?: string
 }
 
-export function VolumeTiers({ categorySlug, onRequest, className }: VolumeTiersProps) {
+export function VolumeTiers({
+  categorySlug,
+  subcategorySlug,
+  onRequest,
+  className,
+}: VolumeTiersProps) {
   if (categorySlug && PIECE_CATEGORIES.has(categorySlug)) return null
+  const heavy = [categorySlug, subcategorySlug].some(
+    (slug) => slug && HEAVY_SECTIONS.has(slug),
+  )
+  const volumes = heavy ? VOLUMES_HEAVY : VOLUMES_DEFAULT
+  const tiers = NAMES.map((name, i) => ({ name, volume: volumes[i], step: STEPS[i] }))
   return (
     <section
       aria-labelledby="volume-tiers-title"
@@ -47,8 +73,8 @@ export function VolumeTiers({ categorySlug, onRequest, className }: VolumeTiersP
       </div>
 
       <ol className="grid grid-cols-4 gap-2">
-        {TIERS.map((tier, index) => {
-          const best = index === TIERS.length - 1
+        {tiers.map((tier, index) => {
+          const best = index === tiers.length - 1
           return (
             <li
               key={tier.volume}

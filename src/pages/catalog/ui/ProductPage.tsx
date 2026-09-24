@@ -196,6 +196,7 @@ export function ProductPage() {
 
             <VolumeTiers
               categorySlug={product.category?.slug}
+              subcategorySlug={product.subcategory?.slug}
               className="mb-6"
               onRequest={() => setRequestFormOpen(true)}
             />
