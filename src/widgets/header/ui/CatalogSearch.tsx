@@ -41,7 +41,7 @@ function SearchForm({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Рельс Р65, шпала Ш-1, накладка…"
-        className="h-12 min-w-0 flex-1 rounded-l-lg bg-transparent pl-3 text-sm outline-offset-[-3px] placeholder:text-muted-foreground"
+        className="h-12 min-w-0 flex-1 text-ellipsis rounded-l-lg bg-transparent pl-3 text-sm outline-offset-[-3px] placeholder:text-muted-foreground"
       />
       <button
         type="submit"

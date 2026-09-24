@@ -128,7 +128,10 @@ export function Header() {
           >
             <img src="/logo.png" alt="ИНВИА" className="w-25 xl:w-28" />
           </Link>
-          <div className="hidden xl:block">
+          {/* «Каталог» и «Заказать звонок» — с 1024 px: на 17-дюймовом мониторе
+              с масштабом 125 % окно уже 1280 px, а кнопки там нужны. Меню
+              с тремя полосками тогда не нужно — всё из него уже в шапке. */}
+          <div className="hidden lg:block">
             <CatalogMegaMenu />
           </div>
           {/* Поиск не растягивается на всю свободную ширину: иначе на экранах
@@ -173,9 +176,9 @@ export function Header() {
               </span>
             )}
           </Link>
-          <div className="hidden shrink-0 xl:block">
-            {/* Срок перезвона прямо на кнопке. Две строки по высоте 56 px —
-                помещаются и в сжатую шапку (72 px). */}
+          <div className="hidden shrink-0 lg:block">
+            {/* Срок перезвона прямо на кнопке. Две строки — кнопка 48 px,
+                помещается и в сжатую шапку (72 px). */}
             <Button
               className="flex-col gap-0! whitespace-nowrap px-4! py-1.5! leading-tight"
               onClick={() => setRequestOpen(true)}
@@ -191,7 +194,7 @@ export function Header() {
             aria-label="Открыть меню"
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen(true)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-current/20 xl:hidden"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-current/20 lg:hidden"
           >
             <FiMenu className="h-6 w-6" />
           </button>
