@@ -189,6 +189,11 @@ button:disabled {
   min-height: 0;
   overflow: hidden;
 }
+/* Подсказка «Скопировано» у почты в серой полосе выходит за её край:
+   пока полоса раскрыта, не обрезаем, обрезка нужна только для сворачивания. */
+.site-header:not(.is-scrolled) .header-topbar > div {
+  overflow: visible;
+}
 .site-header.is-scrolled {
   background: hsl(var(--foreground));
   color: white;
