@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 
-const TYPE_MS = 110
-const ERASE_MS = 45
+const TYPE_MS = 220
+const ERASE_MS = 90
 const HOLD_MS = 1800
 const GAP_MS = 500
 
