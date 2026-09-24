@@ -20,7 +20,8 @@ const EXAMPLES = [
   'Стрелочный перевод Р65',
 ] as const
 
-const STILL_PLACEHOLDER = 'Название или артикул товара'
+/** Прежняя неподвижная подсказка: остаётся после круга примеров (по просьбе пользователя). */
+const STILL_PLACEHOLDER = 'Рельс Р65, шпала Ш-1, накладка…'
 
 interface CatalogSearchProps {
   className?: string
