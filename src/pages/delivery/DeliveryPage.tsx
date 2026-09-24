@@ -6,6 +6,7 @@ import { FeatureCard } from '../../shared/ui/FeatureCard'
 import { StatCard } from '../../shared/ui/StatCard'
 import { DeliverySteps } from '../../widgets/delivery-steps/DeliverySteps'
 import { DeliveryCTA } from '../../widgets/delivery-cta/DeliveryCTA'
+import { PaymentTerms } from '../../widgets/payment-terms/PaymentTerms'
 import { Layout } from '../../widgets/Layout'
 
 const METHODS = [
@@ -102,7 +103,7 @@ export function DeliveryPage() {
 
         {/* Способы доставки */}
         <section className="mb-16">
-          <SectionHeading title="Способы доставки" />
+          <SectionHeading>Способы доставки</SectionHeading>
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {METHODS.map((m) => (
               <FeatureCard key={m.title} {...m} />
@@ -113,9 +114,12 @@ export function DeliveryPage() {
         {/* Этапы доставки */}
         <DeliverySteps />
 
+        {/* Оплата и документы */}
+        <PaymentTerms />
+
         {/* Преимущества */}
         <section className="py-12 md:py-16">
-          <SectionHeading title="Преимущества доставки" />
+          <SectionHeading>Преимущества доставки</SectionHeading>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {ADVANTAGES.map((a) => (
               <FeatureCard key={a.title} {...a} />

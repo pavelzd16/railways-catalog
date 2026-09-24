@@ -34,7 +34,7 @@ const STEPS = [
 export function DeliverySteps() {
   return (
     <section className="py-12 md:py-16">
-      <SectionHeading title="Как происходит доставка" />
+      <SectionHeading>Как происходит доставка</SectionHeading>
 
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {STEPS.map((step) => (
