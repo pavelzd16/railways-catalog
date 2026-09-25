@@ -108,8 +108,13 @@ export function ProductPage() {
       />
 
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-10">
-        <div className="mb-6">
+        {/* Приписка нарочно еле заметна: юридическая оговорка, а не призыв к действию. */}
+        <div className="mb-6 flex flex-col lg:mb-0 lg:flex-row lg:items-baseline lg:justify-between lg:gap-8">
           <Breadcrumbs items={breadcrumbs} />
+
+          <p className="-mt-4 text-[11px] uppercase tracking-wide text-muted-foreground/60 lg:mt-0 lg:shrink-0 lg:text-right">
+            Информация, представленная на сайте, не является публичной офертой
+          </p>
         </div>
 
         <div className="mb-14 grid grid-cols-1 gap-8 lg:grid-cols-2">

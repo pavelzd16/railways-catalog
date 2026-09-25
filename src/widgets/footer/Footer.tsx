@@ -131,6 +131,9 @@ export function Footer() {
         </div>
         <div className="footer-muted mt-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-white/20 pt-6 text-[13px]">
           <p className="w-full text-xs leading-relaxed">* WhatsApp принадлежит Meta Platforms Inc., деятельность которой по реализации Facebook и Instagram признана экстремистской и запрещена в России. Это решение не распространяется на WhatsApp.</p>
+          <p className="w-full text-[11px] uppercase tracking-wide opacity-60">
+            Информация, представленная на сайте, не является публичной офертой
+          </p>
           <span>© {new Date().getFullYear()} ООО «ИНВИА»</span>
           <div className="flex flex-wrap gap-x-6 gap-y-3">
             <Link to="/privacy">Политика конфиденциальности</Link>
