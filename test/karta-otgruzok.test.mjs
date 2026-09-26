@@ -27,6 +27,15 @@ test('every city is served by a known warehouse and gets a route unless it sits 
   assert.equal(new Set(MARSHRUTY.map((m) => m.id)).size, MARSHRUTY.length)
 })
 
+test('every city has a delivery time from Kazan, so the Zelenodolsk warehouse serves it', () => {
+  for (const gorod of VSE_GORODA) {
+    if (gorod.ryadomSoSkladom) continue
+    assert.match(gorod.srok ?? '', /^\d(–\d)? (день|дня|дней)$/, gorod.id)
+    assert.ok(gorod.sklady.includes('zelenodolsk'), gorod.id)
+  }
+  assert.equal(VSE_GORODA.find((g) => g.id === 'novosibirsk').srok, '4–5 дней')
+})
+
 test('warehouses and city points fit the frame with room for labels', () => {
   for (const t of [...TOCHKI_SKLADOV, ...GORODA_NA_KARTE]) {
     const imya = 'sklad' in t ? t.sklad.nazvanie : t.gorod.nazvanie

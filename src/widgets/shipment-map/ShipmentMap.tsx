@@ -258,6 +258,7 @@ export function ShipmentMap() {
                 style={{ ...poziciya(t), ...nomer(t.nomer) }}
               >
                 {t.gorod.nazvanie}
+                {aktivnyy === t.gorod.id && t.gorod.srok && <small>{t.gorod.srok} из Казани</small>}
               </span>
             ))}
           </div>
@@ -275,12 +276,19 @@ export function ShipmentMap() {
             Город назначения
           </span>
           <span className="karta-legenda-primechanie">
-            Схема условная: маршрут, вид транспорта и срок доставки рассчитаем по заявке.
+            Схема условная: маршрут и вид транспорта подберём по заявке.
           </span>
         </div>
       </div>
 
-      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+      <div className="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h3 className="text-xl md:text-2xl font-bold tracking-tight">Сроки доставки из Казани</h3>
+        <p className="text-sm text-muted-foreground">
+          Со склада в Зеленодольске под Казанью. Точный срок подтвердим при расчёте заявки.
+        </p>
+      </div>
+
+      <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
         {REGIONY.map((region) => (
           <li key={region.nazvanie} className="rounded-lg border border-border bg-background p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -307,6 +315,7 @@ export function ShipmentMap() {
                     </span>
                     <span>
                       {gorod.nazvanie}
+                      {gorod.srok && <small className="karta-knopka-srok">{gorod.srok}</small>}
                       {gorod.ryadomSoSkladom && <small>рядом со складом</small>}
                     </span>
                   </button>
