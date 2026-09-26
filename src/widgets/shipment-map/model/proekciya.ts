@@ -14,7 +14,7 @@ const C = Math.cos(PARALLEL_1) ** 2 + 2 * N * Math.sin(PARALLEL_1)
 const RHO_0 = Math.sqrt(C - 2 * N * Math.sin(CENTR_SHIROTA)) / N
 
 // Рамка в единицах проекции: запад, восток, юг, север.
-const RAMKA = { zapad: -0.36, vostok: 0.32, yug: -0.21, sever: 0.17 }
+const RAMKA = { zapad: -0.36, vostok: 0.39, yug: -0.17, sever: 0.22 }
 
 export const SHIRINA = 1000
 const MASSHTAB = SHIRINA / (RAMKA.vostok - RAMKA.zapad)

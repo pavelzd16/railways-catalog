@@ -1,12 +1,21 @@
 // src/widgets/shipment-map/ShipmentMap.tsx
-// Карта отгрузок: дуги от склада в Зеленодольске к ключевым городам, по дугам ездят вагончики.
+// Карта отгрузок: дуги от складов в Зеленодольске и Екатеринбурге к крупным городам,
+// у каждого склада свой цвет, по дугам ездят вагончики. Над картой — выбор склада.
 // Анимация — SVG (SMIL) + CSS, без библиотек; при prefers-reduced-motion карта статичная.
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { SectionHeading } from '@/shared/ui/SectionHeading'
-import { REGIONY, SKLAD } from './model/goroda.ts'
+import { REGIONY, SKLADY, type Gorod } from './model/goroda.ts'
 import { OZERA, REKI, SUSHA } from './model/kontury.ts'
-import { DOLYA_V_PUTI, MARSHRUTY, RAZMER, TOCHKA_SKLADA, type Tochka } from './model/marshruty.ts'
+import {
+  DOLYA_V_PUTI,
+  GORODA_NA_KARTE,
+  MARSHRUTY,
+  RAZMER,
+  TOCHKI_SKLADOV,
+  VSE_GORODA,
+  type Tochka,
+} from './model/marshruty.ts'
 import './shipment-map.css'
 
 type Faza = 'staticheskaya' | 'zhdet' | 'vidno'
@@ -18,6 +27,8 @@ const PERED_PRIBYTIEM = doli(DOLYA_V_PUTI - 0.04)
 const PERED_VSPYSHKOY = doli(DOLYA_V_PUTI - 0.01)
 const PRIBYL = doli(DOLYA_V_PUTI + 0.17)
 
+const TON_SKLADA = new Map(SKLADY.map((sklad) => [sklad.id, sklad.ton]))
+
 const poziciya = ({ x, y }: Tochka): CSSProperties => ({
   left: `${(x / RAZMER.shirina) * 100}%`,
   top: `${(y / RAZMER.vysota) * 100}%`,
@@ -28,6 +39,7 @@ const nomer = (i: number) => ({ '--nomer': i }) as CSSProperties
 export function ShipmentMap() {
   const [faza, setFaza] = useState<Faza>('staticheskaya')
   const [aktivnyy, setAktivnyy] = useState<string | null>(null)
+  const [vybranSklad, setVybranSklad] = useState<string | null>(null)
   const karta = useRef<HTMLDivElement>(null)
   const ukazatel = useRef('mouse')
 
@@ -64,6 +76,10 @@ export function ShipmentMap() {
     },
   })
 
+  const aktivnyyGorod = VSE_GORODA.find((gorod) => gorod.id === aktivnyy)
+  const skladAktiven = (id: string) => aktivnyy === id || aktivnyyGorod?.ryadomSoSkladom === id
+  const vneVybora = (gorod: Gorod) => vybranSklad !== null && !gorod.sklady.includes(vybranSklad)
+
   const sostoyanie = (id: string) =>
     aktivnyy === id ? 'is-aktivnyy' : aktivnyy ? 'is-prigashen' : undefined
 
@@ -72,9 +88,9 @@ export function ShipmentMap() {
       <div className="max-w-3xl">
         <SectionHeading id="geografiya-otgruzok">География отгрузок</SectionHeading>
         <p className="mt-3 text-base md:text-lg text-muted-foreground leading-relaxed">
-          Отгружаем со склада в Зеленодольске (Республика Татарстан) по России и в Казахстан —
-          железнодорожным и автомобильным транспортом. Наведите на город или нажмите на него,
-          чтобы увидеть направление.
+          Отгружаем с двух складов — в Зеленодольске (Татарстан) и Екатеринбурге — во все
+          крупные города России и в Казахстан, железнодорожным и автомобильным транспортом.
+          Наведите на город или нажмите на него, чтобы увидеть направление.
         </p>
       </div>
 
@@ -86,20 +102,56 @@ export function ShipmentMap() {
           faza === 'vidno' && 'karta--vidno',
           aktivnyy && 'is-vybor',
         )}
+        style={{ '--vsego': MARSHRUTY.length } as CSSProperties}
       >
+        <div className="karta-sklady" role="group" aria-label="Маршруты какого склада показать">
+          <button
+            type="button"
+            className="karta-sklad-knopka"
+            aria-pressed={vybranSklad === null}
+            onClick={() => setVybranSklad(null)}
+          >
+            Все склады
+          </button>
+          {SKLADY.map((sklad) => (
+            <button
+              key={sklad.id}
+              type="button"
+              className={cn('karta-sklad-knopka', `ton-${sklad.ton}`)}
+              aria-pressed={vybranSklad === sklad.id}
+              onClick={() => setVybranSklad((bylo) => (bylo === sklad.id ? null : sklad.id))}
+            >
+              <span className="karta-sklad-znak" />
+              <span>
+                Склад {sklad.nazvanie}
+                <small>{sklad.oblast}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+
         <div className="karta-holst">
           <svg
             viewBox={`0 0 ${RAZMER.shirina} ${RAZMER.vysota}`}
             className="karta-svg"
             role="img"
-            aria-label={`Схема отгрузок со склада в Зеленодольске: ${MARSHRUTY.map((m) => m.gorod.nazvanie).join(', ')}`}
+            aria-label={`Схема отгрузок со складов в Зеленодольске и Екатеринбурге: ${VSE_GORODA.map((g) => g.nazvanie).join(', ')}`}
           >
             <path d={SUSHA} className="karta-susha" fillRule="evenodd" />
             <path d={OZERA} className="karta-ozera" />
             <path d={REKI} className="karta-reki" />
 
-            {MARSHRUTY.map((m, i) => (
-              <g key={m.gorod.id} className={cn('karta-marshrut', sostoyanie(m.gorod.id))} style={nomer(i)}>
+            {MARSHRUTY.map((m) => (
+              <g
+                key={m.id}
+                className={cn(
+                  'karta-marshrut',
+                  `ton-${m.sklad.ton}`,
+                  sostoyanie(m.gorod.id),
+                  vybranSklad !== null && vybranSklad !== m.sklad.id && 'is-skryt',
+                )}
+                style={nomer(m.nomer)}
+              >
                 <path d={m.put} className="karta-shpaly" />
                 <path d={m.put} className="karta-liniya" pathLength={1} />
                 <g className="karta-vagon">
@@ -127,16 +179,6 @@ export function ShipmentMap() {
                     </rect>
                   </g>
                 </g>
-              </g>
-            ))}
-
-            {MARSHRUTY.map((m, i) => (
-              <g
-                key={m.gorod.id}
-                className={cn('karta-gorod', sostoyanie(m.gorod.id))}
-                style={nomer(i)}
-                {...vybor(m.gorod.id)}
-              >
                 <circle cx={m.x} cy={m.y} r={5} className="karta-ping" opacity={0}>
                   <animate
                     attributeName="r"
@@ -155,47 +197,82 @@ export function ShipmentMap() {
                     repeatCount="indefinite"
                   />
                 </circle>
-                <circle cx={m.x} cy={m.y} r={16} className="karta-cel" />
-                <circle cx={m.x} cy={m.y} r={5} className="karta-tochka" />
               </g>
             ))}
 
-            <g className="karta-sklad">
-              <circle cx={TOCHKA_SKLADA.x} cy={TOCHKA_SKLADA.y} r={9} className="karta-puls" />
-              <circle cx={TOCHKA_SKLADA.x} cy={TOCHKA_SKLADA.y} r={9} className="karta-puls karta-puls--2" />
-              <circle cx={TOCHKA_SKLADA.x} cy={TOCHKA_SKLADA.y} r={8} className="karta-sklad-tochka" />
-            </g>
+            {GORODA_NA_KARTE.map((t) => (
+              <g
+                key={t.gorod.id}
+                className={cn('karta-gorod', sostoyanie(t.gorod.id), vneVybora(t.gorod) && 'is-skryt')}
+                style={nomer(t.nomer)}
+                {...vybor(t.gorod.id)}
+              >
+                <circle cx={t.x} cy={t.y} r={16} className="karta-cel" />
+                <circle cx={t.x} cy={t.y} r={5} className="karta-tochka" />
+              </g>
+            ))}
+
+            {TOCHKI_SKLADOV.map((t) => (
+              <g
+                key={t.sklad.id}
+                className={cn(
+                  'karta-sklad',
+                  `ton-${t.sklad.ton}`,
+                  skladAktiven(t.sklad.id) && 'is-aktivnyy',
+                  vybranSklad !== null && vybranSklad !== t.sklad.id && 'is-skryt',
+                )}
+              >
+                <circle cx={t.x} cy={t.y} r={9} className="karta-puls" />
+                <circle cx={t.x} cy={t.y} r={9} className="karta-puls karta-puls--2" />
+                <circle cx={t.x} cy={t.y} r={8} className="karta-sklad-tochka" />
+              </g>
+            ))}
           </svg>
 
           <div className="karta-podpisi" aria-hidden="true">
-            <span className="karta-podpis karta-podpis--sklad karta-podpis--sverhu" style={poziciya(TOCHKA_SKLADA)}>
-              {SKLAD.nazvanie}
-              <small>склад отгрузки</small>
-            </span>
-            {MARSHRUTY.map((m, i) => (
+            {TOCHKI_SKLADOV.map((t) => (
               <span
-                key={m.gorod.id}
-                className={cn('karta-podpis', `karta-podpis--${m.gorod.podpis}`, sostoyanie(m.gorod.id))}
-                style={{ ...poziciya(m), ...nomer(i) }}
+                key={t.sklad.id}
+                className={cn(
+                  'karta-podpis karta-podpis--sklad',
+                  `karta-podpis--${t.sklad.podpis}`,
+                  `karta-podpis--tel-${t.sklad.podpisNaTelefone}`,
+                  `ton-${t.sklad.ton}`,
+                  vybranSklad !== null && vybranSklad !== t.sklad.id && 'is-skryt',
+                )}
+                style={poziciya(t)}
               >
-                {m.gorod.nazvanie}
+                {t.sklad.nazvanie}
+                <small>{t.sklad.primechanie}</small>
+              </span>
+            ))}
+            {GORODA_NA_KARTE.map((t) => (
+              <span
+                key={t.gorod.id}
+                className={cn(
+                  'karta-podpis karta-podpis--gorod',
+                  `karta-podpis--${t.gorod.podpis}`,
+                  sostoyanie(t.gorod.id),
+                  vneVybora(t.gorod) && 'is-skryt',
+                )}
+                style={{ ...poziciya(t), ...nomer(t.nomer) }}
+              >
+                {t.gorod.nazvanie}
               </span>
             ))}
           </div>
         </div>
 
         <div className="karta-legenda">
-          <span className="karta-legenda-punkt">
-            <span className="karta-znak karta-znak--sklad" />
-            Склад отгрузки
-          </span>
+          {SKLADY.map((sklad) => (
+            <span key={sklad.id} className={cn('karta-legenda-punkt', `ton-${sklad.ton}`)}>
+              <span className="karta-znak karta-znak--vagon" />
+              Со склада {sklad.gde}
+            </span>
+          ))}
           <span className="karta-legenda-punkt">
             <span className="karta-znak karta-znak--gorod" />
             Город назначения
-          </span>
-          <span className="karta-legenda-punkt">
-            <span className="karta-znak karta-znak--vagon" />
-            Направление отгрузки
           </span>
           <span className="karta-legenda-primechanie">
             Схема условная: маршрут, вид транспорта и срок доставки рассчитаем по заявке.
@@ -203,12 +280,7 @@ export function ShipmentMap() {
         </div>
       </div>
 
-      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        <li className="rounded-lg border border-primary/40 bg-primary/10 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary">Склад отгрузки</p>
-          <p className="mt-2 font-bold text-foreground">{SKLAD.nazvanie}</p>
-          <p className="text-sm text-muted-foreground">Республика Татарстан</p>
-        </li>
+      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
         {REGIONY.map((region) => (
           <li key={region.nazvanie} className="rounded-lg border border-border bg-background p-4">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -219,12 +291,24 @@ export function ShipmentMap() {
                 <li key={gorod.id}>
                   <button
                     type="button"
-                    className={cn('karta-knopka', aktivnyy === gorod.id && 'is-aktivnyy')}
+                    className={cn(
+                      'karta-knopka',
+                      aktivnyy === gorod.id && 'is-aktivnyy',
+                      vneVybora(gorod) && 'is-skryt',
+                    )}
                     aria-pressed={aktivnyy === gorod.id}
                     onBlur={() => setAktivnyy((bylo) => (bylo === gorod.id ? null : bylo))}
                     {...vybor(gorod.id)}
                   >
-                    {gorod.nazvanie}
+                    <span className="karta-knopka-sklady">
+                      {gorod.sklady.map((id) => (
+                        <i key={id} className={`ton-${TON_SKLADA.get(id)}`} />
+                      ))}
+                    </span>
+                    <span>
+                      {gorod.nazvanie}
+                      {gorod.ryadomSoSkladom && <small>рядом со складом</small>}
+                    </span>
                   </button>
                 </li>
               ))}
