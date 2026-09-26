@@ -3,19 +3,20 @@
 // (полоса под курсором), убрали — рулит «второй водитель». Упёрлись в машину — резкий тормоз.
 // Логика — model/igra.ts, здесь только холст и управление.
 import { useEffect, useRef, useState } from 'react'
-import { FiShield } from 'react-icons/fi'
+import { FiChevronDown, FiChevronUp, FiShield } from 'react-icons/fi'
 import { DLINA_GRUZOVIKA, KM_NA_PX, POLOS, novayaIgra, polosaPoY, shag, stopSignal, type Igra } from './model/igra.ts'
 
-type Kto = 'avtopilot' | 'mysh' | 'palec' | 'klaviatura'
+type Kto = 'avtopilot' | 'mysh' | 'palec' | 'klaviatura' | 'knopki'
 
 const VYSOTA = 84
-const PALEC_MS = 3000 // после касания руль возвращается второму водителю
+const VOZVRAT_MS = 3000 // после касания или кнопки руль возвращается второму водителю
 
 const PODSKAZKA: Record<Kto, string> = {
-  avtopilot: 'За рулём второй водитель. Наведите на дорогу или нажмите на неё — порулите сами',
+  avtopilot: 'За рулём второй водитель. Наведите на дорогу или жмите стрелки справа — порулите сами',
   mysh: 'Рулите вы: курсор выше или ниже — другая полоса',
   palec: 'Рулите вы: нажимайте на полосу, чтобы перестроиться',
   klaviatura: 'Рулите вы: стрелки вверх и вниз',
+  knopki: 'Рулите вы: стрелки справа — полоса выше или ниже',
 }
 
 const CVETA_MASHIN = ['#60a5fa', '#e5e7eb', '#4ade80', '#fbbf24', '#94a3b8']
@@ -188,45 +189,71 @@ export function DorogaIgra() {
     setKto('avtopilot')
   }
 
+  // Руль на время: после касания или кнопки через VOZVRAT_MS снова рулит второй водитель
+  const vzyatRulNaVremya = (polosa: number, kem: Kto) => {
+    vzyatRul(polosa, kem)
+    clearTimeout(taymer.current)
+    taymer.current = setTimeout(otdatRul, VOZVRAT_MS)
+  }
+
+  /** Полоса выше (-1) или ниже (+1) текущей. */
+  const sosednyaya = (shag: number) => {
+    const seychas = upravlenie.current ?? igraRef.current?.gruzovik.cel ?? 1
+    return Math.max(0, Math.min(POLOS - 1, seychas + shag))
+  }
+
   return (
     <div className="tranzit-igra">
-      <div className="tranzit-igra-doroga">
-        <canvas
-          ref={holst}
-          tabIndex={0}
-          aria-label="Мини-игра: грузовик объезжает машины на трёх полосах. Стрелки вверх и вниз — смена полосы"
-          onPointerMove={(e) => {
-            if (e.pointerType === 'mouse') vzyatRul(polosaUkazatelya(e), 'mysh')
-          }}
-          onPointerLeave={(e) => {
-            if (e.pointerType === 'mouse') otdatRul()
-          }}
-          onPointerDown={(e) => {
-            if (e.pointerType === 'mouse') return
-            vzyatRul(polosaUkazatelya(e), 'palec')
-            clearTimeout(taymer.current)
-            taymer.current = setTimeout(otdatRul, PALEC_MS)
-          }}
-          onKeyDown={(e) => {
-            if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
-            e.preventDefault()
-            const seychas = upravlenie.current ?? igraRef.current?.gruzovik.cel ?? 1
-            const polosa = Math.max(0, Math.min(POLOS - 1, seychas + (e.key === 'ArrowUp' ? -1 : 1)))
-            vzyatRul(polosa, 'klaviatura')
-          }}
-          onBlur={() => {
-            if (kto === 'klaviatura') otdatRul()
-          }}
-        />
-        <div className="tranzit-tormoz" role="status" aria-live="polite">
-          {tormoz && (
-            <p>
-              <FiShield aria-hidden="true" />
-              <span>
-                <b>Резкий тормоз!</b> Всё в порядке — груз цел и застрахован.
-              </span>
-            </p>
-          )}
+      <div className="tranzit-igra-ryad">
+        <div className="tranzit-igra-doroga">
+          <canvas
+            ref={holst}
+            tabIndex={0}
+            aria-label="Мини-игра: грузовик объезжает машины на трёх полосах. Стрелки вверх и вниз — смена полосы"
+            onPointerMove={(e) => {
+              if (e.pointerType === 'mouse') vzyatRul(polosaUkazatelya(e), 'mysh')
+            }}
+            onPointerLeave={(e) => {
+              if (e.pointerType === 'mouse') otdatRul()
+            }}
+            onPointerDown={(e) => {
+              if (e.pointerType !== 'mouse') vzyatRulNaVremya(polosaUkazatelya(e), 'palec')
+            }}
+            onKeyDown={(e) => {
+              if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+              e.preventDefault()
+              vzyatRul(sosednyaya(e.key === 'ArrowUp' ? -1 : 1), 'klaviatura')
+            }}
+            onBlur={() => {
+              if (kto === 'klaviatura') otdatRul()
+            }}
+          />
+          <div className="tranzit-tormoz" role="status" aria-live="polite">
+            {tormoz && (
+              <p>
+                <FiShield aria-hidden="true" />
+                <span>
+                  <b>Резкий тормоз!</b> Всё в порядке — груз цел и застрахован.
+                </span>
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="tranzit-igra-knopki">
+          <button
+            type="button"
+            aria-label="Перестроиться на полосу выше"
+            onClick={() => vzyatRulNaVremya(sosednyaya(-1), 'knopki')}
+          >
+            <FiChevronUp aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            aria-label="Перестроиться на полосу ниже"
+            onClick={() => vzyatRulNaVremya(sosednyaya(1), 'knopki')}
+          >
+            <FiChevronDown aria-hidden="true" />
+          </button>
         </div>
       </div>
       <div className="tranzit-igra-podpis">

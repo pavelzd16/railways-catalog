@@ -43,6 +43,13 @@ const ADVANTAGES = [
     accent: 'from-primary to-accent',
   },
   {
+    icon: '🛡️',
+    title: 'Груз застрахован',
+    description:
+      'Все грузы, которые мы отправляем нашим автотранспортом, застрахованы.',
+    accent: 'from-accent to-primary',
+  },
+  {
     icon: '🏗️',
     title: 'Собственные склады',
     description: 'Ключевые позиции ВСП всегда в наличии на наших складах.',
@@ -124,7 +131,7 @@ export function DeliveryPage() {
         {/* Преимущества */}
         <section className="py-12 md:py-16">
           <SectionHeading>Преимущества доставки</SectionHeading>
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
             {ADVANTAGES.map((a) => (
               <FeatureCard key={a.title} {...a} />
             ))}

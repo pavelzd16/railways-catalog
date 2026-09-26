@@ -64,7 +64,7 @@ const REQUISITES = [
 ]
 
 const STATS = [
-  { value: '14+', label: 'Лет на рынке' },
+  { value: '16+', label: 'Лет на рынке' },
   { value: '5000+', label: 'Довольных партнёров' },
   { value: '100%', label: 'Наличие по ключевым позициям' },
   { value: '48ч', label: 'Отгрузка' },
