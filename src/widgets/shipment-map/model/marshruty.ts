@@ -33,7 +33,8 @@ export interface Marshrut extends Tochka {
 }
 
 const IZGIB = 0.16 // прогиб дуги по умолчанию, доля хорды
-const SKOROST = 130 // единиц viewBox в секунду
+const SKOROST = 65 // единиц viewBox в секунду (26.09.2026 замедлено вдвое по просьбе)
+export const MIN_PERIOD = 4.8 // короткий рейс не быстрее этого, с
 export const DOLYA_V_PUTI = 0.8 // остаток периода вагончик «стоит» в пункте назначения
 
 const okrugl = (v: number) => Math.round(v * 10) / 10
@@ -87,8 +88,8 @@ function marshrut(sklad: TochkaSklada, gorod: Gorod, nomer: number): Marshrut {
     y: y1,
     put: `M${x0} ${y0}Q${cx} ${cy} ${x1} ${y1}`,
     dlina,
-    period: okrugl(Math.max(2.4, dlina / SKOROST / DOLYA_V_PUTI)),
-    start: okrugl((nomer * 0.37) % 4),
+    period: okrugl(Math.max(MIN_PERIOD, dlina / SKOROST / DOLYA_V_PUTI)),
+    start: okrugl((nomer * 0.74) % 8),
     nomer,
   }
 }
