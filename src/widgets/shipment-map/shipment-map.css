@@ -1,0 +1,398 @@
+/* Карта отгрузок на странице «Доставка». Разметка — ShipmentMap.tsx. */
+
+.karta {
+  --karta-voda: hsl(205 60% 91%);
+  --karta-susha: hsl(0 0% 100%);
+  --karta-bereg: hsl(206 30% 76%);
+  --karta-reka: hsl(205 60% 78%);
+  --karta-marshrut: hsl(var(--primary));
+  background: var(--karta-voda);
+}
+
+.karta-holst {
+  position: relative;
+}
+
+.karta-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.karta-susha {
+  fill: var(--karta-susha);
+  stroke: var(--karta-bereg);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.karta-ozera {
+  fill: var(--karta-voda);
+  stroke: var(--karta-bereg);
+  stroke-width: 0.6;
+}
+
+.karta-reki {
+  fill: none;
+  stroke: var(--karta-reka);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Маршруты */
+
+.karta-marshrut {
+  transition: opacity 0.25s ease;
+}
+
+.karta-shpaly {
+  fill: none;
+  stroke: hsl(var(--foreground) / 0.22);
+  stroke-width: 6;
+  stroke-dasharray: 1.3 6;
+}
+
+.karta-liniya {
+  fill: none;
+  stroke: var(--karta-marshrut);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.8;
+  transition: stroke-width 0.25s ease, opacity 0.25s ease;
+}
+
+.karta-vagon rect {
+  fill: hsl(var(--primary));
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+
+.karta.is-vybor .karta-marshrut.is-prigashen,
+.karta.is-vybor .karta-gorod.is-prigashen,
+.karta.is-vybor .karta-podpis.is-prigashen {
+  opacity: 0.18;
+}
+
+.karta-marshrut.is-aktivnyy .karta-liniya {
+  stroke-width: 3.2;
+  opacity: 1;
+}
+
+/* Города */
+
+.karta-gorod {
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+.karta-tochka {
+  fill: #fff;
+  stroke: hsl(var(--primary));
+  stroke-width: 2.6;
+  transition: r 0.2s ease;
+}
+
+.karta-gorod.is-aktivnyy .karta-tochka {
+  fill: hsl(var(--accent));
+  r: 7px;
+}
+
+.karta-cel {
+  fill: transparent;
+}
+
+.karta-ping {
+  fill: none;
+  stroke: hsl(var(--accent));
+  stroke-width: 2.5;
+}
+
+.karta-sklad-tochka {
+  fill: hsl(var(--primary));
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.karta-puls {
+  fill: hsl(var(--accent) / 0.35);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: karta-puls 2.4s ease-out infinite;
+}
+
+.karta-puls--2 {
+  animation-delay: 1.2s;
+}
+
+@keyframes karta-puls {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Подписи — HTML поверх SVG, чтобы шрифт не мельчал вместе с картой */
+
+.karta-podpisi {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.karta-podpis {
+  position: absolute;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: hsl(var(--foreground));
+  text-shadow:
+    0 0 2px #fff,
+    0 0 3px #fff,
+    0 0 5px #fff,
+    0 0 8px #fff;
+  transition: opacity 0.25s ease, color 0.25s ease;
+}
+
+.karta-podpis.is-aktivnyy {
+  color: hsl(var(--primary));
+}
+
+.karta-podpis--sverhu {
+  transform: translate(-50%, calc(-100% - 9px));
+  text-align: center;
+}
+
+.karta-podpis--snizu {
+  transform: translate(-50%, 9px);
+  text-align: center;
+}
+
+.karta-podpis--sleva {
+  transform: translate(calc(-100% - 10px), -50%);
+}
+
+.karta-podpis--sprava {
+  transform: translate(10px, -50%);
+}
+
+.karta-podpis--sklad {
+  padding: 3px 8px 4px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 4px hsl(var(--foreground) / 0.15);
+  font-size: 15px;
+  font-weight: 800;
+  color: hsl(var(--primary));
+  text-shadow: none;
+  transform: translate(-50%, calc(-100% - 14px));
+}
+
+.karta-podpis--sklad small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .karta-podpis {
+    font-size: 10px;
+  }
+
+  /* На узком экране плашка склада наезжает на соседей — одно название, слева под точкой */
+  .karta-podpis--sklad {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 11px;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 3px #fff,
+      0 0 5px #fff;
+    transform: translate(calc(-100% + 6px), 7px);
+  }
+
+  .karta-podpis--sklad small {
+    display: none;
+  }
+}
+
+/* Легенда */
+
+.karta-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.karta-legenda-punkt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.karta-legenda-primechanie {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 1024px) {
+  .karta-legenda-primechanie {
+    margin-left: auto;
+  }
+}
+
+.karta-znak {
+  display: inline-block;
+  flex: none;
+}
+
+.karta-znak--sklad {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--accent) / 0.35);
+}
+
+.karta-znak--gorod {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 2.5px solid hsl(var(--primary));
+  background: #fff;
+}
+
+.karta-znak--vagon {
+  width: 28px;
+  height: 7px;
+  background: linear-gradient(hsl(var(--primary)), hsl(var(--primary))) left center / 100% 2px no-repeat;
+  position: relative;
+}
+
+.karta-znak--vagon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 9px;
+  width: 11px;
+  height: 7px;
+  border-radius: 2px;
+  background: hsl(var(--primary));
+  border: 1px solid #fff;
+}
+
+/* Список городов под картой */
+
+.karta-knopka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.125rem 0;
+  font-size: 0.9375rem;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.karta-knopka::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 2px solid hsl(var(--primary));
+  background: #fff;
+  flex: none;
+  transition: background 0.2s ease;
+}
+
+.karta-knopka:hover,
+.karta-knopka.is-aktivnyy {
+  color: hsl(var(--primary));
+}
+
+.karta-knopka.is-aktivnyy::before {
+  background: hsl(var(--accent));
+}
+
+.karta-knopka:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Появление при прокрутке: дуги прорисовываются по очереди, потом выезжают вагончики.
+   Пока скрипт не запущен (SSR) — карта сразу целиком. */
+
+.karta--zhdet .karta-liniya,
+.karta--vidno .karta-liniya {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.karta--vidno .karta-liniya {
+  animation: karta-risovat 1.1s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+  animation-delay: calc(var(--nomer) * 0.14s + 0.3s);
+}
+
+.karta--zhdet .karta-shpaly,
+.karta--zhdet .karta-gorod,
+.karta--zhdet .karta-podpis,
+.karta--zhdet .karta-vagon {
+  opacity: 0;
+}
+
+.karta--vidno .karta-shpaly {
+  animation: karta-proyavit 0.6s ease backwards;
+  animation-delay: calc(var(--nomer) * 0.14s + 1s);
+}
+
+.karta--vidno .karta-gorod,
+.karta--vidno .karta-podpis {
+  animation: karta-proyavit 0.45s ease backwards;
+  animation-delay: calc(var(--nomer) * 0.14s + 1.2s);
+}
+
+.karta--vidno .karta-podpis--sklad {
+  animation-delay: 0s;
+}
+
+.karta--vidno .karta-vagon {
+  animation: karta-proyavit 0.8s ease backwards;
+  animation-delay: 2.8s;
+}
+
+@keyframes karta-risovat {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes karta-proyavit {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karta-vagon,
+  .karta-ping,
+  .karta-puls {
+    display: none;
+  }
+}

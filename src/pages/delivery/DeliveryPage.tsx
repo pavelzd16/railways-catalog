@@ -7,6 +7,7 @@ import { StatCard } from '../../shared/ui/StatCard'
 import { DeliverySteps } from '../../widgets/delivery-steps/DeliverySteps'
 import { DeliveryCTA } from '../../widgets/delivery-cta/DeliveryCTA'
 import { PaymentTerms } from '../../widgets/payment-terms/PaymentTerms'
+import { ShipmentMap } from '../../widgets/shipment-map/ShipmentMap'
 import { Layout } from '../../widgets/Layout'
 
 const METHODS = [
@@ -100,6 +101,9 @@ export function DeliveryPage() {
             <StatCard key={s.label} {...s} />
           ))}
         </div>
+
+        {/* География отгрузок: карта из Зеленодольска */}
+        <ShipmentMap />
 
         {/* Способы доставки */}
         <section className="mb-16">
