@@ -1,0 +1,632 @@
+/* Карта отгрузок на странице «Доставка». Разметка — ShipmentMap.tsx. */
+
+.karta {
+  --karta-voda: hsl(205 60% 91%);
+  --karta-susha: hsl(0 0% 100%);
+  --karta-bereg: hsl(206 30% 76%);
+  --karta-reka: hsl(205 60% 78%);
+  background: var(--karta-voda);
+}
+
+/* Цвета складов: основной — фирменный оранжевый, второй — синий */
+
+.ton-osnovnoy {
+  --ton: hsl(var(--primary));
+  --ton-svet: hsl(var(--accent));
+  --ton-fon: hsl(var(--accent) / 0.35);
+}
+
+.ton-vtoroy {
+  --ton: hsl(214 80% 42%);
+  --ton-svet: hsl(205 90% 52%);
+  --ton-fon: hsl(205 90% 52% / 0.3);
+}
+
+.karta-holst {
+  position: relative;
+}
+
+.karta-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.karta-susha {
+  fill: var(--karta-susha);
+  stroke: var(--karta-bereg);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+.karta-ozera {
+  fill: var(--karta-voda);
+  stroke: var(--karta-bereg);
+  stroke-width: 0.6;
+}
+
+.karta-reki {
+  fill: none;
+  stroke: var(--karta-reka);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Выбор склада */
+
+.karta-sklady {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.karta-sklad-knopka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.375rem 0.875rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--background));
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: left;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.karta-sklad-knopka small {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+
+.karta-sklad-knopka:hover {
+  border-color: hsl(var(--foreground) / 0.35);
+}
+
+.karta-sklad-knopka[aria-pressed='true'] {
+  border-color: var(--ton, hsl(var(--foreground)));
+  background: hsl(var(--muted));
+  box-shadow: inset 0 0 0 1px var(--ton, hsl(var(--foreground)));
+}
+
+.karta-sklad-knopka:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.karta-sklad-znak {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--ton);
+  box-shadow: 0 0 0 3px var(--ton-fon);
+}
+
+/* Маршруты */
+
+.karta-marshrut {
+  transition: opacity 0.25s ease;
+}
+
+.karta-shpaly {
+  fill: none;
+  stroke: hsl(var(--foreground) / 0.22);
+  stroke-width: 6;
+  stroke-dasharray: 1.3 6;
+}
+
+.karta-liniya {
+  fill: none;
+  stroke: var(--ton);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.8;
+  transition: stroke-width 0.25s ease, opacity 0.25s ease;
+}
+
+.karta-vagon rect {
+  fill: var(--ton);
+  stroke: #fff;
+  stroke-width: 1.4;
+}
+
+.karta-ping {
+  fill: none;
+  stroke: var(--ton-svet);
+  stroke-width: 2.5;
+}
+
+.karta-marshrut.is-aktivnyy .karta-liniya {
+  stroke-width: 3.2;
+  opacity: 1;
+}
+
+.karta.is-vybor .karta-marshrut.is-prigashen,
+.karta.is-vybor .karta-gorod.is-prigashen,
+.karta.is-vybor .karta-podpis.is-prigashen {
+  opacity: 0.18;
+}
+
+/* Маршруты невыбранного склада — почти не видно, города без его отгрузок — бледнее */
+.karta .karta-marshrut.is-skryt,
+.karta.is-vybor .karta-marshrut.is-skryt {
+  opacity: 0.06;
+}
+
+.karta .karta-gorod.is-skryt,
+.karta .karta-podpis.is-skryt,
+.karta .karta-sklad.is-skryt,
+.karta.is-vybor .karta-gorod.is-skryt,
+.karta.is-vybor .karta-podpis.is-skryt {
+  opacity: 0.3;
+}
+
+/* Города */
+
+.karta-gorod {
+  cursor: pointer;
+  transition: opacity 0.25s ease;
+}
+
+.karta-tochka {
+  fill: #fff;
+  stroke: hsl(var(--foreground) / 0.8);
+  stroke-width: 2.4;
+  transition: r 0.2s ease;
+}
+
+.karta-gorod.is-aktivnyy .karta-tochka {
+  fill: hsl(var(--foreground));
+  r: 7px;
+}
+
+.karta-cel {
+  fill: transparent;
+}
+
+/* Склады */
+
+.karta-sklad {
+  transition: opacity 0.25s ease;
+}
+
+.karta-sklad-tochka {
+  fill: var(--ton);
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.karta-sklad.is-aktivnyy .karta-sklad-tochka {
+  stroke: hsl(var(--foreground));
+}
+
+.karta-puls {
+  fill: var(--ton-fon);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: karta-puls 2.4s ease-out infinite;
+}
+
+.karta-puls--2 {
+  animation-delay: 1.2s;
+}
+
+@keyframes karta-puls {
+  from {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Подписи — HTML поверх SVG, чтобы шрифт не мельчал вместе с картой */
+
+.karta-podpisi {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.karta-podpis {
+  position: absolute;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: hsl(var(--foreground));
+  text-shadow:
+    0 0 2px #fff,
+    0 0 3px #fff,
+    0 0 5px #fff,
+    0 0 8px #fff;
+  transition: opacity 0.25s ease, color 0.25s ease;
+}
+
+.karta-podpis.is-aktivnyy {
+  font-weight: 800;
+}
+
+/* Срок доставки у выбранного города */
+.karta-podpis--gorod small {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: hsl(var(--primary));
+}
+
+.karta-podpis--sverhu {
+  transform: translate(-50%, calc(-100% - 9px));
+  text-align: center;
+}
+
+.karta-podpis--snizu {
+  transform: translate(-50%, 9px);
+  text-align: center;
+}
+
+.karta-podpis--sleva {
+  transform: translate(calc(-100% - 10px), -50%);
+  text-align: right;
+}
+
+.karta-podpis--sprava {
+  transform: translate(10px, -50%);
+}
+
+.karta-podpis--sklad {
+  padding: 3px 8px 4px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.92);
+  box-shadow: 0 1px 4px hsl(var(--foreground) / 0.15);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ton);
+  text-shadow: none;
+}
+
+/* Плашка над складом сдвинута вправо: слева от Зеленодольска точка Нижнего Новгорода */
+.karta-podpis--sklad.karta-podpis--sverhu {
+  transform: translate(-35%, calc(-100% - 18px));
+}
+
+.karta-podpis--sklad.karta-podpis--sprava {
+  transform: translate(16px, -50%);
+}
+
+.karta-podpis--sklad small {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .karta-podpis {
+    font-size: 10px;
+  }
+
+  /* Городов много, подписи сливаются — на карте только подпись выбранного, список ниже */
+  .karta-podpis--gorod:not(.is-aktivnyy) {
+    display: none;
+  }
+
+  /* Плашки складов наезжают на соседей — одно название под точкой */
+  .karta-podpis--sklad {
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    font-size: 11px;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 3px #fff,
+      0 0 5px #fff;
+  }
+
+  .karta-podpis--sklad small {
+    display: none;
+  }
+
+  .karta-podpis--sklad.karta-podpis--tel-sleva {
+    transform: translate(calc(-100% + 6px), 7px);
+  }
+
+  .karta-podpis--sklad.karta-podpis--tel-sprava {
+    transform: translate(-6px, 7px);
+  }
+
+  .karta-podpis--sklad.karta-podpis--tel-sverhu {
+    transform: translate(-50%, calc(-100% - 8px));
+  }
+}
+
+/* Легенда */
+
+.karta-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
+}
+
+.karta-legenda-punkt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.karta-legenda-primechanie {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+}
+
+@media (min-width: 1024px) {
+  .karta-legenda-primechanie {
+    margin-left: auto;
+  }
+}
+
+.karta-znak {
+  display: inline-block;
+  flex: none;
+}
+
+.karta-znak--gorod {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 2.5px solid hsl(var(--foreground) / 0.8);
+  background: #fff;
+}
+
+.karta-znak--vagon {
+  position: relative;
+  width: 28px;
+  height: 7px;
+  background: linear-gradient(var(--ton), var(--ton)) left center / 100% 2px no-repeat;
+}
+
+.karta-znak--vagon::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 9px;
+  width: 11px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--ton);
+  border: 1px solid #fff;
+}
+
+/* Список городов под картой */
+
+.karta-knopka {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.125rem 0;
+  font-size: 0.9375rem;
+  text-align: left;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.karta-knopka small {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Срок из Казани — цветом склада в Зеленодольске */
+.karta-knopka .karta-knopka-srok {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: hsl(var(--primary));
+}
+
+.karta-knopka:hover,
+.karta-knopka.is-aktivnyy {
+  font-weight: 600;
+}
+
+.karta-knopka.is-skryt {
+  opacity: 0.4;
+}
+
+.karta-knopka:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Точки складов у города: оранжевая — из Зеленодольска, синяя — из Екатеринбурга */
+.karta-knopka-sklady {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+  align-self: flex-start;
+  margin-top: 0.45em;
+}
+
+.karta-knopka-sklady i {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ton);
+}
+
+/* Транзитная доставка: крупная цифра и дорога, по которой едет машина */
+
+.tranzit-cifra {
+  font-size: clamp(2.75rem, 6vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: hsl(var(--primary));
+}
+
+.tranzit-cifra span {
+  font-size: 0.45em;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+/* Мини-игра на дороге: холст, надпись о резком торможении поверх, подсказка и счётчик под ним */
+
+.tranzit-igra {
+  margin-top: 1.25rem;
+}
+
+.tranzit-igra-doroga {
+  position: relative;
+}
+
+.tranzit-igra canvas {
+  display: block;
+  width: 100%;
+  height: 84px;
+  border-radius: 8px;
+  background: hsl(var(--foreground) / 0.9);
+  cursor: ns-resize;
+  touch-action: manipulation;
+}
+
+.tranzit-igra canvas:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+.tranzit-tormoz {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.75rem;
+  pointer-events: none;
+}
+
+.tranzit-tormoz p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  font-size: 0.8125rem;
+  line-height: 1.25;
+  color: hsl(var(--foreground));
+  animation: tranzit-poyavlenie 0.25s ease-out;
+}
+
+.tranzit-tormoz svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #16a34a;
+}
+
+.tranzit-igra-podpis {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.tranzit-igra-km {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--foreground));
+}
+
+@keyframes tranzit-poyavlenie {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* Появление при прокрутке: дуги прорисовываются по очереди, потом выезжают вагончики.
+   Пока скрипт не запущен (SSR) — карта сразу целиком. */
+
+.karta--zhdet .karta-liniya,
+.karta--vidno .karta-liniya {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.karta--vidno .karta-liniya {
+  animation: karta-risovat 1.1s cubic-bezier(0.45, 0, 0.25, 1) forwards;
+  animation-delay: calc(var(--nomer) * 0.08s + 0.3s);
+}
+
+.karta--zhdet .karta-shpaly,
+.karta--zhdet .karta-gorod,
+.karta--zhdet .karta-podpis--gorod,
+.karta--zhdet .karta-vagon {
+  opacity: 0;
+}
+
+.karta--vidno .karta-shpaly {
+  animation: karta-proyavit 0.6s ease backwards;
+  animation-delay: calc(var(--nomer) * 0.08s + 1s);
+}
+
+.karta--vidno .karta-gorod,
+.karta--vidno .karta-podpis--gorod {
+  animation: karta-proyavit 0.45s ease backwards;
+  animation-delay: calc(var(--nomer) * 0.08s + 1.2s);
+}
+
+.karta--vidno .karta-vagon {
+  animation: karta-proyavit 0.8s ease backwards;
+  animation-delay: calc(var(--vsego) * 0.08s + 1.4s);
+}
+
+@keyframes karta-risovat {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes karta-proyavit {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karta-vagon,
+  .karta-ping,
+  .karta-puls {
+    display: none;
+  }
+}
