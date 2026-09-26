@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { SectionHeading } from '@/shared/ui/SectionHeading'
 import { REGIONY, SKLADY, type Gorod } from './model/goroda.ts'
+import { TranzitDostavka } from './TranzitDostavka'
 import { OZERA, REKI, SUSHA } from './model/kontury.ts'
 import {
   DOLYA_V_PUTI,
@@ -325,6 +326,8 @@ export function ShipmentMap() {
           </li>
         ))}
       </ul>
+
+      <TranzitDostavka />
     </section>
   )
 }

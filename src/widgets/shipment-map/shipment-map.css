@@ -475,6 +475,70 @@
   background: var(--ton);
 }
 
+/* Транзитная доставка: крупная цифра и дорога, по которой едет машина */
+
+.tranzit-cifra {
+  font-size: clamp(2.75rem, 6vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: hsl(var(--primary));
+}
+
+.tranzit-cifra span {
+  font-size: 0.45em;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.tranzit-doroga {
+  position: relative;
+  height: 48px;
+  margin-top: 1.25rem;
+  border-radius: 8px;
+  background: hsl(var(--foreground) / 0.88);
+  overflow: hidden;
+}
+
+.tranzit-doroga::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.85) 0 18px, transparent 18px 36px);
+  animation: tranzit-razmetka 0.45s linear infinite;
+}
+
+/* Машина в правой полосе, под разметкой */
+.tranzit-mashina {
+  position: absolute;
+  top: 50%;
+  left: 38%;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  padding: 3px;
+  border-radius: 6px;
+  background: hsl(var(--accent));
+  color: #fff;
+  animation: tranzit-kachka 0.9s ease-in-out infinite;
+}
+
+@keyframes tranzit-razmetka {
+  to {
+    background-position: -36px 0;
+  }
+}
+
+@keyframes tranzit-kachka {
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
 /* Появление при прокрутке: дуги прорисовываются по очереди, потом выезжают вагончики.
    Пока скрипт не запущен (SSR) — карта сразу целиком. */
 
@@ -532,5 +596,10 @@
   .karta-ping,
   .karta-puls {
     display: none;
+  }
+
+  .tranzit-doroga::before,
+  .tranzit-mashina {
+    animation: none;
   }
 }
