@@ -12,11 +12,11 @@ const VYSOTA = 84
 const VOZVRAT_MS = 3000 // после касания или кнопки руль возвращается второму водителю
 
 const PODSKAZKA: Record<Kto, string> = {
-  avtopilot: 'За рулём второй водитель. Наведите на дорогу или жмите стрелки справа — порулите сами',
+  avtopilot: 'За рулём второй водитель. Наведите на дорогу или на стрелки справа — порулите сами',
   mysh: 'Рулите вы: курсор выше или ниже — другая полоса',
   palec: 'Рулите вы: нажимайте на полосу, чтобы перестроиться',
   klaviatura: 'Рулите вы: стрелки вверх и вниз',
-  knopki: 'Рулите вы: стрелки справа — полоса выше или ниже',
+  knopki: 'Рулите вы: жмите стрелки — полоса выше или ниже',
 }
 
 const CVETA_MASHIN = ['#60a5fa', '#e5e7eb', '#4ade80', '#fbbf24', '#94a3b8']
@@ -94,6 +94,7 @@ export function DorogaIgra() {
   const upravlenie = useRef<number | null>(null)
   const zapustitRef = useRef<() => void>(() => {})
   const taymer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const myshVnutri = useRef(false)
   const [kto, setKto] = useState<Kto>('avtopilot')
   const [tormoz, setTormoz] = useState(false)
   const [km, setKm] = useState(0)
@@ -196,15 +197,31 @@ export function DorogaIgra() {
     taymer.current = setTimeout(otdatRul, VOZVRAT_MS)
   }
 
-  /** Полоса выше (-1) или ниже (+1) текущей. */
+  /** Полоса выше (-1) или ниже (+1) текущей; 0 — остаться в своей. */
   const sosednyaya = (shag: number) => {
     const seychas = upravlenie.current ?? igraRef.current?.gruzovik.cel ?? 1
     return Math.max(0, Math.min(POLOS - 1, seychas + shag))
   }
 
+  // Мышью руль держим, пока курсор над дорогой или стрелками; кнопкой пальцем — на VOZVRAT_MS
+  const nazhatStrelku = (shag: number) => {
+    if (myshVnutri.current) vzyatRul(sosednyaya(shag), 'knopki')
+    else vzyatRulNaVremya(sosednyaya(shag), 'knopki')
+  }
+
   return (
     <div className="tranzit-igra">
-      <div className="tranzit-igra-ryad">
+      <div
+        className="tranzit-igra-ryad"
+        onPointerEnter={(e) => {
+          if (e.pointerType === 'mouse') myshVnutri.current = true
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType !== 'mouse') return
+          myshVnutri.current = false
+          otdatRul()
+        }}
+      >
         <div className="tranzit-igra-doroga">
           <canvas
             ref={holst}
@@ -212,9 +229,6 @@ export function DorogaIgra() {
             aria-label="Мини-игра: грузовик объезжает машины на трёх полосах. Стрелки вверх и вниз — смена полосы"
             onPointerMove={(e) => {
               if (e.pointerType === 'mouse') vzyatRul(polosaUkazatelya(e), 'mysh')
-            }}
-            onPointerLeave={(e) => {
-              if (e.pointerType === 'mouse') otdatRul()
             }}
             onPointerDown={(e) => {
               if (e.pointerType !== 'mouse') vzyatRulNaVremya(polosaUkazatelya(e), 'palec')
@@ -239,18 +253,21 @@ export function DorogaIgra() {
             )}
           </div>
         </div>
-        <div className="tranzit-igra-knopki">
-          <button
-            type="button"
-            aria-label="Перестроиться на полосу выше"
-            onClick={() => vzyatRulNaVremya(sosednyaya(-1), 'knopki')}
-          >
+        <div
+          className="tranzit-igra-knopki"
+          onPointerEnter={(e) => {
+            if (e.pointerType !== 'mouse') return
+            clearTimeout(taymer.current)
+            vzyatRul(sosednyaya(0), 'knopki')
+          }}
+        >
+          <button type="button" aria-label="Перестроиться на полосу выше" onClick={() => nazhatStrelku(-1)}>
             <FiChevronUp aria-hidden="true" />
           </button>
           <button
             type="button"
             aria-label="Перестроиться на полосу ниже"
-            onClick={() => vzyatRulNaVremya(sosednyaya(1), 'knopki')}
+            onClick={() => nazhatStrelku(1)}
           >
             <FiChevronDown aria-hidden="true" />
           </button>
