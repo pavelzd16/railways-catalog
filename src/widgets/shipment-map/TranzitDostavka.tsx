@@ -1,7 +1,7 @@
 // src/widgets/shipment-map/TranzitDostavka.tsx
 // Плашка о транзитной доставке под сроками доставки: автомобиль проходит 1500 км в сутки.
 // Только рассказ на странице — отдельной услуги в заявке нет.
-import { FiTruck } from 'react-icons/fi'
+import { DorogaIgra } from './DorogaIgra'
 
 // Неразрывный пробел в числе задан руками, чтобы сервер и браузер печатали одинаково.
 const KM_V_SUTKI = `1${String.fromCharCode(0xa0)}500`
@@ -18,9 +18,7 @@ export function TranzitDostavka() {
           <p className="mt-1 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             проходит автомобиль за сутки
           </p>
-          <div className="tranzit-doroga" aria-hidden="true">
-            <FiTruck className="tranzit-mashina" />
-          </div>
+          <DorogaIgra />
         </div>
 
         <div>
