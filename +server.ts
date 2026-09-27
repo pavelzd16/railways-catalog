@@ -13,7 +13,9 @@ export default {
         const headers = new Headers(request.headers)
         headers.delete('host')
         const upstream = new Request(apiOrigin + url.pathname + url.search, request)
-        return await fetch(upstream, { headers, redirect: 'manual', signal: AbortSignal.timeout(30000) })
+        // Авторизация передаётся явными заголовками. Автоповтор HTTP-auth в Node
+        // не может переотправить поток тела и превращает ответы 401 в ошибку 502.
+        return await fetch(upstream, { headers, credentials: 'omit', redirect: 'manual', signal: AbortSignal.timeout(30000) })
       } catch {
         return new Response('Сервис временно недоступен', { status: 502, headers: { 'Content-Type': 'text/plain; charset=utf-8' } })
       }

@@ -9,6 +9,7 @@ import {
 import { Layout } from "@/widgets/Layout";
 import { Breadcrumbs } from "@/shared/ui/Breadcrumbs";
 import { Button } from "@/shared/ui/Button";
+import { openCookieSettings } from "@/shared/privacy/cookie-consent";
 
 const sections = [
   { id: "general", number: "1", title: "Общие положения" },
@@ -23,6 +24,7 @@ const sections = [
   { id: "protection", number: "10", title: "Меры защиты" },
   { id: "cross-border", number: "11", title: "Трансграничная передача" },
   { id: "localStorage", number: "12", title: "Использование localStorage" },
+  { id: "cookies", number: "12.1", title: "Cookies и аналитика" },
   { id: "changes", number: "13", title: "Изменение политики" },
   { id: "final", number: "14", title: "Заключительные положения" },
 ];
@@ -792,12 +794,14 @@ export function PrivacyPage() {
                 </div>
               </div>
 
-              <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-sm text-foreground">
-                  <span className="font-semibold">Важно:</span> localStorage не
-                  является файлом cookie и не используется для отслеживания
-                  действий пользователя на других сайтах или для аналитики.
-                </p>
+              <div id="cookies" className="mt-6 scroll-mt-24 rounded-lg border border-border bg-muted/30 p-4 sm:p-5">
+                <h3 className="text-lg font-bold">Cookies и аналитика</h3>
+                <div className="mt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
+                  <p>Необходимое хранилище браузера используется для корзины, входа в личный кабинет и сохранения настроек. Эти функции работают независимо от согласия на аналитику.</p>
+                  <p>После выбора «Принять все» подключаются Яндекс Метрика для анализа посещаемости и Gudok для коллтрекинга. Эти сервисы могут использовать cookies и обрабатывать сведения о посещении сайта. При выборе «Только необходимые» их скрипты не загружаются.</p>
+                  <p>Выбор сохраняется в localStorage на один год. Его можно изменить в любой момент через «Настройки cookies» в подвале сайта. При отключении ранее разрешённой аналитики страница перезагрузится без счётчиков. Удалить уже сохранённые cookies можно в настройках браузера.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="mt-4" onClick={openCookieSettings}>Настройки cookies</Button>
               </div>
             </section>
 

@@ -16,6 +16,7 @@ import { AdminPage } from './pages/admin'
 import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
 import { CalculatorPage } from './pages/calculator/CalculatorPage'
+import { CookieConsentBanner } from './widgets/cookie-consent/CookieConsentBanner'
 
 export function App() {
   return (
@@ -61,6 +62,7 @@ export function App() {
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
+      <CookieConsentBanner />
     </>
   )
 }

@@ -8,6 +8,7 @@ import { FiDownload, FiPhone } from 'react-icons/fi'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 import { Button } from '@/shared/ui/Button'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
+import { openCookieSettings } from '@/shared/privacy/cookie-consent'
 const companyLinks = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
@@ -138,6 +139,7 @@ export function Footer() {
           <div className="flex flex-wrap gap-x-6 gap-y-3">
             <Link to="/privacy">Политика конфиденциальности</Link>
             <a href="/privacy#consent">Согласие на обработку данных</a>
+            <button type="button" onClick={openCookieSettings} className="text-left hover:underline focus-visible:ring-2 focus-visible:ring-ring">Настройки cookies</button>
           </div>
         </div>
       </div>

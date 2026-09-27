@@ -10,5 +10,5 @@ import '@/index.css'
 
 export function AppRoot({ data, server = false }: { data: PageData; server?: boolean }) {
   const content = <PageDataProvider initial={data}><MotionConfig reducedMotion="user"><CartProvider><App /></CartProvider></MotionConfig></PageDataProvider>
-  return <StrictMode>{server ? <StaticRouter location={data.url}>{content}</StaticRouter> : <BrowserRouter><MetrikaTracker />{content}</BrowserRouter>}</StrictMode>
+  return <StrictMode>{server ? <StaticRouter location={data.url}><MetrikaTracker />{content}</StaticRouter> : <BrowserRouter><MetrikaTracker />{content}</BrowserRouter>}</StrictMode>
 }
