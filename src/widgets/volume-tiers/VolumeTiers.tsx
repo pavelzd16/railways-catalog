@@ -1,42 +1,19 @@
 import { LuLayers } from 'react-icons/lu'
 import { cn } from '@/shared/lib/cn'
+import { productGroup, TIER_NAMES, tierVolumes } from '@/shared/lib/product-groups'
 
 /**
  * Ступени цены по объёму партии — словами, без процентов (решение пользователя
  * от 24.09.2026). Столбики-ступеньки растут к вагону: чем больше партия, тем
- * выгоднее тонна.
+ * выгоднее тонна. Группы разделов и объёмы — из общего модуля: из него же
+ * берёт ступени ответ про цену в «Частых вопросах».
  */
-const NAMES = ['Розница', 'Мелкий опт', 'Опт', 'Вагонная цена']
 const STEPS = [
   'h-1/4 bg-primary/25',
   'h-2/4 bg-primary/45',
   'h-3/4 bg-primary/70',
   'h-full bg-primary',
 ]
-
-/** Объёмы ступеней: рельсы и шпалы берут крупнее, остальное — от тонны. */
-const VOLUMES_HEAVY = ['от 10 т', 'от 15 т', 'от 20 т', 'от 40 т']
-const VOLUMES_DEFAULT = ['от 1 т', 'от 10 т', 'от 18 т', 'Вагон']
-
-/** Рельсы и шпалы, включая крановые и старогодные (по разделу или подразделу). */
-const HEAVY_SECTIONS = new Set([
-  'zheleznodorozhnye-relsy',
-  'kranovye-relsy',
-  'zhd-shpaly',
-  'starogodnye-relsy',
-  'starogodnye-shpaly',
-])
-
-/** Разделы, где товар продают штуками и комплектами, а не тоннами. */
-const PIECE_CATEGORIES = new Set([
-  'putevoj-instrument',
-  'zheleznodorozhnye-znaki',
-  'strelochnye-perevody',
-  'zheleznodorozhnye-pereezdy',
-  'tupikovye-upory',
-  'bashmaki-tormoznye',
-  'zvenya-relsoshpalnoj-reshetki',
-])
 
 export interface VolumeTiersProps {
   /** Раздел товара: для штучных разделов блок не показываем. */
@@ -54,12 +31,9 @@ export function VolumeTiers({
   onRequest,
   className,
 }: VolumeTiersProps) {
-  if (categorySlug && PIECE_CATEGORIES.has(categorySlug)) return null
-  const heavy = [categorySlug, subcategorySlug].some(
-    (slug) => slug && HEAVY_SECTIONS.has(slug),
-  )
-  const volumes = heavy ? VOLUMES_HEAVY : VOLUMES_DEFAULT
-  const tiers = NAMES.map((name, i) => ({ name, volume: volumes[i], step: STEPS[i] }))
+  const volumes = tierVolumes(productGroup(categorySlug, subcategorySlug))
+  if (!volumes) return null
+  const tiers = TIER_NAMES.map((name, i) => ({ name, volume: volumes[i], step: STEPS[i] }))
   return (
     <section
       aria-labelledby="volume-tiers-title"

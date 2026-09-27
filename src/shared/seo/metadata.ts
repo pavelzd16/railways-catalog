@@ -1,4 +1,5 @@
 import { plainText } from '../lib/plain-text.ts'
+import { buildProductFaq } from '../lib/product-faq.ts'
 import { detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
 
 export type Metadata = { title: string; description: string; socialDescription: string; canonical: string; robots: string; image: string; jsonLd: Record<string, unknown>[] }
@@ -73,6 +74,9 @@ export function getMetadata(urlValue: string, data: PageData): Metadata {
       // Цены на сайте пока не заполнены; предложение без цены поисковики считают ошибкой, поэтому только при цене.
       ...(product.price && product.price > 0 ? { offers: { '@type': 'Offer', price: product.price, priceCurrency: 'RUB', availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder', url: data.siteUrl + canonicalPath, ...(condition ? { itemCondition: condition } : {}), seller: { '@type': 'Organization', name: 'ООО «ИНВИА»' } } } : {}),
     })
+    // Те же пары, что в блоке «Частые вопросы» карточки: одна функция на оба места, разойтись им негде.
+    const faq = buildProductFaq(product)
+    if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
   } else if (route?.kind === 'service' && data.service?.slug === route.slug) {
     const service = data.service
     title = `${plainText(service.title)} — услуга и расчёт стоимости | ИНВИА`

@@ -2,6 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { plainText, formatSpec, jsonForHtml, paragraphs } from '../src/shared/lib/plain-text.ts'
 import { getMetadata } from '../src/shared/seo/metadata.ts'
+import { buildProductFaq } from '../src/shared/lib/product-faq.ts'
 import { detailRoute, productPath, rendersOnServer } from '../src/shared/seo/route-data.ts'
 import { siteOrigin, hostRedirect, publicRequestUrl } from '../src/renderer/site-origin.ts'
 import { apiOriginList, fetchFromApi } from '../src/renderer/api-fetch.ts'
@@ -192,4 +193,18 @@ test('moved product slugs lead straight to a current slug', async () => {
   assert.equal(movedProductSlug('bashmak-kolesosbrasyvayushchij-ksb-r'), 'bashmak-kolesosbrasyvayushchij-ksb-r-tm0376')
   assert.equal(movedProductSlug('__proto__'), undefined)
   assert.equal(movedProductSlug('bolt'), undefined)
+})
+
+test('product page carries FAQPage with the same questions and answers as the visible block; Product markup stays', () => {
+  const product = { slug: 'r65', title: 'Железнодорожные рельсы Р-65', gost: 'ГОСТ Р 51685-2013', price: null, stock: 0, condition: 'new', images: [], categorySlug: 'zheleznodorozhnye-relsy', sku: 'TM-0039', description: 'Рельс', specs: [{ label: 'Метров в тонне', value: '15,4', unit: 'м' }] }
+  const url = productPath(product)
+  const meta = getMetadata(url, { url, siteUrl: 'https://catalog.example', status: 200, ssr: true, product })
+  assert.deepEqual(meta.jsonLd.map((item) => item['@type']), ['Product', 'FAQPage'])
+  const faq = meta.jsonLd[1]
+  assert.equal(faq['@context'], 'https://schema.org')
+  const visible = buildProductFaq(product)
+  assert.deepEqual(faq.mainEntity, visible.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })))
+  assert.ok(faq.mainEntity.length >= 4)
+  assert.ok(!JSON.stringify(meta.jsonLd[0]).includes('Question'))
+  assert.equal(getMetadata('/about', { url: '/about', siteUrl: 'https://catalog.example', status: 200, ssr: false }).jsonLd.length, 0)
 })
