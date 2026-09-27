@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { REGIONY, SKLADY } from '../src/widgets/shipment-map/model/goroda.ts'
-import { GORODA_NA_KARTE, MARSHRUTY, RAZMER, TOCHKI_SKLADOV, VSE_GORODA } from '../src/widgets/shipment-map/model/marshruty.ts'
+import { GORODA_NA_KARTE, MARSHRUTY, MIN_PERIOD, RAZMER, TOCHKI_SKLADOV, VSE_GORODA } from '../src/widgets/shipment-map/model/marshruty.ts'
 import { OZERA, REKI, SUSHA } from '../src/widgets/shipment-map/model/kontury.ts'
 
 const MILLIONNIKI = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Красноярск', 'Нижний Новгород', 'Челябинск', 'Уфа', 'Самара', 'Ростов-на-Дону', 'Краснодар', 'Омск', 'Воронеж', 'Пермь', 'Волгоград']
@@ -49,7 +49,7 @@ test('each route is an arc from its warehouse, farther cities take longer', () =
     const sklad = TOCHKI_SKLADOV.find((t) => t.sklad.id === m.sklad.id)
     assert.ok(m.put.startsWith(`M${sklad.x} ${sklad.y}Q`), m.id)
     assert.ok(m.put.endsWith(` ${m.x} ${m.y}`), m.id)
-    assert.ok(m.period >= 2.4, m.id)
+    assert.ok(m.period >= MIN_PERIOD, m.id)
   }
   const po = (id) => MARSHRUTY.find((m) => m.id === id)
   assert.ok(po('zelenodolsk-novosibirsk').period > po('zelenodolsk-moskva').period)
