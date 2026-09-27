@@ -29,7 +29,7 @@ const rail = {
 }
 
 test('рельс с «Метров в тонне» получает этот вопрос с данными карточки, без характеристики — не получает', () => {
-  const item = buildProductFaq(rail).find((entry) => /метров в .*тонне/i.test(entry.question))
+  const item = buildProductFaq(rail).find((entry) => /метров/i.test(entry.question))
   assert.ok(item, 'нет вопроса про метры в тонне')
   assert.match(item.answer, /15,4 м/)
   assert.match(item.answer, /64,88 кг/)
@@ -37,6 +37,12 @@ test('рельс с «Метров в тонне» получает этот в�
   assert.match(item.answer, /811 кг/)
   const withoutSpec = { ...rail, specs: rail.specs.filter((spec) => spec.label !== 'Метров в тонне') }
   assert.ok(!questions(buildProductFaq(withoutSpec)).some((question) => /метров/i.test(question)))
+})
+
+test('ответ про метры в тонне — без оборота «в одной тонне», данные карточки в прежнем порядке', () => {
+  const item = buildProductFaq(rail).find((entry) => /метров/i.test(entry.question))
+  assert.doesNotMatch(`${item.question} ${item.answer}`, /в\s+одной\s+тонне/i)
+  assert.match(item.answer, /15,4 м.*64,88 кг.*12,5 м.*811 кг\.$/)
 })
 
 test('ступени в ответе про цену — как в блоке ступеней: у рельсов 10/15/20/40 т, у штучного раздела ни слова', () => {
@@ -85,6 +91,15 @@ test('штуки в тонне и масса штуки — из карточк�
   const onlyMass = buildProductFaq({ ...bare, specs: [{ label: 'Масса', value: '19', unit: 'кг' }] })
   assert.match(onlyMass.find((entry) => /весит/i.test(entry.question))?.answer ?? '', /19 кг/)
   assert.ok(!questions(buildProductFaq({ ...bolt, specs: [] })).some((question) => /штук|весит/i.test(question)))
+})
+
+test('вопрос и ответ про штуки в тонне — без оборота «в одной тонне», данные карточки в прежнем порядке', () => {
+  const item = buildProductFaq(bolt).find((entry) => /штук/i.test(entry.question))
+  assert.doesNotMatch(`${item.question} ${item.answer}`, /в\s+одной\s+тонне/i)
+  assert.match(item.answer, /1323 шт.*0,756 кг.*шт или кг\.$/)
+  const bare = buildProductFaq({ ...bolt, specs: [{ label: 'Штук в тонне', value: '278' }] }).find((entry) => /штук/i.test(entry.question))
+  assert.match(bare.answer, /278 шт\.$/)
+  assert.doesNotMatch(bare.answer, /в\s+одной\s+тонне/i)
 })
 
 test('ГОСТ, комплектность и аналог — только когда заполнены, со значениями карточки', () => {

@@ -76,9 +76,9 @@ function metersItem(specs: Spec[]): FaqItem | null {
   const length = spec(specs, 'Мерная длина')
   const railMass = specs.find((item) => key(item.label).startsWith('масса рельса длиной'))
   return {
-    question: 'Сколько метров в одной тонне?',
+    question: 'Сколько погонных метров даёт одна тонна?',
     answer: [
-      sentence([`в одной тонне — ${meters}`, perMeter && `масса 1 м — ${perMeter}`]),
+      sentence([`на тонну выходит ${meters}`, perMeter && `масса 1 м — ${perMeter}`]),
       sentence([length && `мерная длина — ${length}`, railMass ? `${lower(railMass.label)} — ${railMass.value}` : null]),
     ].filter(Boolean).join(' '),
   }
@@ -93,9 +93,9 @@ function piecesItem(specs: Spec[]): FaqItem | null {
   // В части карточек «Штук в тонне» — голое число: подпись уже говорит, что это штуки.
   const count = perTon && /^[\d\s,.]+$/.test(perTon) ? `${perTon} шт` : perTon
   return {
-    question: perTon ? 'Сколько штук в одной тонне?' : 'Сколько весит одно изделие?',
+    question: perTon ? 'Сколько штук выходит на тонну?' : 'Сколько весит одно изделие?',
     answer: [
-      sentence([count && `в одной тонне — ${count}`, perPiece ? `одна штука весит ${perPiece}` : mass && `масса изделия — ${mass}`]),
+      sentence([count && `на тонну выходит ${count}`, perPiece ? `одна штука весит ${perPiece}` : mass && `масса изделия — ${mass}`]),
       sentence([unit && `единица измерения — ${unit}`]),
     ].filter(Boolean).join(' '),
   }
@@ -178,7 +178,7 @@ function paymentItem(): FaqItem {
 function deliveryItem(group: ProductGroup): FaqItem {
   const ways = group === 'heavy'
     ? 'Крупные партии отправляем вагонами, небольшие — автотранспортом.'
-    : 'Автотранспортом до объекта или склада, крупные партии — вагоном.'
+    : 'Везём автотранспортом — на объект или на ваш склад, крупные партии — вагоном.'
   return {
     question: 'Как доставляете и можно ли забрать самим?',
     answer: `${ways} Склады — в Зеленодольске и Екатеринбурге, самовывоз — из Зеленодольска. Груз на нашем автотранспорте застрахован.`,
