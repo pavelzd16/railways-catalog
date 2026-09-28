@@ -1,25 +1,29 @@
 import { useState } from 'react'
 import { FiPackage } from 'react-icons/fi'
 import { getImageUrl } from '@/shared/lib/product-helpers'
+import { UploadImg } from './UploadImg'
 
 export function CatalogImage({
   src,
   alt,
+  sizes,
   className = '',
 }: {
   src?: string
   alt: string
+  // Ширина на странице для выбора WebP-копии, как атрибут sizes.
+  sizes: string
   className?: string
 }) {
   const [failedSrc, setFailedSrc] = useState<string>()
   const url = src ? getImageUrl(src) : ''
   return url && failedSrc !== url ? (
-    <img
+    <UploadImg
       src={url}
       alt={alt}
+      sizes={sizes}
       loading="lazy"
-      ref={(node) => { if (node?.complete && node.naturalWidth === 0) setFailedSrc(url) }}
-      onError={() => setFailedSrc(url)}
+      onFailed={() => setFailedSrc(url)}
       className={`h-full w-full object-contain ${className}`}
     />
   ) : (

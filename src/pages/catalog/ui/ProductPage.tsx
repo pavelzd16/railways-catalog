@@ -125,6 +125,7 @@ export function ProductPage() {
               <ProductImage
                 src={getImageUrl(selectedProductImage)}
                 alt={product.title}
+                sizes="(min-width: 1024px) 600px, calc(100vw - 34px)"
                 className="h-full w-full object-cover"
                 fallbackClassName="h-full w-full"
                 iconClassName="h-24 w-24"
@@ -147,6 +148,7 @@ export function ProductPage() {
                     <ProductImage
                       src={getImageUrl(image)}
                       alt=""
+                      sizes="80px"
                       className="h-full w-full object-cover"
                       fallbackClassName="h-full w-full"
                       iconClassName="h-8 w-8"

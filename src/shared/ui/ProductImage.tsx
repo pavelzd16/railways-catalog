@@ -1,9 +1,12 @@
 import { useState, type ImgHTMLAttributes } from 'react'
 import { MdNoPhotography } from 'react-icons/md'
 import { cn } from '../lib'
+import { UploadImg } from './UploadImg'
 
-interface ProductImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+interface ProductImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'sizes'> {
   src: string | undefined
+  // Ширина на странице для выбора WebP-копии, как атрибут sizes.
+  sizes: string
   fallbackClassName?: string
   iconClassName?: string
 }
@@ -32,12 +35,11 @@ export function ProductImage({
   }
 
   return (
-    <img
+    <UploadImg
       src={src}
       alt={alt}
       className={className}
-      ref={(node) => { if (node?.complete && node.naturalWidth === 0) setFailedSrc(src) }}
-      onError={() => setFailedSrc(src)}
+      onFailed={() => setFailedSrc(src)}
       {...props}
     />
   )

@@ -72,6 +72,7 @@ export function CatalogList({ products }: { products: Product[] }) {
                         src={getImageUrl(product.images[0] ?? '')}
                         alt={product.title}
                         loading="lazy"
+                        sizes="88px"
                         width={88}
                         height={88}
                         className="h-full w-full object-contain"

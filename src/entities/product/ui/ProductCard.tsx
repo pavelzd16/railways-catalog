@@ -28,6 +28,7 @@ export function ProductCard({ product }: { product: Product }) {
         <CatalogImage
           src={product.images[0]}
           alt={product.title}
+          sizes="(min-width: 1280px) 300px, (min-width: 640px) calc(50vw - 60px), calc(100vw - 50px)"
           className="p-4"
         />
       </Link>

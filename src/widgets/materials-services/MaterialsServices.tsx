@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { useServices } from '@/entities/service/model/hooks/useServices'
 import { getImageUrl } from '@/shared/lib'
+import { UploadImg } from '@/shared/ui/UploadImg'
 
 export function MaterialsServices() {
   const { services, isLoading } = useServices()
@@ -63,8 +64,9 @@ export function MaterialsServices() {
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-[hsl(var(--muted))]">
                     {service.image ? (
-                      <img
+                      <UploadImg
                         src={getImageUrl(service.image)}
+                        sizes="(min-width: 768px) 500px, calc(100vw - 34px)"
                         alt={service.title}
                         className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                       />
