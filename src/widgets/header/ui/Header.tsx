@@ -11,6 +11,8 @@ import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
 import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
+import { positionsLabel } from '@/shared/lib/positions-count'
+import { usePositionsCount } from '../model/use-positions-count'
 
 const EMAIL = 'zakaz@traer.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'
@@ -55,6 +57,7 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const email = useCopy(EMAIL, EMAIL_COPY_GOAL)
   const { totalItems } = useCart()
+  const positions = usePositionsCount()
   useEffect(() => {
     const scroll = () => {
       const scrollY = Math.max(0, window.scrollY)
@@ -95,7 +98,13 @@ export function Header() {
       >
         <div>
           <div className="container mx-auto flex items-center justify-between gap-4 px-6 py-2 text-[13px] xl:px-8">
-            <span>Зеленодольск · Поставки по России и СНГ</span>
+            {/* Счётчик ведёт в каталог; город и доставка — там, где хватает места. */}
+            <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
+              <Link to="/catalog" className="font-bold text-foreground hover:text-primary">
+                {positionsLabel(positions)}
+              </Link>
+              <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
+            </div>
             <nav
               aria-label="Основная навигация"
               className="hidden items-center gap-4 lg:flex"
