@@ -4,9 +4,11 @@ import { productGroup, TIER_NAMES, tierVolumes } from '@/shared/lib/product-grou
 
 /**
  * Ступени цены по объёму партии — словами, без процентов (решение пользователя
- * от 24.09.2026). Столбики-ступеньки растут к вагону: чем больше партия, тем
- * выгоднее тонна. Группы разделов и объёмы — из общего модуля: из него же
- * берёт ступени ответ про цену в «Частых вопросах».
+ * от 24.09.2026). Столбики-ступеньки растут к вагону: чем больше объём, тем
+ * выгоднее тонна. В квадратиках — только объём, подпись осталась лишь у
+ * вагонной ступени (решение пользователя от 28.09.2026). Группы разделов и
+ * объёмы — из общего модуля: из него же берёт ступени ответ про цену
+ * в «Частых вопросах».
  */
 const STEPS = [
   'h-1/4 bg-primary/25',
@@ -42,7 +44,7 @@ export function VolumeTiers({
       <div className="mb-4 flex items-center gap-2">
         <LuLayers aria-hidden className="size-4 shrink-0 text-primary" />
         <h2 id="volume-tiers-title" className="text-sm font-bold text-foreground">
-          Чем больше партия — тем ниже цена за тонну
+          Чем больше объём — тем ниже цена за тонну
         </h2>
       </div>
 
@@ -63,14 +65,11 @@ export function VolumeTiers({
               <span className="text-base font-bold leading-tight text-foreground">
                 {tier.volume}
               </span>
-              <span
-                className={cn(
-                  'mt-0.5 text-xs leading-tight',
-                  best ? 'font-semibold text-primary' : 'text-muted-foreground',
-                )}
-              >
-                {tier.name}
-              </span>
+              {best && (
+                <span className="mt-0.5 text-xs font-semibold leading-tight text-primary">
+                  {tier.name}
+                </span>
+              )}
             </li>
           )
         })}
