@@ -16,6 +16,7 @@ import { PriceNote } from '@/shared/ui/PriceNote'
 import { ProductImage } from '@/shared/ui/ProductImage'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
+import { ProductActionBar } from '@/widgets/product-action-bar/ProductActionBar'
 import { ProductFaq } from '@/widgets/product-faq/ProductFaq'
 import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
 import { useState } from 'react'
@@ -35,6 +36,11 @@ const specLabels: Record<string, string> = {
   drive: 'Привод',
 }
 
+const REQUEST_TEXT = {
+  price: { title: 'Узнать цену', description: 'Укажите объём партии — менеджер назовёт цену' },
+  specification: { title: 'Запросить спецификацию', description: 'Получите консультацию или коммерческое предложение' },
+}
+
 export function ProductPage() {
   const { productSlug } = useParams<{
     categorySlug: string
@@ -43,6 +49,12 @@ export function ProductPage() {
   }>()
 
   const [requestFormOpen, setRequestFormOpen] = useState(false)
+  // Заголовок формы — по нажатой кнопке; остаётся прежним, пока форма закрывается.
+  const [requestKind, setRequestKind] = useState<keyof typeof REQUEST_TEXT>('specification')
+  const openRequest = (kind: keyof typeof REQUEST_TEXT) => {
+    setRequestKind(kind)
+    setRequestFormOpen(true)
+  }
   const { addToCart } = useCart()
 
   const {
@@ -102,11 +114,19 @@ export function ProductPage() {
   )
 
   return (
-    <Layout>
+    <Layout
+      bottomBar={
+        <ProductActionBar
+          onPrice={() => openRequest('price')}
+          onSpecification={() => openRequest('specification')}
+        />
+      }
+    >
       <RequestFormModal
         open={requestFormOpen}
         onOpenChange={setRequestFormOpen}
         productId={product.id}
+        {...REQUEST_TEXT[requestKind]}
       />
 
       <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-10">
@@ -207,7 +227,7 @@ export function ProductPage() {
               categorySlug={product.category?.slug}
               subcategorySlug={product.subcategory?.slug}
               className="mb-6"
-              onRequest={() => setRequestFormOpen(true)}
+              onRequest={() => openRequest('price')}
             />
 
             <div className="mb-6 rounded-lg bg-muted p-4">
@@ -277,7 +297,7 @@ export function ProductPage() {
               <Button
                 type="button"
                 size="lg"
-                onClick={() => setRequestFormOpen(true)}
+                onClick={() => openRequest('specification')}
                 className="flex-1"
               >
                 Запросить спецификацию
