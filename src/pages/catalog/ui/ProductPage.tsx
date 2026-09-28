@@ -9,6 +9,7 @@ import {
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { buildProductFaq } from '@/shared/lib/product-faq'
+import { splitSpecs } from '@/shared/lib/product-specs'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
@@ -20,7 +21,7 @@ import { ProductActionBar } from '@/widgets/product-action-bar/ProductActionBar'
 import { ProductFaq } from '@/widgets/product-faq/ProductFaq'
 import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
 import { useState } from 'react'
-import { FiFileText, FiSettings, FiShoppingCart, FiTruck } from 'react-icons/fi'
+import { FiChevronDown, FiFileText, FiSettings, FiShoppingCart, FiTruck } from 'react-icons/fi'
 import { Link, useParams } from 'react-router'
 import { useProduct } from '../model/use-product'
 
@@ -55,6 +56,9 @@ export function ProductPage() {
     setRequestKind(kind)
     setRequestFormOpen(true)
   }
+  // Полный список характеристик раскрыт только у той карточки, где его открыли.
+  const [openSpecsSlug, setOpenSpecsSlug] = useState<string | undefined>()
+  const allSpecsOpen = openSpecsSlug === productSlug
   const { addToCart } = useCart()
 
   const {
@@ -112,6 +116,25 @@ export function ProductPage() {
     product.category?.name || 'Все',
     product.subcategory?.name,
   )
+
+  const { main: mainSpecs, rest: restSpecs } = splitSpecs(
+    displaySpecs.map((spec) => ({
+      key: spec.id,
+      label: specLabels[spec.id] ?? plainText(spec.label),
+      value: formatSpec(spec.value, spec.unit),
+    })),
+  )
+  if (product.category) {
+    restSpecs.push({ key: '__category', label: 'Категория', value: product.category.name })
+  }
+  if (product.subcategory) {
+    restSpecs.push({ key: '__subcategory', label: 'Подкатегория', value: product.subcategory.name })
+  }
+  const specRows = [...mainSpecs, ...restSpecs]
+  // Прячем хвост, только когда под кнопкой хотя бы три строки: ради одной-двух кнопка лишняя.
+  // Скрытые строки остаются в HTML — поисковики видят все характеристики.
+  const specsCollapsible = restSpecs.length >= 3
+  const specsCollapsed = specsCollapsible && !allSpecsOpen
 
   return (
     <Layout
@@ -252,43 +275,37 @@ export function ProductPage() {
               </div>
 
               <div className="overflow-hidden rounded-lg border border-border bg-card">
-                {displaySpecs.map((spec) => (
+                {specRows.map((row, index) => (
                   <div
-                    key={spec.id}
-                    className="flex items-center justify-between gap-6 border-b border-border px-4 py-3 last:border-b-0"
+                    key={row.key}
+                    className={`${
+                      specsCollapsed && index >= mainSpecs.length ? 'hidden' : 'flex'
+                    } items-center justify-between gap-6 border-b border-border px-4 py-3 last:border-b-0`}
                   >
                     <span className="text-sm text-muted-foreground">
-                      {specLabels[spec.id] ?? plainText(spec.label)}
+                      {row.label}
                     </span>
 
                     <span className="text-right text-sm font-medium text-foreground">
-                      {formatSpec(spec.value, spec.unit)}
+                      {row.value}
                     </span>
                   </div>
                 ))}
 
-                {product.category && (
-                  <div className="flex items-center justify-between gap-6 border-b border-border px-4 py-3">
-                    <span className="text-sm text-muted-foreground">
-                      Категория
-                    </span>
+                {specsCollapsible && (
+                  <button
+                    type="button"
+                    aria-expanded={allSpecsOpen}
+                    onClick={() => setOpenSpecsSlug(allSpecsOpen ? undefined : productSlug)}
+                    className="flex min-h-11 w-full items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-muted"
+                  >
+                    {allSpecsOpen ? 'Свернуть' : `Все характеристики (${specRows.length})`}
 
-                    <span className="text-right text-sm font-medium text-foreground">
-                      {product.category.name}
-                    </span>
-                  </div>
-                )}
-
-                {product.subcategory && (
-                  <div className="flex items-center justify-between gap-6 px-4 py-3">
-                    <span className="text-sm text-muted-foreground">
-                      Подкатегория
-                    </span>
-
-                    <span className="text-right text-sm font-medium text-foreground">
-                      {product.subcategory.name}
-                    </span>
-                  </div>
+                    <FiChevronDown
+                      aria-hidden
+                      className={`h-4 w-4 transition-transform ${allSpecsOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
                 )}
               </div>
             </div>
