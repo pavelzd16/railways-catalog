@@ -1,0 +1,167 @@
+import { useEffect, useRef, useState } from 'react'
+import { FiChevronDown, FiClock, FiPhone } from 'react-icons/fi'
+import { Button } from '@/shared/ui/Button'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { MessengerLinks } from '@/shared/ui/MessengerLinks'
+import { useCopy } from '@/shared/ui/use-copy'
+import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
+
+const EMAIL = 'zakaz@traer.ru'
+const COPY_EMAIL = 'Скопировать адрес почты'
+// В шапке виден мобильный (на нём и мессенджеры), городской — в списке под ним.
+const PHONE_MOBILE = '+7 (965) 615-50-59'
+const PHONE_CITY = '+7 (843) 227-00-05'
+const COPY_PHONE = 'Скопировать номер телефона'
+// Мышь успевает дойти от номера до списка по диагонали — список закрывается не сразу.
+const CLOSE_DELAY = 200
+
+const tel = (phone: string) => `tel:+${phone.replace(/\D/g, '')}`
+
+/** Строка списка: трубка звонит, номер и значок копируют — как в блоке контактов на главной. */
+function PanelPhone({ phone }: { phone: string }) {
+  const copy = useCopy(phone)
+  return (
+    <div className="mt-1.5 flex items-center gap-2 text-lg font-bold">
+      <a
+        href={tel(phone)}
+        aria-label={`Позвонить: ${phone}`}
+        title="Позвонить"
+        className="-m-1 shrink-0 rounded-md p-1 text-primary hover:bg-primary/10"
+      >
+        <FiPhone className="h-4 w-4" />
+      </a>
+      <CopyValue state={copy} label={COPY_PHONE} className="whitespace-nowrap hover:text-primary">
+        {phone}
+      </CopyValue>
+      <CopyButton compact state={copy} label={COPY_PHONE} />
+    </div>
+  )
+}
+
+function PanelLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs font-bold uppercase tracking-[.05em] text-muted-foreground">{children}</p>
+}
+
+/**
+ * Почта и мобильный столбиком; под мобильным — список всех контактов.
+ * Мышью список открывается наведением, нажатие на стрелку закрепляет его
+ * (на планшете наведения нет — только стрелка). Esc и нажатие мимо закрывают.
+ */
+export function HeaderContacts({ onRequestCall }: { onRequestCall: () => void }) {
+  const [open, setOpen] = useState<false | 'hover' | 'click'>(false)
+  const root = useRef<HTMLDivElement>(null)
+  const toggle = useRef<HTMLButtonElement>(null)
+  const closeTimer = useRef<number | undefined>(undefined)
+  const email = useCopy(EMAIL, EMAIL_COPY_GOAL)
+  const panelEmail = useCopy(EMAIL, EMAIL_COPY_GOAL)
+  const mobile = useCopy(PHONE_MOBILE)
+
+  useEffect(() => () => window.clearTimeout(closeTimer.current), [])
+  useEffect(() => {
+    if (!open) return
+    const outside = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false)
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+        toggle.current?.focus()
+      }
+    }
+    document.addEventListener('pointerdown', outside)
+    document.addEventListener('keydown', escape)
+    return () => {
+      document.removeEventListener('pointerdown', outside)
+      document.removeEventListener('keydown', escape)
+    }
+  }, [open])
+
+  const enter = (event: React.PointerEvent) => {
+    if (event.pointerType !== 'mouse') return
+    window.clearTimeout(closeTimer.current)
+    setOpen((state) => state || 'hover')
+  }
+  const leave = (event: React.PointerEvent) => {
+    if (event.pointerType !== 'mouse') return
+    closeTimer.current = window.setTimeout(
+      () => setOpen((state) => (state === 'hover' ? false : state)),
+      CLOSE_DELAY,
+    )
+  }
+
+  return (
+    <div className="ml-auto flex shrink-0 flex-col justify-center">
+      <div className="hidden h-6 items-center gap-2 px-2 text-sm md:flex">
+        <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
+        <CopyValue state={email} label={COPY_EMAIL} className="font-bold text-current hover:text-primary">
+          {EMAIL}
+        </CopyValue>
+      </div>
+      {/* На телефоне — значок звонка, оба номера есть в меню. */}
+      <a
+        href={tel(PHONE_CITY)}
+        className="flex h-11 items-center rounded-lg px-2 hover:opacity-75 md:hidden"
+        aria-label={`Позвонить: ${PHONE_CITY}`}
+      >
+        <FiPhone className="h-5 w-5" />
+      </a>
+      <div ref={root} className="relative hidden md:block" onPointerEnter={enter} onPointerLeave={leave}>
+        <div className="flex h-6 items-center gap-2 pl-2">
+          <CopyButton compact state={mobile} label={COPY_PHONE} className="-mx-0.5" />
+          <CopyValue state={mobile} label={COPY_PHONE} className="whitespace-nowrap font-bold text-current hover:text-primary">
+            {PHONE_MOBILE}
+          </CopyValue>
+          <button
+            ref={toggle}
+            type="button"
+            aria-expanded={!!open}
+            aria-controls="header-contacts-panel"
+            aria-label="Все телефоны и контакты"
+            title="Все телефоны и контакты"
+            onClick={() => setOpen((state) => (state === 'click' ? false : 'click'))}
+            className="inline-flex h-6 w-6 items-center justify-center rounded text-current/60 transition-colors hover:bg-current/10 hover:text-primary"
+          >
+            <FiChevronDown className={`h-4 w-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+        {open && (
+          // Отступ сверху — часть списка: мышь идёт от номера к списку, не выходя из блока.
+          <div id="header-contacts-panel" aria-label="Контакты" className="absolute right-0 top-full z-50 pt-2">
+            <div className="panel-enter w-76 rounded-lg border border-border bg-white p-5 text-left text-foreground shadow-lg">
+              <PanelLabel>Мобильный и мессенджеры</PanelLabel>
+              <PanelPhone phone={PHONE_MOBILE} />
+              <div className="mt-3">
+                <MessengerLinks compact />
+              </div>
+              <div className="my-4 border-t border-border" />
+              <PanelLabel>Городской</PanelLabel>
+              <PanelPhone phone={PHONE_CITY} />
+              <div className="my-4 border-t border-border" />
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FiClock className="shrink-0 text-primary" aria-hidden="true" />
+                Пн–Пт, 8:00–17:00
+              </p>
+              <Button
+                className="mt-3 w-full flex-col gap-0! leading-tight"
+                onClick={() => {
+                  setOpen(false)
+                  onRequestCall()
+                }}
+              >
+                Заказать звонок
+                <span className="text-xs font-medium opacity-90">перезвоним за 15 мин</span>
+              </Button>
+              <p className="mt-4 text-sm text-muted-foreground">Наша почта:</p>
+              <div className="mt-1 flex items-center gap-2 font-bold">
+                <CopyValue state={panelEmail} label={COPY_EMAIL} className="hover:text-primary">
+                  {EMAIL}
+                </CopyValue>
+                <CopyButton compact state={panelEmail} label={COPY_EMAIL} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
