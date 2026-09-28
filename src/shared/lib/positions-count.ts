@@ -13,11 +13,16 @@ export function roundPositions(total: number): number {
   return Math.floor(total / step) * step
 }
 
-/**
- * «1 200+ позиций в наличии и под заказ». Разряды — неразрывным пробелом, как пишут цены.
- * Число кратно десяти, поэтому «позиций» подходит всегда.
- */
+// Число кратно десяти, поэтому «позиций» подходит всегда. «и под заказ» держится вместе
+// неразрывными пробелами: на первом экране подпись переносится «позиций в наличии / и под заказ».
+export const POSITIONS_CAPTION = 'позиций в наличии и\u00a0под\u00a0заказ'
+
+/** «1 200+» — крупная цифра на первом экране. Разряды — неразрывным пробелом, как пишут цены. */
+export function positionsValue(count: number): string {
+  return `${String(count).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')}+`
+}
+
+/** «1 200+ позиций в наличии и под заказ» — строка в шапке. */
 export function positionsLabel(count: number): string {
-  const digits = String(count).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-  return `${digits}+ позиций в наличии и под заказ`
+  return `${positionsValue(count)} ${POSITIONS_CAPTION}`
 }

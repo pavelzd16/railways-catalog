@@ -2,9 +2,12 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router'
 import { FiArrowRight } from 'react-icons/fi'
 import { HomeCategoriesSidebar } from '@/widgets/home-categories-sidebar/HomeCategoriesSidebar'
+import { usePositionsCount } from '@/entities/product'
+import { POSITIONS_CAPTION, positionsValue } from '@/shared/lib/positions-count'
 
 export function Hero() {
   const sectionRef = useRef<HTMLElement>(null)
+  const positions = usePositionsCount()
   useEffect(() => {
     // The hero fills the first screen below the header. Measure only at the
     // top of the page, where the header still has its full height.
@@ -54,8 +57,10 @@ export function Hero() {
               <FiArrowRight />
             </Link>
           </div>
-          <dl className="hero-enter hero-delay-3 mt-10 grid max-w-3xl grid-cols-3 gap-4 border-t border-white/25 pt-7 md:gap-10">
+          {/* Четыре цифры: на телефоне — два на два, с 640 px — в один ряд. */}
+          <dl className="hero-enter hero-delay-3 mt-10 grid max-w-3xl grid-cols-2 gap-x-4 gap-y-6 border-t border-white/25 pt-7 sm:grid-cols-4 md:gap-x-10">
             {[
+              [positionsValue(positions), POSITIONS_CAPTION],
               ['16+', 'лет на рынке'],
               ['5000+', 'партнёров'],
               ['48ч', 'отгрузка'],

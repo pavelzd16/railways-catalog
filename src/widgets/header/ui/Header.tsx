@@ -12,7 +12,7 @@ import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
 import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
 import { positionsLabel } from '@/shared/lib/positions-count'
-import { usePositionsCount } from '../model/use-positions-count'
+import { usePositionsCount } from '@/entities/product'
 
 const EMAIL = 'zakaz@traer.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'

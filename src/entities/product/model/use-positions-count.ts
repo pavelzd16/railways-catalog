@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { productApi } from '@/entities/product'
+import { productApi } from '../api/product.api'
 import { POSITIONS_FALLBACK, roundPositions } from '@/shared/lib/positions-count'
 
-// Шапка монтируется заново на каждой странице — каталог спрашиваем один раз за визит.
+// Шапка монтируется заново на каждой странице, число нужно и первому экрану главной —
+// каталог спрашиваем один раз за визит.
 let known: number | null = null
 let request: Promise<number> | null = null
 
