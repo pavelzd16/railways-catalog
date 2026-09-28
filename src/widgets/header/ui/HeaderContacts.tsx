@@ -93,8 +93,8 @@ export function HeaderContacts({ onRequestCall }: { onRequestCall: () => void })
     <div className="ml-auto flex shrink-0 flex-col justify-center">
       <div className="hidden h-6 items-center gap-2 px-2 text-sm md:flex">
         <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
-        {/* Разрядка 0,1 em — зазор между буквами вдвое шире обычного. */}
-        <CopyValue state={email} label={COPY_EMAIL} className="font-bold tracking-widest text-current hover:text-primary">
+        {/* Почта на ступень крупнее строки (16 px, как номер), разрядка 0,1 em — зазор вдвое шире обычного. */}
+        <CopyValue state={email} label={COPY_EMAIL} className="text-base font-bold tracking-widest text-current hover:text-primary">
           {EMAIL}
         </CopyValue>
       </div>
