@@ -102,13 +102,9 @@ function piecesItem(specs: Spec[]): FaqItem | null {
 }
 
 /** Документы завода обещаем только для новых: у б/у и старогодных их может не быть. */
-function gostItem(product: FaqProduct, name: string | null): FaqItem | null {
+function gostItem(product: FaqProduct, name: string | null, old: boolean): FaqItem | null {
   const gost = clean(product.gost)
   if (!gost) return null
-  const old = product.condition === 'used' || isStarogodnySection(
-    product.category?.slug ?? product.categorySlug ?? undefined,
-    product.subcategory?.slug ?? product.subcategorySlug ?? undefined,
-  )
   const papers = old ? '' : ' С партией передаём сертификат или паспорт качества завода-изготовителя.'
   return {
     question: 'По какому стандарту изготовлен товар?',
@@ -129,9 +125,8 @@ function analogItem(specs: Spec[]): FaqItem | null {
 }
 
 /** Общий отраслевой термин, а не обещание о конкретной партии: состояние — из карточки. */
-function usedItem(product: FaqProduct, specs: Spec[]): FaqItem | null {
-  const section = product.category?.slug ?? product.categorySlug
-  if (product.condition !== 'used' && section !== 'starogodnye-materialy-vsp') return null
+function usedItem(specs: Spec[], old: boolean): FaqItem | null {
+  if (!old) return null
   const state = spec(specs, 'Состояние')
   return {
     question: 'Что значит «старогодный»?',
@@ -161,16 +156,17 @@ function stockItem(product: FaqProduct, name: string | null): FaqItem {
   const answer = stock > 100
     ? `Да, ${name ?? 'позиция'} в наличии, отгрузка 1–3 дня.`
     : stock > 0
-      ? `Остаток по позиции${name ? ` ${name}` : ''} — ${stock} шт.`
+      ? `Остаток${name ? ` по позиции ${name}` : ''} — ${stock} шт.`
       : `${subject} — под заказ, срок 7–14 дней.`
   return { question: name ? `Есть ли ${name} в наличии?` : 'Есть ли товар в наличии?', answer }
 }
 
-function paymentItem(): FaqItem {
+/** У б/у и старогодных сертификаты и паспорта качества не обещаем (решение пользователя 28.09.2026). */
+function paymentItem(old: boolean): FaqItem {
+  const papers = old ? '' : ' сертификаты и паспорта качества,'
   return {
     question: 'Как оплатить и какие будут документы?',
-    answer:
-      'Безналичный расчёт по счёту, с НДС 22 % или без НДС. Даём договор поставки, УПД, сертификаты и паспорта качества, транспортную или ж/д накладную; ЭДО — через СБИС.',
+    answer: `Безналичный расчёт по счёту, с НДС 22 % или без НДС. Даём договор поставки, УПД,${papers} транспортную или ж/д накладную; ЭДО — через СБИС.`,
     link: PAYMENT_LINK,
   }
 }
@@ -188,24 +184,25 @@ function deliveryItem(group: ProductGroup): FaqItem {
 
 export function buildProductFaq(product: FaqProduct): FaqItem[] {
   const name = quoted(product.title)
-  const group = productGroup(
-    product.category?.slug ?? product.categorySlug ?? undefined,
-    product.subcategory?.slug ?? product.subcategorySlug ?? undefined,
-  )
+  const section = product.category?.slug ?? product.categorySlug ?? undefined
+  const subsection = product.subcategory?.slug ?? product.subcategorySlug ?? undefined
+  const group = productGroup(section, subsection)
+  // Б/у или раздел/подраздел старогодных — один признак для вопросов про стандарт, документы и «старогодный».
+  const old = product.condition === 'used' || isStarogodnySection(section, subsection)
   const specs = readSpecs(product)
   const optional = [
     metersItem(specs),
     piecesItem(specs),
-    gostItem(product, name),
+    gostItem(product, name, old),
     kitItem(specs),
     analogItem(specs),
-    usedItem(product, specs),
+    usedItem(specs, old),
   ].filter((item): item is FaqItem => item !== null)
   return [
     priceItem(product, name, group),
     stockItem(product, name),
     ...optional.slice(0, LIMIT - 4),
-    paymentItem(),
+    paymentItem(old),
     deliveryItem(group),
   ]
 }

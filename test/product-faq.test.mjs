@@ -154,3 +154,38 @@ test('обещание сертификата или паспорта завод
     assert.doesNotMatch(answer, /сертификат|паспорт|завод/i)
   }
 })
+
+test('ответ про оплату и документы: у новых есть сертификаты и паспорта качества, у б/у и старогодных — нет', () => {
+  const paymentAnswer = (product) => buildProductFaq(product).find((item) => /оплат/i.test(item.question)).answer
+  assert.match(paymentAnswer(rail), /УПД, сертификаты и паспорта качества, транспортную/)
+  for (const old of [
+    { ...rail, condition: 'used' },
+    { ...rail, categorySlug: 'starogodnye-materialy-vsp' },
+    { ...rail, categorySlug: 'zheleznodorozhnye-relsy', subcategorySlug: 'starogodnye-relsy' },
+  ]) {
+    const answer = paymentAnswer(old)
+    assert.doesNotMatch(answer, /сертификат|паспорт/)
+    assert.match(answer, /^Безналичный расчёт по счёту, с НДС 22 % или без НДС\. Даём договор поставки, УПД, транспортную или ж\/д накладную; ЭДО — через СБИС\.$/)
+  }
+})
+
+test('вопрос «старогодный» — и по подразделу старогодных, как ответы про стандарт и документы', () => {
+  const bySubsection = { ...rail, categorySlug: 'zheleznodorozhnye-relsy', subcategorySlug: 'starogodnye-relsy' }
+  assert.ok(questions(buildProductFaq(bySubsection)).some((question) => /старогодн/i.test(question)))
+  assert.ok(!questions(buildProductFaq(rail)).some((question) => /старогодн/i.test(question)))
+})
+
+test('остаток без подставленного названия — «Остаток — N шт.», без повисшего «по позиции»', () => {
+  const answer = buildProductFaq({ ...bare, title: 'Болт "М22"', stock: 40 })[1].answer
+  assert.equal(answer, 'Остаток — 40 шт.')
+})
+
+test('граница наличия: 101 шт — «в наличии», 100 шт — остаток', () => {
+  assert.match(buildProductFaq({ ...rail, stock: 101 })[1].answer, /в наличии, отгрузка 1–3 дня/)
+  assert.match(buildProductFaq({ ...rail, stock: 100 })[1].answer, /Остаток по позиции .* — 100 шт\./)
+})
+
+test('ступени «тяжёлого» раздела узнаются и по подразделу, и по вложенным category/subcategory', () => {
+  const nested = { ...bare, categorySlug: undefined, category: { slug: 'starogodnye-materialy-vsp' }, subcategory: { slug: 'starogodnye-relsy' } }
+  assert.match(buildProductFaq(nested)[0].answer, /от 10 т.*от 15 т.*от 20 т.*от 40 т/)
+})
