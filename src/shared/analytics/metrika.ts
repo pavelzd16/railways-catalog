@@ -4,6 +4,8 @@
  * лежат в секрете VITE_ENV, прочитать который нельзя, а значит нельзя и
  * дописать в него ключ, не потеряв остальные значения.
  */
+import { optionalTrackingAllowed } from '../privacy/cookie-consent'
+
 const DEFAULT_METRIKA_ID = '112450496'
 
 const configured = (import.meta.env.VITE_METRIKA_ID ?? '').trim()
@@ -19,13 +21,13 @@ export const metrikaId = /^\d+$/.test(resolved) ? resolved : ''
 
 declare global {
   interface Window {
-    ym?: (id: number, action: string, ...args: unknown[]) => void
+    ym?: ((id: number, action: string, ...args: unknown[]) => void) & { a?: unknown[][]; l?: number }
   }
 }
 
 /** Сообщает Метрике о переходе на новый адрес внутри сайта. */
 export function metrikaHit(url: string, referrer: string): void {
-  if (!metrikaId || typeof window.ym !== 'function') return
+  if (!optionalTrackingAllowed() || !metrikaId || typeof window.ym !== 'function') return
   window.ym(Number(metrikaId), 'hit', url, { referer: referrer })
 }
 
@@ -48,10 +50,39 @@ export const EMAIL_COPY_GOAL = 'pochta'
  * от неё зависеть.
  */
 export function metrikaReachGoal(goal: string): void {
-  if (!metrikaId || typeof window.ym !== 'function') return
+  if (!optionalTrackingAllowed() || !metrikaId || typeof window.ym !== 'function') return
   try {
     window.ym(Number(metrikaId), 'reachGoal', goal)
   } catch {
     // Счётчик сломан или заблокирован — цель теряется, сайт работает.
   }
+}
+
+let initialized = false
+
+export function startMetrika(): boolean {
+  if (!optionalTrackingAllowed() || !metrikaId || initialized) return false
+  initialized = true
+  if (!window.ym) {
+    const queue: NonNullable<Window['ym']> = (...args) => { (queue.a ??= []).push(args) }
+    queue.l = Date.now()
+    window.ym = queue
+  }
+  if (!document.getElementById('metrika-script')) {
+    const script = document.createElement('script')
+    script.id = 'metrika-script'
+    script.async = true
+    script.src = `https://mc.yandex.ru/metrika/tag.js?id=${metrikaId}`
+    document.head.append(script)
+  }
+  window.ym(Number(metrikaId), 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true })
+  return true
+}
+
+export function stopMetrika() {
+  if (initialized && window.ym) {
+    try { window.ym(Number(metrikaId), 'destruct') } catch { /* Сайт не зависит от счётчика. */ }
+    if (window.ym.a) window.ym.a = []
+  }
+  initialized = false
 }
