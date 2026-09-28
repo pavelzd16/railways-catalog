@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FiMenu, FiPhone, FiShoppingCart } from 'react-icons/fi'
+import { FiMenu, FiShoppingCart } from 'react-icons/fi'
 import { Link, NavLink } from 'react-router'
 import { Button } from '@/shared/ui/Button'
 import { MobileMenu } from './MobileMenu'
@@ -8,15 +8,9 @@ import { CatalogSearch } from './CatalogSearch'
 import { useCart } from '@/entities/cart/model/use-cart'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
-import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
-import { useCopy } from '@/shared/ui/use-copy'
-import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
-
-const EMAIL = 'zakaz@traer.ru'
-const COPY_EMAIL = 'Скопировать адрес почты'
-const PHONE = '+7 (843) 227-00-05'
-const PHONE_2 = '+7 (965) 615-50-59'
-const COPY_PHONE = 'Скопировать номер телефона'
+import { positionsLabel } from '@/shared/lib/positions-count'
+import { usePositionsCount } from '@/entities/product'
+import { HeaderContacts } from './HeaderContacts'
 
 const links = [
   ['Услуги', '/services'],
@@ -26,35 +20,13 @@ const links = [
   ['Контакты', '/contacts'],
 ]
 
-/**
- * Номер на широком экране: нажатие на номер или значок копирует его, как почту.
- * `small` — второй номер шрифтом почты, чтобы столбик не спорил с городским.
- */
-function HeaderPhone({ phone, small }: { phone: string; small?: boolean }) {
-  const copy = useCopy(phone)
-  return (
-    <div
-      className={`hidden h-6 items-center gap-2 px-2 md:flex ${small ? 'text-sm' : ''}`}
-    >
-      <CopyButton compact state={copy} label={COPY_PHONE} className="-mx-0.5" />
-      <CopyValue
-        state={copy}
-        label={COPY_PHONE}
-        className="whitespace-nowrap font-bold text-current hover:text-primary"
-      >
-        {phone}
-      </CopyValue>
-    </div>
-  )
-}
-
 export function Header() {
   const headerRef = useRef<HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [requestOpen, setRequestOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const email = useCopy(EMAIL, EMAIL_COPY_GOAL)
   const { totalItems } = useCart()
+  const positions = usePositionsCount()
   useEffect(() => {
     const scroll = () => {
       const scrollY = Math.max(0, window.scrollY)
@@ -95,7 +67,13 @@ export function Header() {
       >
         <div>
           <div className="container mx-auto flex items-center justify-between gap-4 px-6 py-2 text-[13px] xl:px-8">
-            <span>Зеленодольск · Поставки по России и СНГ</span>
+            {/* Счётчик ведёт в каталог; город и доставка — там, где хватает места. */}
+            <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
+              <Link to="/catalog" className="font-bold text-foreground hover:text-primary">
+                {positionsLabel(positions)}
+              </Link>
+              <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
+            </div>
             <nav
               aria-label="Основная навигация"
               className="hidden items-center gap-4 lg:flex"
@@ -140,30 +118,9 @@ export function Header() {
           <div className="hidden min-w-0 max-w-75 flex-1 md:block">
             <CatalogSearch />
           </div>
-          {/* Почта и два номера столбиком: кнопки копирования стоят в одном
-              столбце. Строки по 24 px — столбик влезает и в сжатую шапку. */}
-          <div className="ml-auto flex shrink-0 flex-col justify-center">
-            <div className="hidden h-6 items-center gap-2 px-2 text-sm md:flex">
-              <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
-              <CopyValue
-                state={email}
-                label={COPY_EMAIL}
-                className="font-bold text-current hover:text-primary"
-              >
-                {EMAIL}
-              </CopyValue>
-            </div>
-            {/* На телефоне — значок звонка, оба номера есть в меню. */}
-            <a
-              href="tel:+78432270005"
-              className="flex h-11 items-center rounded-lg px-2 hover:opacity-75 md:hidden"
-              aria-label={`Позвонить: ${PHONE}`}
-            >
-              <FiPhone className="h-5 w-5" />
-            </a>
-            <HeaderPhone phone={PHONE} />
-            <HeaderPhone phone={PHONE_2} small />
-          </div>
+          {/* Почта и мобильный столбиком по 24 px — влезает и в сжатую шапку;
+              городской и остальное — в списке под мобильным. */}
+          <HeaderContacts onRequestCall={() => setRequestOpen(true)} />
           <Link
             to="/cart"
             aria-label={`Корзина${totalItems ? `, товаров: ${totalItems}` : ''}`}
