@@ -14,6 +14,7 @@ import { cn } from '@/shared/lib/cn'
 import type { CartItem } from '@/entities/cart/model/types'
 import type { CreateOrderDto } from '@/entities/order/model/types'
 import { getImageUrl } from '@/shared/lib/product-helpers'
+import { UploadImg } from '@/shared/ui/UploadImg'
 import { orderApi } from '@/entities/order/api/order.api'
 import { FORM_GOAL, metrikaReachGoal } from '@/shared/analytics/metrika'
 
@@ -306,8 +307,9 @@ export function CartPage() {
                     <div key={item.product.id} className="flex gap-3">
                       <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                         {item.product.images[0] ? (
-                          <img
+                          <UploadImg
                             src={getImageUrl(item.product.images[0])}
+                            sizes="64px"
                             alt={item.product.title}
                             className="w-full h-full object-cover"
                           />
@@ -363,8 +365,9 @@ export function CartPage() {
                   >
                     <div className="w-24 h-24 flex-shrink-0 bg-muted rounded-lg overflow-hidden">
                       {item.product.images[0] ? (
-                        <img
+                        <UploadImg
                           src={getImageUrl(item.product.images[0])}
+                          sizes="96px"
                           alt={item.product.title}
                           className="w-full h-full object-cover"
                         />

@@ -5,6 +5,7 @@ import { Button } from '@/shared/ui/Button'
 import { Layout } from '@/widgets/Layout'
 import { useService } from '@/entities/service/model/hooks/useService'
 import { getImageUrl } from '@/shared/lib'
+import { UploadImg } from '@/shared/ui/UploadImg'
 import { ServiceRequestForm } from '@/features/service-request/ServiceRequestForm'
 
 export function ServicePage() {
@@ -72,8 +73,9 @@ export function ServicePage() {
               <div className="flex flex-col md:flex-row items-start gap-6 mb-4">
                 <div className="h-32 w-32 md:h-40 md:w-40 flex-shrink-0 overflow-hidden rounded-xl bg-muted">
                   {service.image ? (
-                    <img
+                    <UploadImg
                       src={getImageUrl(service.image)}
+                      sizes="160px"
                       alt={`${service.title} — услуга от компании INVIA`}
                       className="h-full w-full object-cover"
                       loading="eager"

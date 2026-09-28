@@ -98,6 +98,7 @@ export function CategoriesCarousel() {
                         <CatalogImage
                           src={category.image}
                           alt={category.name}
+                          sizes="(min-width: 1280px) 270px, (min-width: 1024px) 30vw, (min-width: 640px) 45vw, calc(85vw - 70px)"
                           className="mix-blend-darken"
                         />
                       </div>

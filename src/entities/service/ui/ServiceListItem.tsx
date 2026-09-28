@@ -2,6 +2,7 @@ import { FiCheck, FiPhone } from 'react-icons/fi'
 import { Link } from 'react-router'
 import type { Service } from '../model/types'
 import { getImageUrl } from '@/shared/lib'
+import { UploadImg } from '@/shared/ui/UploadImg'
 
 interface ServiceListItemProps {
   service: Service
@@ -14,8 +15,9 @@ export function ServiceListItem({ service }: ServiceListItemProps) {
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
           <div className="h-24 w-24 md:h-32 md:w-32 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
             {service.image ? (
-              <img
+              <UploadImg
                 src={getImageUrl(service.image)}
+                sizes="128px"
                 alt={service.title}
                 className="h-full w-full object-cover"
               />

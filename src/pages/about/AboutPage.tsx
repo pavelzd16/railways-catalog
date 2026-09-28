@@ -101,11 +101,19 @@ export function AboutPage() {
             ))}
           </div>
           <div className="aspect-[1280/595] overflow-hidden rounded-xl bg-muted">
-            <img
-              src="/about-building.png"
-              alt="Вход в здание на Московской улице в Зеленодольске"
-              className="h-full w-full object-cover"
-            />
+            {/* PNG весит 1,5 МБ — браузер берёт WebP той же картинки, PNG остаётся для старых браузеров. */}
+            <picture className="contents">
+              <source
+                type="image/webp"
+                srcSet="/about-building-640.webp 640w, /about-building-1280.webp 1280w"
+                sizes="(min-width: 1024px) 600px, 100vw"
+              />
+              <img
+                src="/about-building.png"
+                alt="Вход в здание на Московской улице в Зеленодольске"
+                className="h-full w-full object-cover"
+              />
+            </picture>
           </div>
         </div>
 
