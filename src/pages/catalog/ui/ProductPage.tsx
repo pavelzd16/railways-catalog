@@ -8,6 +8,7 @@ import {
   getProductBreadcrumbs,
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
+import { buildProductFaq } from '@/shared/lib/product-faq'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
@@ -15,6 +16,7 @@ import { PriceNote } from '@/shared/ui/PriceNote'
 import { ProductImage } from '@/shared/ui/ProductImage'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
+import { ProductFaq } from '@/widgets/product-faq/ProductFaq'
 import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
 import { useState } from 'react'
 import { FiFileText, FiSettings, FiShoppingCart, FiTruck } from 'react-icons/fi'
@@ -391,6 +393,8 @@ export function ProductPage() {
             </p>
           </section>
         )}
+
+        <ProductFaq items={buildProductFaq(product)} />
 
         {similarProducts.length > 0 && (
           <section className="border-t border-border pt-10">
