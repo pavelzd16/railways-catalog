@@ -105,7 +105,7 @@ export function Header() {
             className="shrink-0 rounded px-1 py-1"
           >
             {/* Фон у логотипа прозрачный: на белой шапке — обычный, на тёмной
-                при прокрутке — светлый (переключает index.css по .is-scrolled). */}
+                при прокрутке — с оранжевыми буквами (переключает index.css по .is-scrolled). */}
             <img src="/logo.png" alt="ИНВИА" className="header-logo-light w-25 xl:w-28" />
             <img src="/logo-light.png" alt="ИНВИА" className="header-logo-dark w-25 xl:w-28" />
           </Link>
