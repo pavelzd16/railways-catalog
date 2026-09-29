@@ -33,7 +33,7 @@ export function Footer() {
               aria-label="ИНВИА — главная"
               className="mb-5 inline-flex rounded bg-white px-3 py-2"
             >
-              <img src="/logo.png" alt="ИНВИА" className="w-28" />
+              <img src="/logo.png" alt="ИНВИА" className="w-[168px]" />
             </Link>
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
