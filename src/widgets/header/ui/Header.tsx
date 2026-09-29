@@ -104,7 +104,7 @@ export function Header() {
             aria-label="ИНВИА — главная"
             className="shrink-0 rounded bg-white px-1 py-1"
           >
-            <img src="/logo.png" alt="ИНВИА" className="w-25 xl:w-28" />
+            <img src="/logo.png" alt="ИНВИА" className="w-28 xl:w-[130px]" />
           </Link>
           {/* «Каталог» и «Заказать звонок» — с 1024 px: на 17-дюймовом мониторе
               с масштабом 125 % окно уже 1280 px, а кнопки там нужны. Меню
