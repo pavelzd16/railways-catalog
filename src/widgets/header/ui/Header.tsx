@@ -102,9 +102,12 @@ export function Header() {
           <Link
             to="/"
             aria-label="ИНВИА — главная"
-            className="shrink-0 rounded bg-white px-1 py-1 xl:py-0"
+            className="shrink-0 rounded px-1 py-1 xl:py-0"
           >
-            <img src="/logo.png" alt="ИНВИА" className="w-[168px] xl:w-[195px]" />
+            {/* Фон у логотипа прозрачный: на белой шапке — обычный, на тёмной
+                при прокрутке — светлый (переключает index.css по .is-scrolled). */}
+            <img src="/logo.png" alt="ИНВИА" className="header-logo-light w-[168px] xl:w-[195px]" />
+            <img src="/logo-light.png" alt="ИНВИА" className="header-logo-dark w-[168px] xl:w-[195px]" />
           </Link>
           {/* «Каталог» и «Заказать звонок» — с 1024 px: на 17-дюймовом мониторе
               с масштабом 125 % окно уже 1280 px, а кнопки там нужны. Меню
