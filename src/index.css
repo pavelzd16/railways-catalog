@@ -200,6 +200,13 @@ button:disabled {
 .site-header.is-scrolled .header-main {
   min-height: 72px;
 }
+.site-header .header-logo-dark,
+.site-header.is-scrolled .header-logo-light {
+  display: none;
+}
+.site-header.is-scrolled .header-logo-dark {
+  display: block;
+}
 .site-header.is-scrolled .header-search {
   border-color: #697179;
   background: #fff;
