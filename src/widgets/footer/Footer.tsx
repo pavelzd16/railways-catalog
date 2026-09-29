@@ -31,9 +31,9 @@ export function Footer() {
             <Link
               to="/"
               aria-label="ИНВИА — главная"
-              className="mb-5 inline-flex rounded bg-white px-3 py-2"
+              className="mb-5 inline-flex rounded"
             >
-              <img src="/logo.png" alt="ИНВИА" className="w-28" />
+              <img src="/logo-light.png" alt="ИНВИА" className="w-28" />
             </Link>
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
