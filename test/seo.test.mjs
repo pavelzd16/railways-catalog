@@ -2,6 +2,8 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { plainText, formatSpec, jsonForHtml, paragraphs } from '../src/shared/lib/plain-text.ts'
 import { getMetadata } from '../src/shared/seo/metadata.ts'
+import { pageMeta, catalogMeta } from '../src/shared/seo/meta-traer.ts'
+import { productMeta } from '../src/shared/seo/meta-tovary.ts'
 import { buildProductFaq } from '../src/shared/lib/product-faq.ts'
 import { detailRoute, productPath, rendersOnServer } from '../src/shared/seo/route-data.ts'
 import { siteOrigin, hostRedirect, publicRequestUrl } from '../src/renderer/site-origin.ts'
@@ -27,7 +29,7 @@ test('product metadata is unique, self canonical and uses the configured domain'
   const meta = getMetadata(url + '?utm_source=test', data)
   assert.equal(meta.canonical, 'https://catalog.example/catalog/fasteners/product/bolt')
   assert.match(meta.title, /Болт М22/)
-  assert.match(meta.description, /Закладной болт/)
+  assert.match(meta.description, /^Болт М22\. /)
   assert.deepEqual(detailRoute(url), { kind: 'product', slug: 'bolt' })
 })
 test('public navigation clears noindex and stale service metadata', () => {
@@ -45,7 +47,7 @@ test('product search text only overrides the search description, without truncat
   const data = { url, siteUrl: 'https://catalog.example', status: 200, ssr: true, product }
   const meta = getMetadata(url, data)
   assert.equal(meta.description, searchText)
-  assert.match(meta.socialDescription, /Описание на странице/)
+  assert.match(meta.socialDescription, /^Болт М22\. Материалы ВСП в каталоге ТРАЕР/)
   assert.ok(!meta.socialDescription.includes('Поставка крепежа'))
   assert.ok(!JSON.stringify(meta.jsonLd).includes('Поставка крепежа'))
   assert.equal(product.description, 'Описание на странице')
@@ -59,7 +61,7 @@ test('empty search text falls back to generated metadata and markup becomes plai
   for (const descriptionTags of [undefined, null, '', '  \n ', '<b></b>']) {
     const meta = getMetadata(url, { ...data, product: { ...product, descriptionTags } })
     assert.equal(meta.description, meta.socialDescription)
-    assert.match(meta.description, /Описание товара/)
+    assert.match(meta.description, /^Болт М22\. Материалы ВСП в каталоге ТРАЕР/)
   }
   const meta = getMetadata(url, { ...data, product: { ...product, descriptionTags: '<b>М22</b> &quot;ГОСТ&quot; &amp; доставка<script>alert(1)</script>' } })
   assert.equal(meta.description, 'М22 "ГОСТ" & доставка')
@@ -129,18 +131,31 @@ test('SSR falls back to the public API origin when the configured one fails', as
   await assert.rejects(fetchFromApi(origins, '/api/product/x', 1000, fakeFetch([new Error('a'), new Error('b')])), /b/)
 })
 
-test('product snippet does not repeat the title when the description starts with it', () => {
-  const meta = (product) => getMetadata(productPath(product), { url: productPath(product), siteUrl: 'https://traer.ru', status: 200, ssr: true, product }).socialDescription
-  const base = { slug: 'znak', images: [], categorySlug: 'znaki', title: 'Берегись поезда', gost: '' }
-  const repeated = meta({ ...base, description: 'Берегись поезда — предупреждающий знак для пешеходов у путей.' })
-  assert.ok(repeated.startsWith('Берегись поезда — предупреждающий знак'), repeated)
-  assert.equal(repeated.match(/Берегись поезда/g).length, 1)
+test('meta from the TRAER table wins; templates in the same style cover what the table lacks', () => {
+  const at = (url, extra = {}) => getMetadata(url, { url, siteUrl: 'https://traer.ru', status: 200, ssr: true, ...extra }, productMeta)
+  assert.deepEqual([at('/about').title, at('/about').description], pageMeta['/about'])
+  const service = { slug: 'rezka-rels', title: 'Резка рельсов', description: 'Режем рельсы.' }
+  assert.deepEqual([at('/services/rezka-rels', { service }).title, at('/services/rezka-rels', { service }).description], pageMeta['/services/rezka-rels'])
+  assert.equal(at('/services/novaya', { service: { ...service, slug: 'novaya' } }).title, 'Резка рельсов: услуга и расчёт стоимости | ТРАЕР')
 
-  const withGost = meta({ ...base, gost: 'ГОСТ 12.4.026', description: 'берегись поезда — знак.' })
-  assert.ok(withGost.startsWith('ГОСТ 12.4.026. берегись поезда — знак.'), withGost)
+  const categories = [{ slug: 'zhd-shpaly', name: 'ЖД шпалы', description: 'Описание из базы', subcategories: [{ slug: 'derevyannye-shpaly', name: 'Деревянные шпалы' }, { slug: 'novaya', name: 'Новая категория' }] }]
+  assert.equal(at('/catalog?category=zhd-shpaly', { categories }).title, catalogMeta['zhd-shpaly'][0])
+  assert.equal(at('/catalog?category=zhd-shpaly&subcategory=derevyannye-shpaly', { categories }).description, catalogMeta['zhd-shpaly/derevyannye-shpaly'][1])
+  assert.equal(at('/catalog?category=zhd-shpaly&page=2', { categories }).title, catalogMeta['zhd-shpaly'][0].replace(/ \| ТРАЕР$/, ' — страница 2 | ТРАЕР'))
+  assert.equal(at('/catalog?category=zhd-shpaly&subcategory=novaya', { categories }).title, 'Новая категория: купить, цена | ТРАЕР')
 
-  const distinct = meta({ ...base, description: 'Предупреждающий знак для пешеходов.' })
-  assert.ok(distinct.startsWith('Берегись поезда. Предупреждающий знак'), distinct)
+  const slug = Object.keys(productMeta)[0]
+  const product = { slug, title: 'Название из базы', images: [], categorySlug: 'x', description: 'Текст карточки' }
+  const own = at(productPath(product), { product })
+  assert.deepEqual([own.title, own.description, own.socialDescription], [...productMeta[slug], productMeta[slug][1]])
+  const fresh = { ...product, slug: 'novyj-tovar', title: 'Новый товар' }
+  assert.equal(at(productPath(fresh), { product: fresh }).title, 'Новый товар: купить, цена | ТРАЕР')
+  assert.equal(at(productPath(product), { product: { ...product, descriptionTags: 'Своё SEO-описание' } }).description, 'Своё SEO-описание', 'the admin field wins over the table')
+})
+test('the table covers every public page and gives each page its own title', () => {
+  for (const path of ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/privacy']) assert.ok(pageMeta[path]?.[0] && pageMeta[path]?.[1], path)
+  const titles = [...Object.values(pageMeta), ...Object.values(catalogMeta), ...Object.values(productMeta)].map(([title]) => title)
+  assert.equal(new Set(titles).size, titles.length)
 })
 test('public pages are rendered on the server; cart and admin stay in the browser', () => {
   for (const path of ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/price', '/privacy', '/catalog/rails/product/r65', '/services/rezka', '/missing']) assert.equal(rendersOnServer(path), true, path)
