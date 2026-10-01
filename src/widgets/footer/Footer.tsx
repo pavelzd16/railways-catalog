@@ -30,10 +30,10 @@ export function Footer() {
           <div>
             <Link
               to="/"
-              aria-label="ИНВИА — главная"
+              aria-label="ТРАЕР — главная"
               className="mb-5 inline-flex rounded"
             >
-              <img src="/logo-light.png" alt="ИНВИА" className="w-[220px]" />
+              <img src="/logo-light.png" alt="ТРАЕР" className="w-[220px]" />
             </Link>
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
