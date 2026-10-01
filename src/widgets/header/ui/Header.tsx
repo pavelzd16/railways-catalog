@@ -106,8 +106,8 @@ export function Header() {
           >
             {/* Фон у логотипа прозрачный: на белой шапке — обычный, на тёмной
                 при прокрутке — светлый (переключает index.css по .is-scrolled). */}
-            <img src="/logo.png" alt="ИНВИА" className="header-logo-light w-25 xl:w-28" />
-            <img src="/logo-light.png" alt="ИНВИА" className="header-logo-dark w-25 xl:w-28" />
+            <img src="/logo.png" alt="ИНВИА" className="header-logo-light w-[168px] xl:w-[240px]" />
+            <img src="/logo-light.png" alt="ИНВИА" className="header-logo-dark w-[168px] xl:w-[240px]" />
           </Link>
           {/* «Каталог» и «Заказать звонок» — с 1024 px: на 17-дюймовом мониторе
               с масштабом 125 % окно уже 1280 px, а кнопки там нужны. Меню
