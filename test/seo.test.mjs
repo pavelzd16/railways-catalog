@@ -101,6 +101,8 @@ test('the retired tatrels.ru origin becomes traer.ru in canonical and social lin
   const organization = home.jsonLd.find((item) => item['@type'] === 'Organization')
   assert.equal(organization.url, 'https://traer.ru')
   assert.equal(organization.email, 'zakaz@traer.ru')
+  assert.deepEqual([organization.name, organization.alternateName, organization.legalName, organization.taxID], ['ТРАЕР', 'TRAER', 'ООО «ИНВИА»', '1648052000'], 'brand and legal entity are tied together')
+  assert.equal(meta.jsonLd[0].provider.legalName, 'ООО «ИНВИА»')
   assert.ok(!JSON.stringify(home).includes('tatrels'))
 })
 
@@ -178,7 +180,7 @@ test('product page carries Product markup without an offer until a price is set'
   assert.equal(getMetadata(url, { url, siteUrl: 'https://traer.ru', status: 200, ssr: true, product }).jsonLd.filter((entry) => entry['@type'] === 'BreadcrumbList').length, 0, 'breadcrumbs are already microdata in the page')
 
   const priced = markup({ ...product, price: 1250, stock: 40, images: [] })
-  assert.deepEqual(priced.offers, { '@type': 'Offer', price: 1250, priceCurrency: 'RUB', availability: 'https://schema.org/InStock', url: item.url, itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Organization', name: 'ООО «ИНВИА»' } })
+  assert.deepEqual(priced.offers, { '@type': 'Offer', price: 1250, priceCurrency: 'RUB', availability: 'https://schema.org/InStock', url: item.url, itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Organization', name: 'ТРАЕР', alternateName: 'TRAER', legalName: 'ООО «ИНВИА»', taxID: '1648052000' } })
   assert.equal(priced.image, undefined)
   assert.equal(markup({ ...product, price: 900, stock: 0 }).offers.availability, 'https://schema.org/BackOrder')
 })

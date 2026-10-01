@@ -38,8 +38,10 @@ export function Footer() {
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
             </p>
-            <p className="mt-5 text-sm font-bold">ООО «ИНВИА»</p>
+            <p className="mt-5 text-sm font-bold">Группа компаний ТРАЕР</p>
             <p className="footer-muted mt-1 text-sm">
+              Юридическое лицо — ООО «ИНВИА»
+              <br />
               ИНН 1648052000
               <br />
               ОГРН 1201600037055
@@ -135,7 +137,7 @@ export function Footer() {
           <p className="w-full text-[11px] uppercase tracking-wide opacity-60">
             Информация, представленная на сайте, не является публичной офертой
           </p>
-          <span>© {new Date().getFullYear()} ООО «ИНВИА»</span>
+          <span>© {new Date().getFullYear()} ТРАЕР — группа компаний. Юридическое лицо: ООО «ИНВИА»</span>
           <div className="flex flex-wrap gap-x-6 gap-y-3">
             <Link to="/privacy">Политика конфиденциальности</Link>
             <a href="/privacy#consent">Согласие на обработку данных</a>

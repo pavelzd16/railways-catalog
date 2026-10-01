@@ -10,6 +10,9 @@ const pages: Record<string, MetaPair> = {
   '/cart': ['Корзина — заявка на материалы | ТРАЕР', 'Выбранные материалы и количество для заявки в ТРАЕР. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
 
+// Бренд — группа компаний ТРАЕР, юрлицо — ООО «ИНВИА»: в разметке обе стороны, чтобы поисковики связали одно с другим.
+const company = { '@type': 'Organization', name: 'ТРАЕР', alternateName: 'TRAER', legalName: 'ООО «ИНВИА»', taxID: '1648052000' }
+
 const summary = (value: string) => { const text = plainText(value); return text.length <= 170 ? text : text.slice(0, 167).replace(/\s+\S*$/, '') + '…' }
 
 /** `products` — мета товаров из meta-tovary.ts: сервер передаёт её всегда, браузер — когда догрузит. */
@@ -67,7 +70,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
       ...(condition ? { itemCondition: condition } : {}),
       ...(properties.length ? { additionalProperty: properties } : {}),
       // Цены на сайте пока не заполнены; предложение без цены поисковики считают ошибкой, поэтому только при цене.
-      ...(product.price && product.price > 0 ? { offers: { '@type': 'Offer', price: product.price, priceCurrency: 'RUB', availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder', url: data.siteUrl + canonicalPath, ...(condition ? { itemCondition: condition } : {}), seller: { '@type': 'Organization', name: 'ООО «ИНВИА»' } } } : {}),
+      ...(product.price && product.price > 0 ? { offers: { '@type': 'Offer', price: product.price, priceCurrency: 'RUB', availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder', url: data.siteUrl + canonicalPath, ...(condition ? { itemCondition: condition } : {}), seller: company } } : {}),
     })
     // Те же пары, что в блоке «Частые вопросы» карточки: одна функция на оба места, разойтись им негде.
     const faq = buildProductFaq(product)
@@ -77,13 +80,13 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     ;[title, description] = pageMeta[`/services/${service.slug}`] ?? [`${plainText(service.title)}: услуга и расчёт стоимости | ТРАЕР`, `${plainText(service.title)}. ${plainText(service.description)} Отправьте заявку в ТРАЕР для расчёта стоимости.`]
     canonicalPath = `/services/${encodeURIComponent(service.slug)}`
     if (service.image) image = new URL(service.image, data.siteUrl).href
-    jsonLd.push({ '@context': 'https://schema.org', '@type': 'Service', name: plainText(service.title), description: plainText(service.fullDescription || service.description), url: data.siteUrl + canonicalPath, provider: { '@type': 'Organization', name: 'ООО «ИНВИА»', url: data.siteUrl } })
+    jsonLd.push({ '@context': 'https://schema.org', '@type': 'Service', name: plainText(service.title), description: plainText(service.fullDescription || service.description), url: data.siteUrl + canonicalPath, provider: { ...company, url: data.siteUrl } })
   } else if (route) {
     title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ТРАЕР' : 'Услуга не найдена | ТРАЕР') : 'Загрузка страницы | ТРАЕР'
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ТРАЕР.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ТРАЕР'
-  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', '@type': 'Organization', name: 'ООО «ИНВИА»', url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: ['+7-843-227-00-05', '+7-965-615-50-59'], email: 'zakaz@traer.ru' })
+  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: ['+7-843-227-00-05', '+7-965-615-50-59'], email: 'zakaz@traer.ru' })
   const socialDescription = summary(description)
   return { title, description: searchDescription || socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }
 }
