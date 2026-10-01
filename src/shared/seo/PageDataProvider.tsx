@@ -7,6 +7,7 @@ import { detailRoute, productPath, type PageData } from './route-data'
 import { movedProductSlug } from './product-slug-moves'
 import { getMetadata } from './metadata'
 import { applyMetadata } from './apply-metadata'
+import type { MetaPair } from './meta-traer'
 import { PageDataContext, CategoriesContext } from './page-context'
 
 export function PageDataProvider({ initial, children }: { initial: PageData; children: ReactNode }) {
@@ -58,6 +59,16 @@ export function PageDataProvider({ initial, children }: { initial: PageData; chi
     return () => { cancelled = true }
   }, [url, pathname, search, loaded.url, initial.siteUrl, navigate])
 
-  useEffect(() => { applyMetadata(getMetadata(url, data)) }, [url, data])
+  // Мета товаров — 250 КБ текста: в общий бандл не кладём, догружаем при первом заходе на карточку товара.
+  const [productMeta, setProductMeta] = useState<Record<string, MetaPair> | null>(null)
+  const onProduct = detailRoute(pathname)?.kind === 'product'
+  useEffect(() => {
+    if (!onProduct || productMeta) return
+    let cancelled = false
+    import('./meta-tovary').then((module) => { if (!cancelled) setProductMeta(module.productMeta) }).catch(() => { if (!cancelled) setProductMeta({}) })
+    return () => { cancelled = true }
+  }, [onProduct, productMeta])
+  // Пока она не пришла, <head> не трогаем (там уже теги от сервера): иначе мелькнёт запасной шаблон.
+  useEffect(() => { if (!onProduct || productMeta) applyMetadata(getMetadata(url, data, productMeta ?? undefined)) }, [url, data, onProduct, productMeta])
   return <PageDataContext.Provider value={data}><CategoriesContext.Provider value={{ categories, isLoading: categoriesLoading, error: categoriesError, loadCategories }}>{children}</CategoriesContext.Provider></PageDataContext.Provider>
 }
