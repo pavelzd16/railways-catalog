@@ -5,7 +5,7 @@ import { getMetadata } from '../src/shared/seo/metadata.ts'
 import { pageMeta, catalogMeta } from '../src/shared/seo/meta-traer.ts'
 import { productMeta } from '../src/shared/seo/meta-tovary.ts'
 import { buildProductFaq } from '../src/shared/lib/product-faq.ts'
-import { detailRoute, productPath, rendersOnServer } from '../src/shared/seo/route-data.ts'
+import { detailRoute, productPath, rendersOnServer, isUnknownCatalogSelection } from '../src/shared/seo/route-data.ts'
 import { siteOrigin, hostRedirect, publicRequestUrl } from '../src/renderer/site-origin.ts'
 import { apiOriginList, fetchFromApi } from '../src/renderer/api-fetch.ts'
 
@@ -224,4 +224,16 @@ test('product page carries FAQPage with the same questions and answers as the vi
   assert.ok(faq.mainEntity.length >= 4)
   assert.ok(!JSON.stringify(meta.jsonLd[0]).includes('Question'))
   assert.equal(getMetadata('/about', { url: '/about', siteUrl: 'https://catalog.example', status: 200, ssr: false }).jsonLd.length, 0)
+})
+
+test('catalog address with a section or category missing from the database is a 404, not an empty catalog', () => {
+  const categories = [{ slug: 'rails', subcategories: [{ slug: 'r-65' }] }, { slug: 'bolts', subcategories: [] }]
+  const unknown = (query) => isUnknownCatalogSelection(new URLSearchParams(query), categories)
+  for (const query of ['', 'category=rails', 'category=rails&subcategory=r-65', 'category=bolts&page=2', 'category=&subcategory=', 'search=x&utm_source=ya'])
+    assert.equal(unknown(query), false, query)
+  for (const query of ['category=test', 'category=rails&subcategory=test', 'category=bolts&subcategory=r-65', 'subcategory=r-65', 'category=RAILS'])
+    assert.equal(unknown(query), true, query)
+  const meta = getMetadata('/catalog?category=test', { url: '/catalog?category=test', siteUrl: 'https://catalog.example', status: 404, ssr: true, categories })
+  assert.equal(meta.title, 'Страница не найдена | ТРАЕР')
+  assert.match(meta.robots, /noindex/)
 })

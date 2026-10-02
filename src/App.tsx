@@ -17,6 +17,12 @@ import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
 import { CalculatorPage } from './pages/calculator/CalculatorPage'
 import { CookieConsentBanner } from './widgets/cookie-consent/CookieConsentBanner'
+import { usePageData } from './shared/seo/page-context'
+
+// Раздела или категории из адреса нет в базе — сервер ответил 404: показываем «Страница не найдена», а не весь каталог.
+function CatalogRoute() {
+  return usePageData().status === 404 ? <NotFoundPage /> : <CatalogPage />
+}
 
 export function App() {
   return (
@@ -36,7 +42,7 @@ export function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/catalog" element={<CatalogPage />} />
+        <Route path="/catalog" element={<CatalogRoute />} />
         <Route
           path="/catalog/:categorySlug/:subcategorySlug/product/:productSlug"
           element={<ProductPage />}

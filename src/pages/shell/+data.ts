@@ -2,7 +2,7 @@ import type { PageContextServer } from 'vike/types'
 import { redirect, render } from 'vike/abort'
 import { apiOrigins, siteUrl } from '@/renderer/server-config'
 import { fetchFromApi } from '@/renderer/api-fetch'
-import { detailRoute, isKnownPath, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
+import { detailRoute, isKnownPath, isUnknownCatalogSelection, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
 import { movedProductSlug } from '@/shared/seo/product-slug-moves'
 
 export async function data(pageContext: PageContextServer): Promise<PageData> {
@@ -29,6 +29,8 @@ export async function data(pageContext: PageContextServer): Promise<PageData> {
     } catch { result.status = 503 }
   }
   result.categories = await categories
+  // Без списка категорий (API не ответил) проверить адрес нечем — каталог открывается как раньше.
+  if (pathname === '/catalog' && result.categories && isUnknownCatalogSelection(url.searchParams, result.categories)) result.status = 404
   if (result.product) {
     const canonical = productPath(result.product)
     if (pathname !== canonical) throw redirect(canonical + url.search, 301)
