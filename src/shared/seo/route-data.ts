@@ -34,6 +34,18 @@ export function rendersOnServer(pathname: string): boolean {
   return !(pathname === '/cart' || pathname === '/admin' || pathname.startsWith('/admin/'))
 }
 
+/**
+ * Раздел или категория в адресе каталога, которых нет в базе (/catalog?category=test). Раньше такой адрес
+ * открывал обычный каталог с кодом 200 — для поисковиков это дубль; теперь сервер отвечает 404.
+ */
+export function isUnknownCatalogSelection(searchParams: URLSearchParams, categories: Pick<Category, 'slug' | 'subcategories'>[]): boolean {
+  const categorySlug = searchParams.get('category')
+  const subcategorySlug = searchParams.get('subcategory')
+  const category = categorySlug ? categories.find((item) => item.slug === categorySlug) : undefined
+  if (categorySlug && !category) return true
+  return !!subcategorySlug && !category?.subcategories?.some((item) => item.slug === subcategorySlug)
+}
+
 export function isKnownPath(pathname: string): boolean {
   return !!detailRoute(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
 }

@@ -9,6 +9,7 @@ export type Metadata = { title: string; description: string; socialDescription: 
 const pages: Record<string, MetaPair> = {
   '/cart': ['Корзина — заявка на материалы | ТРАЕР', 'Выбранные материалы и количество для заявки в ТРАЕР. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
+const notFound: MetaPair = ['Страница не найдена | ТРАЕР', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ТРАЕР.']
 
 // Бренд — группа компаний ТРАЕР, юрлицо — ООО «ИНВИА»: в разметке обе стороны, чтобы поисковики связали одно с другим.
 const company = { '@type': 'Organization', name: 'ТРАЕР', alternateName: 'TRAER', legalName: 'ООО «ИНВИА»', taxID: '1648052000' }
@@ -19,7 +20,7 @@ const summary = (value: string) => { const text = plainText(value); return text.
 export function getMetadata(urlValue: string, data: PageData, products: Record<string, MetaPair> = {}): Metadata {
   const url = new URL(urlValue, data.siteUrl)
   const path = url.pathname.replace(/\/$/, '') || '/'
-  let [title, description] = pageMeta[path] ?? pages[path] ?? ['Страница не найдена | ТРАЕР', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ТРАЕР.']
+  let [title, description] = pageMeta[path] ?? pages[path] ?? notFound
   let canonicalPath = path
   let noindex = data.status >= 400 || path === '/cart' || path.startsWith('/admin') || !isKnownPath(path)
   const jsonLd: Record<string, unknown>[] = []
@@ -48,6 +49,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     canonicalPath += params.size ? `?${params}` : ''
     noindex ||= [...url.searchParams.keys()].some((key) => !['category', 'subcategory', 'page', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(key))
     noindex ||= (!!url.searchParams.get('category') && !category) || (!!url.searchParams.get('subcategory') && !subcategory)
+    if (data.status === 404) [title, description] = notFound
   }
   const route = detailRoute(path)
   if (route?.kind === 'product' && data.product?.slug === route.slug) {
