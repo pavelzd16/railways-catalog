@@ -53,7 +53,12 @@ test('tracking waits for consent, starts once and stops sending goals after refu
   assert.equal(calls.filter(call => call[1] === 'init').length, 1)
   assert.equal(getCookieConsent(), 'accepted')
   metrika.metrikaReachGoal('forma')
-  assert.equal(calls.at(-1)[1], 'reachGoal')
+  assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'forma'])
+  window.location.pathname = '/catalog/rels-r65'
+  const pochta = metrika.emailCopyGoal('Подвал')
+  metrika.metrikaReachGoal(pochta.name, pochta.params?.())
+  assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'pochta', { 'Почта': { 'Подвал': '/catalog/rels-r65' } }])
+  window.location.pathname = '/'
   saveCookieConsent('necessary')
   const count = calls.length
   metrika.metrikaReachGoal('forma'); metrika.metrikaHit('/catalog', '/')

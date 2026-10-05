@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/Button'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { useCopy } from '@/shared/ui/use-copy'
-import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
+import { emailCopyGoal } from '@/shared/analytics/metrika'
 
 const EMAIL = 'zakaz@traer.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'
@@ -52,8 +52,8 @@ export function HeaderContacts({ onRequestCall }: { onRequestCall: () => void })
   const root = useRef<HTMLDivElement>(null)
   const toggle = useRef<HTMLButtonElement>(null)
   const closeTimer = useRef<number | undefined>(undefined)
-  const email = useCopy(EMAIL, EMAIL_COPY_GOAL)
-  const panelEmail = useCopy(EMAIL, EMAIL_COPY_GOAL)
+  const email = useCopy(EMAIL, emailCopyGoal('Шапка'))
+  const panelEmail = useCopy(EMAIL, emailCopyGoal('Шапка, список контактов'))
   const mobile = useCopy(PHONE_MOBILE)
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), [])

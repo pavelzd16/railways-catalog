@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { metrikaReachGoal } from '@/shared/analytics/metrika'
+import { metrikaReachGoal, type MetrikaGoal } from '@/shared/analytics/metrika'
 
 // Буфер обмена браузер даёт только на https и localhost; на остальных адресах
 // и в старых браузерах копируем через скрытое поле ввода.
@@ -28,7 +28,7 @@ export type CopyState = ReturnType<typeof useCopy>
  * из них зажигает галочку на значке, но кнопки остаются разными.
  * `goal` — цель Метрики, засчитывается один раз на каждое нажатие.
  */
-export function useCopy(value: string, goal?: string) {
+export function useCopy(value: string, goal?: MetrikaGoal) {
   const [copied, setCopied] = useState(false)
   useEffect(() => {
     if (!copied) return
@@ -39,7 +39,7 @@ export function useCopy(value: string, goal?: string) {
     copied,
     copy: async () => {
       const done = copyText(value)
-      if (goal) metrikaReachGoal(goal)
+      if (goal) metrikaReachGoal(goal.name, goal.params?.())
       setCopied(await done)
     },
   }

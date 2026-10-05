@@ -45,14 +45,41 @@ export const FORM_GOAL = 'forma'
 export const EMAIL_COPY_GOAL = 'pochta'
 
 /**
+ * Параметры визита, которые уходят вместе с целью. В Метрике они видны
+ * в отчёте «Параметры визитов» деревом: вложенный объект — уровень ниже.
+ */
+export type MetrikaParams = Record<string, unknown>
+
+/** Цель и её параметры; параметры собираются в момент действия, а не при отрисовке. */
+export type MetrikaGoal = { name: string; params?: () => MetrikaParams }
+
+/** Места на сайте, где можно скопировать почту. */
+export type EmailPlace =
+  | 'Шапка'
+  | 'Шапка, список контактов'
+  | 'Подвал'
+  | 'Главная, блок контактов'
+  | 'Страница «Контакты»'
+
+/**
+ * «Копирование почты» с местом и страницей: в отчёте «Параметры визитов» это
+ * дерево «Почта» → место → адрес страницы. Источник перехода (Директ, поиск,
+ * прямой заход) Метрика привязывает к цели сама.
+ */
+export function emailCopyGoal(place: EmailPlace): MetrikaGoal {
+  return { name: EMAIL_COPY_GOAL, params: () => ({ Почта: { [place]: window.location.pathname } }) }
+}
+
+/**
  * Засчитывает цель в Метрике. Ошибка счётчика сюда не выходит: действие,
  * ради которого засчитывается цель (отправка формы, копирование), не должно
  * от неё зависеть.
  */
-export function metrikaReachGoal(goal: string): void {
+export function metrikaReachGoal(goal: string, params?: MetrikaParams): void {
   if (!optionalTrackingAllowed() || !metrikaId || typeof window.ym !== 'function') return
   try {
-    window.ym(Number(metrikaId), 'reachGoal', goal)
+    if (params) window.ym(Number(metrikaId), 'reachGoal', goal, params)
+    else window.ym(Number(metrikaId), 'reachGoal', goal)
   } catch {
     // Счётчик сломан или заблокирован — цель теряется, сайт работает.
   }
