@@ -4,8 +4,6 @@
  * лежат в секрете VITE_ENV, прочитать который нельзя, а значит нельзя и
  * дописать в него ключ, не потеряв остальные значения.
  */
-import { optionalTrackingAllowed } from '../privacy/cookie-consent'
-
 const DEFAULT_METRIKA_ID = '112450496'
 
 const configured = (import.meta.env.VITE_METRIKA_ID ?? '').trim()
@@ -19,6 +17,16 @@ const resolved = configured === '' ? (import.meta.env.PROD ? DEFAULT_METRIKA_ID 
 
 export const metrikaId = /^\d+$/.test(resolved) ? resolved : ''
 
+/**
+ * Метрика работает у всех посетителей сразу, не дожидаясь выбора на плашке
+ * cookies: иначе визиты с рекламы, где плашку закрыли или не тронули, не
+ * считались, и Директ расходился с Метрикой. Согласие нужно только
+ * коллтрекингу (gudok.ts). Админку не считаем.
+ */
+function metrikaAllowed() {
+  return typeof window !== 'undefined' && !window.location.pathname.startsWith('/admin')
+}
+
 declare global {
   interface Window {
     ym?: ((id: number, action: string, ...args: unknown[]) => void) & { a?: unknown[][]; l?: number }
@@ -27,7 +35,7 @@ declare global {
 
 /** Сообщает Метрике о переходе на новый адрес внутри сайта. */
 export function metrikaHit(url: string, referrer: string): void {
-  if (!optionalTrackingAllowed() || !metrikaId || typeof window.ym !== 'function') return
+  if (!metrikaAllowed() || !metrikaId || typeof window.ym !== 'function') return
   window.ym(Number(metrikaId), 'hit', url, { referer: referrer })
 }
 
@@ -76,7 +84,7 @@ export function emailCopyGoal(place: EmailPlace): MetrikaGoal {
  * от неё зависеть.
  */
 export function metrikaReachGoal(goal: string, params?: MetrikaParams): void {
-  if (!optionalTrackingAllowed() || !metrikaId || typeof window.ym !== 'function') return
+  if (!metrikaAllowed() || !metrikaId || typeof window.ym !== 'function') return
   try {
     if (params) window.ym(Number(metrikaId), 'reachGoal', goal, params)
     else window.ym(Number(metrikaId), 'reachGoal', goal)
@@ -88,7 +96,7 @@ export function metrikaReachGoal(goal: string, params?: MetrikaParams): void {
 let initialized = false
 
 export function startMetrika(): boolean {
-  if (!optionalTrackingAllowed() || !metrikaId || initialized) return false
+  if (!metrikaAllowed() || !metrikaId || initialized) return false
   initialized = true
   if (!window.ym) {
     const queue: NonNullable<Window['ym']> = (...args) => { (queue.a ??= []).push(args) }

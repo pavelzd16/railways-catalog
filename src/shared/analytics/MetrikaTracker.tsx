@@ -5,7 +5,8 @@ import { startGudok } from './gudok'
 import { useCookieConsent } from '../privacy/use-cookie-consent'
 
 /**
- * Счётчики включаются после согласия. Начальный просмотр учитывает init.
+ * Метрика включается сразу у всех посетителей, коллтрекинг — после согласия.
+ * Начальный просмотр учитывает init.
  */
 export function MetrikaTracker() {
   const { pathname, search } = useLocation()
@@ -14,12 +15,18 @@ export function MetrikaTracker() {
   const active = useRef(false)
 
   useEffect(() => {
-    const allowed = consent === 'accepted' && !pathname.startsWith('/admin')
-    if (!allowed) {
+    const admin = pathname.startsWith('/admin')
+    // У коллтрекинга нет API остановки: после отказа или перехода в админку
+    // загружаем страницу без его скрипта, Метрика при этом стартует заново.
+    const gudokLoaded = !!document.getElementById('gudok-script')
+    if (gudokLoaded && (admin || consent !== 'accepted')) {
+      window.location.reload()
+      return
+    }
+    if (admin) {
       if (active.current) {
         active.current = false
         stopMetrika()
-        // У коллтрекинга нет API остановки: загружаем страницу без его скрипта.
         window.location.reload()
       }
       previous.current = null
@@ -27,7 +34,7 @@ export function MetrikaTracker() {
     }
     active.current = true
     const initialized = startMetrika()
-    startGudok()
+    if (consent === 'accepted') startGudok()
     const current = pathname + search
     if (!initialized && previous.current !== null && previous.current !== current) {
       metrikaHit(window.location.origin + current, window.location.origin + previous.current)

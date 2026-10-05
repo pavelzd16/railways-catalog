@@ -29,11 +29,11 @@ export function CookieConsentBanner() {
         <div className="min-w-0 flex-1">
           <h2 id="cookie-consent-title" className="pr-8 text-base font-bold sm:text-lg">{settingsOpen ? 'Настройки cookies' : 'Cookies на нашем сайте'}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            Необходимые данные сохраняют корзину и настройки сайта. С вашего согласия подключим аналитику и коллтрекинг, чтобы улучшать сайт.{' '}
+            Cookies сохраняют корзину и настройки сайта, Яндекс Метрика по ним считает посещения. С вашего согласия подключим ещё коллтрекинг — учёт звонков с сайта.{' '}
             <Link to="/privacy#cookies" className="font-semibold text-primary underline underline-offset-2">Подробнее</Link>
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:gap-3">
-            <Button variant="outline" size="sm" onClick={() => choose('necessary')}>Только необходимые</Button>
+            <Button variant="outline" size="sm" onClick={() => choose('necessary')}>Без коллтрекинга</Button>
             <Button size="sm" onClick={() => choose('accepted')}>Принять все</Button>
           </div>
         </div>
