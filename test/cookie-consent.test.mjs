@@ -15,7 +15,7 @@ test('consent requires a valid explicit choice and expires after one year', () =
   assert.equal(getCookieConsent(), null, 'SSR never starts optional tracking')
 })
 
-test('tracking waits for consent, starts once and stops sending goals after refusal', async t => {
+test('metrika works without consent, call tracking waits for it and stops after refusal', async t => {
   const storage = new Map()
   const scripts = new Map()
   const calls = []
@@ -37,21 +37,12 @@ test('tracking waits for consent, starts once and stops sending goals after refu
   }
   const metrika = await load('metrika')
   const gudok = await load('gudok')
-  metrika.startMetrika(); gudok.startGudok(); metrika.metrikaReachGoal('forma')
-  assert.equal(scripts.size, 0)
-  assert.equal(calls.length, 0)
-  let changes = 0
-  const unsubscribe = subscribeCookieConsent(() => changes++)
-  saveCookieConsent('necessary')
-  metrika.startMetrika(); gudok.startGudok()
-  assert.equal(scripts.size, 0)
-  saveCookieConsent('accepted')
+  // Метрика — у всех посетителей сразу, коллтрекинг — только после «Принять все».
   assert.equal(metrika.startMetrika(), true)
   assert.equal(metrika.startMetrika(), false)
-  gudok.startGudok(); gudok.startGudok()
-  assert.equal(scripts.size, 2)
+  gudok.startGudok()
+  assert.deepEqual([...scripts.keys()], ['metrika-script'])
   assert.equal(calls.filter(call => call[1] === 'init').length, 1)
-  assert.equal(getCookieConsent(), 'accepted')
   metrika.metrikaReachGoal('forma')
   assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'forma'])
   window.location.pathname = '/catalog/rels-r65'
@@ -59,10 +50,23 @@ test('tracking waits for consent, starts once and stops sending goals after refu
   metrika.metrikaReachGoal(pochta.name, pochta.params?.())
   assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'pochta', { 'Почта': { 'Подвал': '/catalog/rels-r65' } }])
   window.location.pathname = '/'
+  let changes = 0
+  const unsubscribe = subscribeCookieConsent(() => changes++)
+  saveCookieConsent('necessary')
+  gudok.startGudok()
+  assert.equal(scripts.size, 1)
+  saveCookieConsent('accepted')
+  gudok.startGudok(); gudok.startGudok()
+  assert.equal(scripts.size, 2)
+  assert.equal(getCookieConsent(), 'accepted')
   saveCookieConsent('necessary')
   const count = calls.length
   metrika.metrikaReachGoal('forma'); metrika.metrikaHit('/catalog', '/')
-  assert.equal(calls.length, count)
+  assert.equal(calls.length, count + 2, 'refusing call tracking keeps metrika')
+  window.location.pathname = '/admin/login'
+  metrika.metrikaReachGoal('forma'); metrika.metrikaHit('/admin', '/')
+  assert.equal(calls.length, count + 2, 'admin pages are not tracked')
+  window.location.pathname = '/'
   assert.equal(changes, 3)
   unsubscribe()
   saveCookieConsent('accepted')
