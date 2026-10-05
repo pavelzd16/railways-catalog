@@ -3,7 +3,7 @@ import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { Button } from '@/shared/ui/Button'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
-import { EMAIL_COPY_GOAL } from '@/shared/analytics/metrika'
+import { emailCopyGoal, type MetrikaGoal } from '@/shared/analytics/metrika'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
 import { useState } from 'react'
@@ -41,7 +41,7 @@ const CONTACTS = [
     icon: FiMail,
     title: 'Email',
     value: 'zakaz@traer.ru',
-    copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты', goal: EMAIL_COPY_GOAL },
+    copy: { value: 'zakaz@traer.ru', label: 'Скопировать адрес почты', goal: emailCopyGoal('Страница «Контакты»') },
   },
   {
     id: 'work-hours',
@@ -166,7 +166,7 @@ function ContactCard({
   value: React.ReactNode
   subvalue?: string
   href?: string
-  copy?: { value: string; label: string; goal?: string }
+  copy?: { value: string; label: string; goal?: MetrikaGoal }
   wide?: boolean
 }) {
   // У карточки с «Скопировать» нажатие и на значение, и на кнопку копирует его:
