@@ -332,7 +332,49 @@ input[type='number']::-webkit-inner-spin-button {
 }
 /* Панель поиска в каталоге: свой серо-голубой фон, чтобы отличалась от списка
    товаров, когда прилипает под шапкой. Поля на ней белые. */
-.catalog-toolbar {
+.catalog-toolbar,
+.catalog-toolbar-tab {
   background: #e9eef4;
   border-color: #d6dee7;
+}
+.catalog-toolbar.is-stuck {
+  box-shadow: 0 10px 10px -10px rgb(0 0 0 / 0.25);
+}
+/* Прилипшая панель сворачивается в строку «что и где ищем»: тело и строка
+   меняются местами, медленно — 0,6 с. */
+.catalog-toolbar-body,
+.catalog-toolbar-summary {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition:
+    grid-template-rows 0.6s ease,
+    opacity 0.6s ease;
+}
+.catalog-toolbar-body > div,
+.catalog-toolbar-summary > div {
+  min-height: 0;
+  overflow: hidden;
+}
+.catalog-toolbar-summary,
+.catalog-toolbar.is-collapsed .catalog-toolbar-body {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.catalog-toolbar.is-collapsed .catalog-toolbar-summary {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.catalog-toolbar:not(.is-stuck) .catalog-toolbar-body > div,
+.catalog-toolbar.is-settled .catalog-toolbar-body > div {
+  overflow: visible;
+}
+@media (prefers-reduced-motion: reduce) {
+  .catalog-toolbar-body,
+  .catalog-toolbar-summary {
+    transition: none;
+  }
+  /* Без анимации не бывает transitionend — обрезку снимаем сразу. */
+  .catalog-toolbar:not(.is-collapsed) .catalog-toolbar-body > div {
+    overflow: visible;
+  }
 }
