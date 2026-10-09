@@ -8,6 +8,7 @@ import {
   getProductBreadcrumbs,
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
+import { priceUnitLabel } from '@/shared/lib/price-unit'
 import { buildProductFaq } from '@/shared/lib/product-faq'
 import { splitSpecs } from '@/shared/lib/product-specs'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
@@ -238,9 +239,11 @@ export function ProductPage() {
                     от {formatPrice(product.price)} ₽
                   </span>
 
-                  <span className="text-sm text-muted-foreground">
-                    за тонну
-                  </span>
+                  {priceUnitLabel(product.specs) && (
+                    <span className="text-sm text-muted-foreground">
+                      {priceUnitLabel(product.specs)}
+                    </span>
+                  )}
                 </div>
               )}
               <PriceNote variant="chip" className="mt-3" />
