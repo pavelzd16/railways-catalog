@@ -4,15 +4,15 @@ import { detailRoute, isKnownPath, productPath, type PageData } from './route-da
 import { catalogMeta, pageMeta, type MetaPair } from './meta-traer.ts'
 
 export type Metadata = { title: string; description: string; socialDescription: string; canonical: string; robots: string; image: string; jsonLd: Record<string, unknown>[] }
-// Title и description страниц, услуг, каталога и товаров — из таблицы «МЕТА ТЕГИ ТРАЕР» (meta-traer.ts, meta-tovary.ts).
+// Title и description страниц, услуг, каталога и товаров — из таблицы мета-тегов (meta-traer.ts, meta-tovary.ts).
 // Ниже — запасные шаблоны в том же стиле: для корзины и для того, что появится на сайте позже таблицы.
 const pages: Record<string, MetaPair> = {
-  '/cart': ['Корзина — заявка на материалы | ТРАЕР', 'Выбранные материалы и количество для заявки в ТРАЕР. Укажите контакты, чтобы согласовать стоимость и поставку.'],
+  '/cart': ['Корзина — заявка на материалы | ИНВИА', 'Выбранные материалы и количество для заявки в ИНВИА. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
-const notFound: MetaPair = ['Страница не найдена | ТРАЕР', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ТРАЕР.']
+const notFound: MetaPair = ['Страница не найдена | ИНВИА', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ИНВИА.']
 
-// Бренд — группа компаний ТРАЕР, юрлицо — ООО «ИНВИА»: в разметке обе стороны, чтобы поисковики связали одно с другим.
-const company = { '@type': 'Organization', name: 'ТРАЕР', alternateName: 'TRAER', legalName: 'ООО «ИНВИА»', taxID: '1648052000' }
+// Бренд — группа компаний ИНВИА, юрлицо — ООО «ИНВИА».
+const company = { '@type': 'Organization', name: 'ИНВИА', legalName: 'ООО «ИНВИА»', taxID: '1648052000' }
 
 const summary = (value: string) => { const text = plainText(value); return text.length <= 170 ? text : text.slice(0, 167).replace(/\s+\S*$/, '') + '…' }
 
@@ -26,7 +26,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
   const jsonLd: Record<string, unknown>[] = []
   let image = `${data.siteUrl}/logo.png`
   let searchDescription = ''
-  if (path.startsWith('/admin')) [title, description] = ['Управление сайтом | ТРАЕР', 'Вход в панель управления ТРАЕР.']
+  if (path.startsWith('/admin')) [title, description] = ['Управление сайтом | ИНВИА', 'Вход в панель управления ИНВИА.']
   if (path === '/catalog') {
     const category = data.categories?.find((item) => item.slug === url.searchParams.get('category'))
     const subcategory = category?.subcategories?.find((item) => item.slug === url.searchParams.get('subcategory'))
@@ -34,8 +34,8 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     if (category) {
       const label = subcategory?.name ?? category.name
       ;[title, description] = catalogMeta[subcategory ? `${category.slug}/${subcategory.slug}` : category.slug] ?? [
-        `${label}: купить, цена | ТРАЕР`,
-        subcategory ? `${label}: позиции каталога ТРАЕР, ГОСТ и технические характеристики. Цена по запросу, доставка по России и СНГ.` : category.description,
+        `${label}: купить, цена | ИНВИА`,
+        subcategory ? `${label}: позиции каталога ИНВИА, ГОСТ и технические характеристики. Цена по запросу, доставка по России и СНГ.` : category.description,
       ]
       params.set('category', category.slug)
       if (subcategory) params.set('subcategory', subcategory.slug)
@@ -43,7 +43,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     const page = Number(url.searchParams.get('page'))
     if (Number.isInteger(page) && page > 1) {
       params.set('page', String(page))
-      title = title.endsWith(' | ТРАЕР') ? title.replace(/ \| ТРАЕР$/, ` — страница ${page} | ТРАЕР`) : `${title} — страница ${page}`
+      title = title.endsWith(' | ИНВИА') ? title.replace(/ \| ИНВИА$/, ` — страница ${page} | ИНВИА`) : `${title} — страница ${page}`
       description += ` Страница ${page}.`
     }
     canonicalPath += params.size ? `?${params}` : ''
@@ -56,7 +56,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     const product = data.product
     const productTitle = plainText(product.title)
     const productText = plainText(product.description)
-    ;[title, description] = products[product.slug] ?? [`${productTitle}: купить, цена | ТРАЕР`, `${productTitle}. Материалы ВСП в каталоге ТРАЕР. Цена по запросу, отгрузка от 48 часов, доставка по России и СНГ.`]
+    ;[title, description] = products[product.slug] ?? [`${productTitle}: купить, цена | ИНВИА`, `${productTitle}. Материалы ВСП в каталоге ИНВИА. Цена по запросу, отгрузка от 48 часов, доставка по России и СНГ.`]
     // «SEO-описание» из админки, если заполнено, важнее таблицы — так одну карточку можно поправить без выкатки.
     searchDescription = plainText(product.descriptionTags)
     canonicalPath = productPath(product)
@@ -79,15 +79,15 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
   } else if (route?.kind === 'service' && data.service?.slug === route.slug) {
     const service = data.service
-    ;[title, description] = pageMeta[`/services/${service.slug}`] ?? [`${plainText(service.title)}: услуга и расчёт стоимости | ТРАЕР`, `${plainText(service.title)}. ${plainText(service.description)} Отправьте заявку в ТРАЕР для расчёта стоимости.`]
+    ;[title, description] = pageMeta[`/services/${service.slug}`] ?? [`${plainText(service.title)}: услуга и расчёт стоимости | ИНВИА`, `${plainText(service.title)}. ${plainText(service.description)} Отправьте заявку в ИНВИА для расчёта стоимости.`]
     canonicalPath = `/services/${encodeURIComponent(service.slug)}`
     if (service.image) image = new URL(service.image, data.siteUrl).href
     jsonLd.push({ '@context': 'https://schema.org', '@type': 'Service', name: plainText(service.title), description: plainText(service.fullDescription || service.description), url: data.siteUrl + canonicalPath, provider: { ...company, url: data.siteUrl } })
   } else if (route) {
-    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ТРАЕР' : 'Услуга не найдена | ТРАЕР') : 'Загрузка страницы | ТРАЕР'
-    description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ТРАЕР.'
+    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ИНВИА' : 'Услуга не найдена | ИНВИА') : 'Загрузка страницы | ИНВИА'
+    description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ИНВИА.'
   }
-  if (data.status >= 500) title = 'Страница временно недоступна | ТРАЕР'
+  if (data.status >= 500) title = 'Страница временно недоступна | ИНВИА'
   if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: ['+7-843-227-00-05', '+7-965-615-50-59'], email: 'zakaz@traer.ru' })
   const socialDescription = summary(description)
   return { title, description: searchDescription || socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }

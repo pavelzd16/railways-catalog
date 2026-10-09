@@ -38,7 +38,7 @@ export function Hero() {
         <HomeCategoriesSidebar />
         <div className="hero-copy min-w-0 lg:self-center">
           <p className="hero-enter mb-5 text-sm font-bold tracking-[.05em] text-white/85">
-            ТРАЕР · МАТЕРИАЛЫ ВСП
+            ИНВИА · МАТЕРИАЛЫ ВСП
           </p>
           <h1 className="hero-title hero-enter hero-delay-1">
             Материалы верхнего строения железнодорожного пути

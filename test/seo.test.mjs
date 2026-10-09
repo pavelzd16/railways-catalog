@@ -47,7 +47,7 @@ test('product search text only overrides the search description, without truncat
   const data = { url, siteUrl: 'https://catalog.example', status: 200, ssr: true, product }
   const meta = getMetadata(url, data)
   assert.equal(meta.description, searchText)
-  assert.match(meta.socialDescription, /^Болт М22\. Материалы ВСП в каталоге ТРАЕР/)
+  assert.match(meta.socialDescription, /^Болт М22\. Материалы ВСП в каталоге ИНВИА/)
   assert.ok(!meta.socialDescription.includes('Поставка крепежа'))
   assert.ok(!JSON.stringify(meta.jsonLd).includes('Поставка крепежа'))
   assert.equal(product.description, 'Описание на странице')
@@ -61,7 +61,7 @@ test('empty search text falls back to generated metadata and markup becomes plai
   for (const descriptionTags of [undefined, null, '', '  \n ', '<b></b>']) {
     const meta = getMetadata(url, { ...data, product: { ...product, descriptionTags } })
     assert.equal(meta.description, meta.socialDescription)
-    assert.match(meta.description, /^Болт М22\. Материалы ВСП в каталоге ТРАЕР/)
+    assert.match(meta.description, /^Болт М22\. Материалы ВСП в каталоге ИНВИА/)
   }
   const meta = getMetadata(url, { ...data, product: { ...product, descriptionTags: '<b>М22</b> &quot;ГОСТ&quot; &amp; доставка<script>alert(1)</script>' } })
   assert.equal(meta.description, 'М22 "ГОСТ" & доставка')
@@ -101,7 +101,7 @@ test('the retired tatrels.ru origin becomes traer.ru in canonical and social lin
   const organization = home.jsonLd.find((item) => item['@type'] === 'Organization')
   assert.equal(organization.url, 'https://traer.ru')
   assert.equal(organization.email, 'zakaz@traer.ru')
-  assert.deepEqual([organization.name, organization.alternateName, organization.legalName, organization.taxID], ['ТРАЕР', 'TRAER', 'ООО «ИНВИА»', '1648052000'], 'brand and legal entity are tied together')
+  assert.deepEqual([organization.name, organization.alternateName, organization.legalName, organization.taxID], ['ИНВИА', undefined, 'ООО «ИНВИА»', '1648052000'], 'brand and legal entity are tied together')
   assert.equal(meta.jsonLd[0].provider.legalName, 'ООО «ИНВИА»')
   assert.ok(!JSON.stringify(home).includes('tatrels'))
 })
@@ -133,25 +133,25 @@ test('SSR falls back to the public API origin when the configured one fails', as
   await assert.rejects(fetchFromApi(origins, '/api/product/x', 1000, fakeFetch([new Error('a'), new Error('b')])), /b/)
 })
 
-test('meta from the TRAER table wins; templates in the same style cover what the table lacks', () => {
+test('meta from the table wins; templates in the same style cover what the table lacks', () => {
   const at = (url, extra = {}) => getMetadata(url, { url, siteUrl: 'https://traer.ru', status: 200, ssr: true, ...extra }, productMeta)
   assert.deepEqual([at('/about').title, at('/about').description], pageMeta['/about'])
   const service = { slug: 'rezka-rels', title: 'Резка рельсов', description: 'Режем рельсы.' }
   assert.deepEqual([at('/services/rezka-rels', { service }).title, at('/services/rezka-rels', { service }).description], pageMeta['/services/rezka-rels'])
-  assert.equal(at('/services/novaya', { service: { ...service, slug: 'novaya' } }).title, 'Резка рельсов: услуга и расчёт стоимости | ТРАЕР')
+  assert.equal(at('/services/novaya', { service: { ...service, slug: 'novaya' } }).title, 'Резка рельсов: услуга и расчёт стоимости | ИНВИА')
 
   const categories = [{ slug: 'zhd-shpaly', name: 'ЖД шпалы', description: 'Описание из базы', subcategories: [{ slug: 'derevyannye-shpaly', name: 'Деревянные шпалы' }, { slug: 'novaya', name: 'Новая категория' }] }]
   assert.equal(at('/catalog?category=zhd-shpaly', { categories }).title, catalogMeta['zhd-shpaly'][0])
   assert.equal(at('/catalog?category=zhd-shpaly&subcategory=derevyannye-shpaly', { categories }).description, catalogMeta['zhd-shpaly/derevyannye-shpaly'][1])
-  assert.equal(at('/catalog?category=zhd-shpaly&page=2', { categories }).title, catalogMeta['zhd-shpaly'][0].replace(/ \| ТРАЕР$/, ' — страница 2 | ТРАЕР'))
-  assert.equal(at('/catalog?category=zhd-shpaly&subcategory=novaya', { categories }).title, 'Новая категория: купить, цена | ТРАЕР')
+  assert.equal(at('/catalog?category=zhd-shpaly&page=2', { categories }).title, catalogMeta['zhd-shpaly'][0].replace(/ \| ИНВИА$/, ' — страница 2 | ИНВИА'))
+  assert.equal(at('/catalog?category=zhd-shpaly&subcategory=novaya', { categories }).title, 'Новая категория: купить, цена | ИНВИА')
 
   const slug = Object.keys(productMeta)[0]
   const product = { slug, title: 'Название из базы', images: [], categorySlug: 'x', description: 'Текст карточки' }
   const own = at(productPath(product), { product })
   assert.deepEqual([own.title, own.description, own.socialDescription], [...productMeta[slug], productMeta[slug][1]])
   const fresh = { ...product, slug: 'novyj-tovar', title: 'Новый товар' }
-  assert.equal(at(productPath(fresh), { product: fresh }).title, 'Новый товар: купить, цена | ТРАЕР')
+  assert.equal(at(productPath(fresh), { product: fresh }).title, 'Новый товар: купить, цена | ИНВИА')
   assert.equal(at(productPath(product), { product: { ...product, descriptionTags: 'Своё SEO-описание' } }).description, 'Своё SEO-описание', 'the admin field wins over the table')
 })
 test('the table covers every public page and gives each page its own title', () => {
@@ -180,7 +180,7 @@ test('product page carries Product markup without an offer until a price is set'
   assert.equal(getMetadata(url, { url, siteUrl: 'https://traer.ru', status: 200, ssr: true, product }).jsonLd.filter((entry) => entry['@type'] === 'BreadcrumbList').length, 0, 'breadcrumbs are already microdata in the page')
 
   const priced = markup({ ...product, price: 1250, stock: 40, images: [] })
-  assert.deepEqual(priced.offers, { '@type': 'Offer', price: 1250, priceCurrency: 'RUB', availability: 'https://schema.org/InStock', url: item.url, itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Organization', name: 'ТРАЕР', alternateName: 'TRAER', legalName: 'ООО «ИНВИА»', taxID: '1648052000' } })
+  assert.deepEqual(priced.offers, { '@type': 'Offer', price: 1250, priceCurrency: 'RUB', availability: 'https://schema.org/InStock', url: item.url, itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Organization', name: 'ИНВИА', legalName: 'ООО «ИНВИА»', taxID: '1648052000' } })
   assert.equal(priced.image, undefined)
   assert.equal(markup({ ...product, price: 900, stock: 0 }).offers.availability, 'https://schema.org/BackOrder')
 })
@@ -234,6 +234,6 @@ test('catalog address with a section or category missing from the database is a 
   for (const query of ['category=test', 'category=rails&subcategory=test', 'category=bolts&subcategory=r-65', 'subcategory=r-65', 'category=RAILS'])
     assert.equal(unknown(query), true, query)
   const meta = getMetadata('/catalog?category=test', { url: '/catalog?category=test', siteUrl: 'https://catalog.example', status: 404, ssr: true, categories })
-  assert.equal(meta.title, 'Страница не найдена | ТРАЕР')
+  assert.equal(meta.title, 'Страница не найдена | ИНВИА')
   assert.match(meta.robots, /noindex/)
 })
