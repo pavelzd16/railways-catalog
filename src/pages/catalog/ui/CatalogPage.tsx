@@ -119,7 +119,7 @@ export function CatalogPage() {
             {/* С 768 px поиск и сортировка закреплены под шапкой: искать можно,
                 не возвращаясь наверх списка. */}
             <div
-              className={`z-30 mb-3 bg-white py-2 md:sticky ${toolbarStuck ? 'md:shadow-[0_10px_10px_-10px_rgb(0_0_0_/_0.25)]' : ''}`}
+              className={`catalog-toolbar z-30 mb-3 rounded-lg border px-3 py-2 md:sticky ${toolbarStuck ? 'md:shadow-[0_10px_10px_-10px_rgb(0_0_0_/_0.25)]' : ''}`}
               style={{ top: STICKY_TOP }}
             >
               <ProductFilter
@@ -135,7 +135,7 @@ export function CatalogPage() {
                 }
               />
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-                <p className="min-w-0 text-sm text-muted-foreground">
+                <p className="min-w-0 text-[13px] text-muted-foreground">
                   {[
                     scope,
                     !loading && pagination.total > 0
@@ -156,7 +156,7 @@ export function CatalogPage() {
                         sort: e.target.value as SortOption,
                       })
                     }
-                    className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2 md:min-h-9"
+                    className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2 text-sm md:min-h-8"
                   >
                     <option value="name">По названию</option>
                     <option value="popular">По популярности</option>
