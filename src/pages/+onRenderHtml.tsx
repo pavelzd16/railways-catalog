@@ -16,7 +16,7 @@ export function onRenderHtml(pageContext: PageContextServer) {
     documentHtml: escapeInject`<!DOCTYPE html>
       <html lang="ru"><head>
       <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="theme-color" content="#1c1f22" /><link rel="icon" href="/favicon.ico" sizes="32x32" /><link rel="icon" href="/favicon.svg" type="image/svg+xml" /><link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      <meta name="theme-color" content="#1c1f22" /><link rel="icon" href="/favicon.ico?v=2026-10-09" sizes="32x32" /><link rel="icon" href="/favicon.svg?v=2026-10-09" type="image/svg+xml" /><link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2026-10-09" />
       <meta name="google-site-verification" content="Gb-69uubJew9MOxsK3Cl-z5IAMLNVpHmYKjMNE-o-bI" />
       <title>${meta.title}</title><meta name="description" content="${meta.description}" />
       <meta name="robots" content="${meta.robots}" /><link rel="canonical" href="${meta.canonical}" />
