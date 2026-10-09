@@ -1,12 +1,16 @@
 import { useSearchParams } from 'react-router'
 import { useCatalog } from '../model/use-catalog'
-import { ProductFilter } from '@/features/product-filter/ProductFilter'
+import {
+  ProductFilter,
+  type FilterState,
+} from '@/features/product-filter/ProductFilter'
 import type { SortOption } from '@/entities/product/model/types'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { CatalogList } from '@/widgets/catalog-list/CatalogList'
 import { CatalogCategories } from '@/widgets/catalog-categories/CatalogCategories'
 import { Layout } from '@/widgets/Layout'
 import { Pagination } from '@/shared/ui/Pagination'
+import { CatalogToolbar } from './CatalogToolbar'
 
 export function CatalogPage() {
   const [params] = useSearchParams()
@@ -40,6 +44,38 @@ export function CatalogPage() {
       ? [{ label: currentSubcategory.name, href: undefined }]
       : []),
   ]
+  const scopeName = currentCategory
+    ? [currentCategory.name, currentSubcategory?.name]
+        .filter(Boolean)
+        .join(' → ')
+    : ''
+  const scope = scopeName
+    ? `Поиск в разделе «${scopeName}»`
+    : category
+      ? undefined
+      : 'Поиск по всем материалам'
+  // Тот же запрос и общие фильтры, но без раздела и его собственных параметров.
+  const searchAll = new URLSearchParams(params)
+  for (const key of Array.from(searchAll.keys()))
+    if (
+      ['category', 'subcategory', 'page'].includes(key) ||
+      key.startsWith('attribute_')
+    )
+      searchAll.delete(key)
+  const searchAllHref =
+    filterValue.search && (category || params.get('subcategory'))
+      ? `/catalog?${searchAll}`
+      : undefined
+  const shown =
+    !loading && pagination.total > 0
+      ? `Показано ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} из ${pagination.total}`
+      : ''
+  const info =
+    [scope, shown].filter(Boolean).join(' · ') ||
+    'Материалы верхнего строения пути'
+  const summary = filterValue.search
+    ? `«${filterValue.search}» · ${info}`
+    : `Название, артикул… · ${info}`
   return (
     <Layout>
       <div className="container mx-auto px-6 py-10 xl:px-8">
@@ -61,43 +97,55 @@ export function CatalogPage() {
         <div className="grid items-start gap-6 lg:grid-cols-[252px_minmax(0,1fr)]">
           <CatalogCategories key={category} categories={categories} />
           <div className="min-w-0">
-            <ProductFilter
-              key={JSON.stringify([
-                category,
-                currentSubcategory?.slug,
-                filterValue,
-              ])}
-              value={filterValue}
-              onFilterChange={handleFilterChange}
-              filters={currentSubcategory?.filters ?? currentCategory?.filters}
-            />
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                {!loading && pagination.total > 0
-                  ? `Показано ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} из ${pagination.total}`
-                  : 'Материалы верхнего строения пути'}
-              </p>
-              <label className="flex min-w-0 items-center gap-2 text-sm">
-                <span>Сортировка</span>
-                <select
-                  aria-label="Сортировка"
-                  value={filterValue.sort}
-                  onChange={(e) =>
-                    handleFilterChange({
-                      ...filterValue,
-                      sort: e.target.value as SortOption,
-                    })
-                  }
-                  className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2"
-                >
-                  <option value="name">По названию</option>
-                  <option value="popular">По популярности</option>
-                  <option value="newest">Сначала новые</option>
-                  <option value="price-asc">Сначала дешевле</option>
-                  <option value="price-desc">Сначала дороже</option>
-                </select>
-              </label>
-            </div>
+            <CatalogToolbar summary={summary}>
+              {(afterApply) => {
+                const applyFilters = (next: FilterState) => {
+                  afterApply()
+                  handleFilterChange(next)
+                }
+                return (
+                  <>
+                    <ProductFilter
+                      key={JSON.stringify([
+                        category,
+                        currentSubcategory?.slug,
+                        filterValue,
+                      ])}
+                      value={filterValue}
+                      onFilterChange={applyFilters}
+                      filters={
+                        currentSubcategory?.filters ?? currentCategory?.filters
+                      }
+                    />
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <p className="min-w-0 text-[13px] text-muted-foreground">
+                        {info}
+                      </p>
+                      <label className="flex min-w-0 items-center gap-2 text-sm">
+                        <span>Сортировка</span>
+                        <select
+                          aria-label="Сортировка"
+                          value={filterValue.sort}
+                          onChange={(e) =>
+                            applyFilters({
+                              ...filterValue,
+                              sort: e.target.value as SortOption,
+                            })
+                          }
+                          className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2 text-sm md:min-h-8"
+                        >
+                          <option value="name">По названию</option>
+                          <option value="popular">По популярности</option>
+                          <option value="newest">Сначала новые</option>
+                          <option value="price-asc">Сначала дешевле</option>
+                          <option value="price-desc">Сначала дороже</option>
+                        </select>
+                      </label>
+                    </div>
+                  </>
+                )
+              }}
+            </CatalogToolbar>
             <div aria-busy={loading}>
               {loading ? (
                 <div
@@ -123,7 +171,7 @@ export function CatalogPage() {
                   {error}. Обновите страницу или измените фильтры.
                 </p>
               ) : (
-                <CatalogList products={products} />
+                <CatalogList products={products} searchAllHref={searchAllHref} />
               )}
             </div>
             {!loading && pagination.totalPages > 1 && (

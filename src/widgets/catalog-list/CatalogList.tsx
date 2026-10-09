@@ -12,7 +12,14 @@ import { PriceNote } from '@/shared/ui/PriceNote'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import './catalog-list.css'
 
-export function CatalogList({ products }: { products: Product[] }) {
+export function CatalogList({
+  products,
+  searchAllHref,
+}: {
+  products: Product[]
+  /** Тот же запрос без раздела — ссылка «во всех материалах» в пустой выдаче. */
+  searchAllHref?: string
+}) {
   const [requestedProduct, setRequestedProduct] = useState<Product | null>(null)
   if (!products.length)
     return (
@@ -25,6 +32,18 @@ export function CatalogList({ products }: { products: Product[] }) {
         <p className="text-muted-foreground">
           Измените параметры поиска или сбросьте фильтры.
         </p>
+        {searchAllHref && (
+          <p className="mt-2 text-muted-foreground">
+            Попробуйте поискать{' '}
+            <Link
+              to={searchAllHref}
+              className="font-bold text-primary underline underline-offset-4 hover:no-underline"
+            >
+              во всех материалах
+            </Link>
+            .
+          </p>
+        )}
       </div>
     )
   return (

@@ -37,7 +37,7 @@ const emptyFilters: FilterState = {
   attributes: {},
 }
 const selectClass =
-  'h-11 min-w-0 max-w-full rounded-md border border-border bg-muted px-3 text-sm text-foreground'
+  'h-11 md:h-9 min-w-0 max-w-full rounded-md border border-border bg-white px-3 md:px-2 text-sm text-foreground'
 
 interface ProductFilterProps {
   value: FilterState
@@ -86,7 +86,7 @@ export function ProductFilter({
   }
 
   return (
-    <section aria-label="Фильтры товаров" className="mb-5 min-w-0">
+    <section aria-label="Фильтры товаров" className="mb-2 min-w-0">
       <button
         type="button"
         className="flex min-h-12 w-full items-center justify-between gap-3 rounded-lg border border-border bg-white px-4 py-3 text-left text-sm font-bold transition-colors hover:bg-muted md:hidden"
@@ -108,12 +108,12 @@ export function ProductFilter({
         onSubmit={submit}
         className={`relative mt-3 md:mt-0 ${expanded ? 'block' : 'hidden md:block'}`}
       >
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="relative w-full min-w-0 sm:w-52 sm:grow sm:basis-48">
+        <div className="flex flex-wrap items-center gap-2 md:gap-1.5">
+          <label className="relative w-full min-w-0 sm:w-32 sm:grow sm:basis-32">
             <span className="sr-only">Название или артикул</span>
             <FiSearch
               aria-hidden="true"
-              className="pointer-events-none absolute top-3.5 left-3 h-4 w-4 text-muted-foreground"
+              className="pointer-events-none absolute top-3.5 left-3 md:top-2.5 h-4 w-4 text-muted-foreground"
             />
             <Input
               type="search"
@@ -121,8 +121,8 @@ export function ProductFilter({
               onChange={(event) =>
                 setDraft({ ...draft, search: event.target.value })
               }
-              placeholder="Название или артикул"
-              className="h-11 rounded-md bg-white pl-9 pr-3"
+              placeholder="Название, артикул"
+              className="h-11 rounded-md bg-white pl-9 pr-3 md:h-9"
             />
           </label>
           <FilterDropdown label="ГОСТ" active={!!draft.gost}>
@@ -243,9 +243,9 @@ export function ProductFilter({
             type="submit"
             size="sm"
             disabled={invalidRange}
-            className="min-h-11 rounded-md px-3 text-sm"
+            className="min-h-11 gap-1.5 rounded-md px-3 text-sm md:min-h-9 md:py-0"
           >
-            <FiCheck aria-hidden="true" />
+            <FiCheck aria-hidden="true" className="md:max-xl:hidden" />
             Применить
           </Button>
           <button
@@ -253,7 +253,7 @@ export function ProductFilter({
             onClick={reset}
             aria-label="Сбросить фильтры"
             title="Сбросить фильтры"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground hover:border-primary hover:text-primary"
+            className="flex h-11 w-11 shrink-0 md:h-9 md:w-9 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:border-primary hover:text-primary"
           >
             <FiX aria-hidden="true" className="h-4 w-4" />
           </button>
@@ -310,7 +310,7 @@ function FilterDropdown({
       }}
     >
       <summary
-        className={`flex h-11 cursor-pointer list-none items-center gap-2 rounded-md border px-3 text-sm [&::-webkit-details-marker]:hidden ${active ? 'border-primary/30 bg-primary/5 text-primary' : 'border-border bg-muted'} group-open:border-primary/40`}
+        className={`flex h-11 cursor-pointer list-none md:h-9 items-center gap-2 rounded-md border px-3 text-sm md:px-2.5 [&::-webkit-details-marker]:hidden ${active ? 'border-primary/40 bg-white text-primary' : 'border-border bg-white'} group-open:border-primary/40`}
       >
         {label}
         {active && (
