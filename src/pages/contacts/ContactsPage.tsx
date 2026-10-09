@@ -75,7 +75,7 @@ const ADDRESSES = [
 ]
 
 const REQUISITES = [
-  { label: 'Бренд', value: 'Группа компаний ТРАЕР (TRAER)', full: true },
+  { label: 'Бренд', value: 'Группа компаний ИНВИА', full: true },
   { label: 'Наименование', value: 'ООО «ИНВИА»' },
   { label: 'ИНН', value: '1648052000' },
   { label: 'КПП', value: '164801001' },

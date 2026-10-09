@@ -30,15 +30,15 @@ export function Footer() {
           <div>
             <Link
               to="/"
-              aria-label="ТРАЕР — главная"
+              aria-label="ИНВИА — главная"
               className="mb-5 inline-flex rounded"
             >
-              <img src="/logo-light.png" alt="ТРАЕР" className="w-[220px]" />
+              <img src="/logo-light.png" alt="ИНВИА" className="w-28" />
             </Link>
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
             </p>
-            <p className="mt-5 text-sm font-bold">Группа компаний ТРАЕР</p>
+            <p className="mt-5 text-sm font-bold">Группа компаний ИНВИА</p>
             <p className="footer-muted mt-1 text-sm">
               Юридическое лицо — ООО «ИНВИА»
               <br />
@@ -137,7 +137,7 @@ export function Footer() {
           <p className="w-full text-[11px] uppercase tracking-wide opacity-60">
             Информация, представленная на сайте, не является публичной офертой
           </p>
-          <span>© {new Date().getFullYear()} ТРАЕР — группа компаний. Юридическое лицо: ООО «ИНВИА»</span>
+          <span>© {new Date().getFullYear()} Группа компаний ИНВИА. Юридическое лицо: ООО «ИНВИА»</span>
           <div className="flex flex-wrap gap-x-6 gap-y-3">
             <Link to="/privacy">Политика конфиденциальности</Link>
             <a href="/privacy#consent">Согласие на обработку данных</a>
