@@ -43,12 +43,15 @@ interface ProductFilterProps {
   value: FilterState
   onFilterChange: (filters: FilterState) => void
   filters?: FilterOption[]
+  /** Где сейчас ищется товар — подпись под строкой поиска. */
+  scope?: string
 }
 
 export function ProductFilter({
   value,
   onFilterChange,
   filters = [],
+  scope,
 }: ProductFilterProps) {
   const [draft, setDraft] = useState(value)
   const [expanded, setExpanded] = useState(false)
@@ -258,6 +261,9 @@ export function ProductFilter({
             <FiX aria-hidden="true" className="h-4 w-4" />
           </button>
         </div>
+        {scope && (
+          <p className="mt-2 text-xs text-muted-foreground">{scope}</p>
+        )}
         {invalidRange && (
           <p
             id={priceErrorId}

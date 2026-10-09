@@ -40,6 +40,28 @@ export function CatalogPage() {
       ? [{ label: currentSubcategory.name, href: undefined }]
       : []),
   ]
+  const scopeName = currentCategory
+    ? [currentCategory.name, currentSubcategory?.name]
+        .filter(Boolean)
+        .join(' → ')
+    : ''
+  const scope = scopeName
+    ? `Поиск в разделе «${scopeName}»`
+    : category
+      ? undefined
+      : 'Поиск по всем материалам'
+  // Тот же запрос и общие фильтры, но без раздела и его собственных параметров.
+  const searchAll = new URLSearchParams(params)
+  for (const key of Array.from(searchAll.keys()))
+    if (
+      ['category', 'subcategory', 'page'].includes(key) ||
+      key.startsWith('attribute_')
+    )
+      searchAll.delete(key)
+  const searchAllHref =
+    filterValue.search && (category || params.get('subcategory'))
+      ? `/catalog?${searchAll}`
+      : undefined
   return (
     <Layout>
       <div className="container mx-auto px-6 py-10 xl:px-8">
@@ -70,6 +92,7 @@ export function CatalogPage() {
               value={filterValue}
               onFilterChange={handleFilterChange}
               filters={currentSubcategory?.filters ?? currentCategory?.filters}
+              scope={scope}
             />
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">
@@ -123,7 +146,7 @@ export function CatalogPage() {
                   {error}. Обновите страницу или измените фильтры.
                 </p>
               ) : (
-                <CatalogList products={products} />
+                <CatalogList products={products} searchAllHref={searchAllHref} />
               )}
             </div>
             {!loading && pagination.totalPages > 1 && (
