@@ -1,12 +1,19 @@
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router'
 import { useCatalog } from '../model/use-catalog'
-import { ProductFilter } from '@/features/product-filter/ProductFilter'
+import {
+  ProductFilter,
+  type FilterState,
+} from '@/features/product-filter/ProductFilter'
 import type { SortOption } from '@/entities/product/model/types'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { CatalogList } from '@/widgets/catalog-list/CatalogList'
 import { CatalogCategories } from '@/widgets/catalog-categories/CatalogCategories'
 import { Layout } from '@/widgets/Layout'
 import { Pagination } from '@/shared/ui/Pagination'
+
+// Высота шапки после прокрутки: 72 px строки с логотипом + 1 px рамки (index.css, .is-scrolled).
+const STICKY_TOP = 73
 
 export function CatalogPage() {
   const [params] = useSearchParams()
@@ -62,6 +69,31 @@ export function CatalogPage() {
     filterValue.search && (category || params.get('subcategory'))
       ? `/catalog?${searchAll}`
       : undefined
+  // Панель «прилипла», когда её исходное место ушло под шапку: тогда у неё тень,
+  // а новый запрос возвращает к началу списка, а не оставляет посреди старой выдачи.
+  const toolbarStartRef = useRef<HTMLDivElement>(null)
+  const [toolbarStuck, setToolbarStuck] = useState(false)
+  useEffect(() => {
+    const check = () => {
+      const top = toolbarStartRef.current?.getBoundingClientRect().top
+      setToolbarStuck(top !== undefined && top < STICKY_TOP)
+    }
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => {
+      window.removeEventListener('scroll', check)
+      window.removeEventListener('resize', check)
+    }
+  }, [])
+  const applyFilters = (next: FilterState) => {
+    const start = toolbarStartRef.current
+    if (toolbarStuck && start)
+      window.scrollTo({
+        top: start.getBoundingClientRect().top + window.scrollY - STICKY_TOP,
+      })
+    handleFilterChange(next)
+  }
   return (
     <Layout>
       <div className="container mx-auto px-6 py-10 xl:px-8">
@@ -83,43 +115,57 @@ export function CatalogPage() {
         <div className="grid items-start gap-6 lg:grid-cols-[252px_minmax(0,1fr)]">
           <CatalogCategories key={category} categories={categories} />
           <div className="min-w-0">
-            <ProductFilter
-              key={JSON.stringify([
-                category,
-                currentSubcategory?.slug,
-                filterValue,
-              ])}
-              value={filterValue}
-              onFilterChange={handleFilterChange}
-              filters={currentSubcategory?.filters ?? currentCategory?.filters}
-              scope={scope}
-            />
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-muted-foreground">
-                {!loading && pagination.total > 0
-                  ? `Показано ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} из ${pagination.total}`
-                  : 'Материалы верхнего строения пути'}
-              </p>
-              <label className="flex min-w-0 items-center gap-2 text-sm">
-                <span>Сортировка</span>
-                <select
-                  aria-label="Сортировка"
-                  value={filterValue.sort}
-                  onChange={(e) =>
-                    handleFilterChange({
-                      ...filterValue,
-                      sort: e.target.value as SortOption,
-                    })
-                  }
-                  className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2"
-                >
-                  <option value="name">По названию</option>
-                  <option value="popular">По популярности</option>
-                  <option value="newest">Сначала новые</option>
-                  <option value="price-asc">Сначала дешевле</option>
-                  <option value="price-desc">Сначала дороже</option>
-                </select>
-              </label>
+            <div ref={toolbarStartRef} aria-hidden="true" />
+            {/* С 768 px поиск и сортировка закреплены под шапкой: искать можно,
+                не возвращаясь наверх списка. */}
+            <div
+              className={`z-30 mb-3 bg-white py-2 md:sticky ${toolbarStuck ? 'md:shadow-[0_10px_10px_-10px_rgb(0_0_0_/_0.25)]' : ''}`}
+              style={{ top: STICKY_TOP }}
+            >
+              <ProductFilter
+                key={JSON.stringify([
+                  category,
+                  currentSubcategory?.slug,
+                  filterValue,
+                ])}
+                value={filterValue}
+                onFilterChange={applyFilters}
+                filters={
+                  currentSubcategory?.filters ?? currentCategory?.filters
+                }
+              />
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                <p className="min-w-0 text-sm text-muted-foreground">
+                  {[
+                    scope,
+                    !loading && pagination.total > 0
+                      ? `Показано ${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} из ${pagination.total}`
+                      : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || 'Материалы верхнего строения пути'}
+                </p>
+                <label className="flex min-w-0 items-center gap-2 text-sm">
+                  <span>Сортировка</span>
+                  <select
+                    aria-label="Сортировка"
+                    value={filterValue.sort}
+                    onChange={(e) =>
+                      applyFilters({
+                        ...filterValue,
+                        sort: e.target.value as SortOption,
+                      })
+                    }
+                    className="min-h-11 min-w-0 max-w-full rounded-md border border-border bg-white px-2 md:min-h-9"
+                  >
+                    <option value="name">По названию</option>
+                    <option value="popular">По популярности</option>
+                    <option value="newest">Сначала новые</option>
+                    <option value="price-asc">Сначала дешевле</option>
+                    <option value="price-desc">Сначала дороже</option>
+                  </select>
+                </label>
+              </div>
             </div>
             <div aria-busy={loading}>
               {loading ? (
