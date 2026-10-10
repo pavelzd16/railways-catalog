@@ -1,21 +1,30 @@
 /**
- * Номер счётчика Яндекс.Метрики. Не является секретом: он виден в исходном
- * коде каждой страницы. Хранится в коде, потому что настройки боевой сборки
- * лежат в секрете VITE_ENV, прочитать который нельзя, а значит нельзя и
- * дописать в него ключ, не потеряв остальные значения.
+ * Номера счётчиков Яндекс.Метрики через запятую. Не являются секретом: они
+ * видны в исходном коде каждой страницы. Хранятся в коде, потому что настройки
+ * боевой сборки лежат в секрете VITE_ENV, прочитать который нельзя, а значит
+ * нельзя и дописать в него ключ, не потеряв остальные значения.
+ * 112450496 — счётчик со времён traer.ru (к нему привязаны Директ и Gudok),
+ * 113577737 — счётчик prorelsa.ru. Каждое событие уходит в оба.
  */
-const DEFAULT_METRIKA_ID = '112450496'
+const DEFAULT_METRIKA_ID = '112450496,113577737'
 
 const configured = (import.meta.env.VITE_METRIKA_ID ?? '').trim()
 
 /**
- * В сборке для боевого сервера счётчик включён по умолчанию, при разработке —
- * выключен, чтобы не искажать статистику. VITE_METRIKA_ID переопределяет
- * номер, любое нечисловое значение (например off) отключает счётчик совсем.
+ * В сборке для боевого сервера счётчики включены по умолчанию, при разработке —
+ * выключены, чтобы не искажать статистику. VITE_METRIKA_ID переопределяет
+ * номера (один или несколько через запятую), любое нечисловое значение
+ * (например off) отключает Метрику совсем.
  */
-const resolved = configured === '' ? (import.meta.env.PROD ? DEFAULT_METRIKA_ID : '') : configured
+const resolved: string[] = (configured === '' ? (import.meta.env.PROD ? DEFAULT_METRIKA_ID : '') : configured)
+  .split(',').map((id: string) => id.trim())
 
-export const metrikaId = /^\d+$/.test(resolved) ? resolved : ''
+export const metrikaIds: number[] = resolved.every(id => /^\d+$/.test(id)) ? resolved.map(Number) : []
+
+/** Вызов во все счётчики сразу. */
+function ymAll(action: string, ...args: unknown[]) {
+  for (const id of metrikaIds) window.ym?.(id, action, ...args)
+}
 
 /**
  * Метрика работает у всех посетителей сразу, не дожидаясь выбора на плашке
@@ -35,8 +44,8 @@ declare global {
 
 /** Сообщает Метрике о переходе на новый адрес внутри сайта. */
 export function metrikaHit(url: string, referrer: string): void {
-  if (!metrikaAllowed() || !metrikaId || typeof window.ym !== 'function') return
-  window.ym(Number(metrikaId), 'hit', url, { referer: referrer })
+  if (!metrikaAllowed() || !metrikaIds.length || typeof window.ym !== 'function') return
+  ymAll('hit', url, { referer: referrer })
 }
 
 /**
@@ -84,10 +93,10 @@ export function emailCopyGoal(place: EmailPlace): MetrikaGoal {
  * от неё зависеть.
  */
 export function metrikaReachGoal(goal: string, params?: MetrikaParams): void {
-  if (!metrikaAllowed() || !metrikaId || typeof window.ym !== 'function') return
+  if (!metrikaAllowed() || !metrikaIds.length || typeof window.ym !== 'function') return
   try {
-    if (params) window.ym(Number(metrikaId), 'reachGoal', goal, params)
-    else window.ym(Number(metrikaId), 'reachGoal', goal)
+    if (params) ymAll('reachGoal', goal, params)
+    else ymAll('reachGoal', goal)
   } catch {
     // Счётчик сломан или заблокирован — цель теряется, сайт работает.
   }
@@ -96,7 +105,7 @@ export function metrikaReachGoal(goal: string, params?: MetrikaParams): void {
 let initialized = false
 
 export function startMetrika(): boolean {
-  if (!metrikaAllowed() || !metrikaId || initialized) return false
+  if (!metrikaAllowed() || !metrikaIds.length || initialized) return false
   initialized = true
   if (!window.ym) {
     const queue: NonNullable<Window['ym']> = (...args) => { (queue.a ??= []).push(args) }
@@ -107,16 +116,16 @@ export function startMetrika(): boolean {
     const script = document.createElement('script')
     script.id = 'metrika-script'
     script.async = true
-    script.src = `https://mc.yandex.ru/metrika/tag.js?id=${metrikaId}`
+    script.src = `https://mc.yandex.ru/metrika/tag.js?id=${metrikaIds[0]}`
     document.head.append(script)
   }
-  window.ym(Number(metrikaId), 'init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true })
+  ymAll('init', { ssr: true, webvisor: true, clickmap: true, ecommerce: 'dataLayer', referrer: document.referrer, url: location.href, accurateTrackBounce: true, trackLinks: true })
   return true
 }
 
 export function stopMetrika() {
   if (initialized && window.ym) {
-    try { window.ym(Number(metrikaId), 'destruct') } catch { /* Сайт не зависит от счётчика. */ }
+    try { ymAll('destruct') } catch { /* Сайт не зависит от счётчика. */ }
     if (window.ym.a) window.ym.a = []
   }
   initialized = false
