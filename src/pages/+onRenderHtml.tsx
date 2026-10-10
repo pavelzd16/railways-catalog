@@ -7,6 +7,10 @@ import { productMeta } from '@/shared/seo/meta-tovary'
 import type { PageData } from '@/shared/seo/route-data'
 import { siteUrl } from '@/renderer/server-config'
 import { jsonForHtml } from '@/shared/lib/plain-text'
+import { metrikaIds } from '@/shared/analytics/metrika'
+
+// Пиксель Метрики для посетителей без JavaScript — как в коде счётчика из кабинета.
+const metrikaNoscript = metrikaIds.map(id => `<noscript><div><img src="https://mc.yandex.ru/watch/${id}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>`).join('')
 
 export function onRenderHtml(pageContext: PageContextServer) {
   const data = (pageContext.data ?? pageContext.abortReason ?? { url: pageContext.urlOriginal, siteUrl, status: pageContext.is404 ? 404 : 500, ssr: true }) as PageData
@@ -24,7 +28,7 @@ export function onRenderHtml(pageContext: PageContextServer) {
       <meta property="og:title" content="${meta.title}" /><meta property="og:description" content="${meta.socialDescription}" /><meta property="og:url" content="${meta.canonical}" /><meta property="og:image" content="${meta.image}" />
       <meta name="twitter:card" content="summary" /><meta name="twitter:title" content="${meta.title}" /><meta name="twitter:description" content="${meta.socialDescription}" /><meta name="twitter:image" content="${meta.image}" />
       ${meta.jsonLd.length ? escapeInject`<script id="seo-json-ld" type="application/ld+json">${dangerouslySkipEscape(jsonForHtml(meta.jsonLd))}</script>` : ''}
-      </head><body><div id="root">${dangerouslySkipEscape(html)}</div></body></html>`,
+      </head><body><div id="root">${dangerouslySkipEscape(html)}</div>${dangerouslySkipEscape(metrikaNoscript)}</body></html>`,
     pageContext: { data },
   }
 }

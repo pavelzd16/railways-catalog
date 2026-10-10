@@ -30,7 +30,7 @@ test('metrika works without consent, call tracking waits for it and stops after 
   t.after(() => { Object.assign(globalThis, old) })
   async function load(name) {
     const source = (await readFile(new URL(`../src/shared/analytics/${name}.ts`, import.meta.url), 'utf8'))
-      .replaceAll('import.meta.env', '({ PROD: true, VITE_METRIKA_ID: "123456" })')
+      .replaceAll('import.meta.env', '({ PROD: true, VITE_METRIKA_ID: "123456, 654321" })')
       .replaceAll("'../privacy/cookie-consent'", JSON.stringify(new URL('../src/shared/privacy/cookie-consent.ts', import.meta.url).href))
     const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText
     return import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`)
@@ -42,13 +42,14 @@ test('metrika works without consent, call tracking waits for it and stops after 
   assert.equal(metrika.startMetrika(), false)
   gudok.startGudok()
   assert.deepEqual([...scripts.keys()], ['metrika-script'])
-  assert.equal(calls.filter(call => call[1] === 'init').length, 1)
+  assert.deepEqual(calls.filter(call => call[1] === 'init').map(call => call[0]), [123456, 654321], 'every counter is initialized')
   metrika.metrikaReachGoal('forma')
-  assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'forma'])
+  assert.deepEqual(calls.slice(-2), [[123456, 'reachGoal', 'forma'], [654321, 'reachGoal', 'forma']])
   window.location.pathname = '/catalog/rels-r65'
   const pochta = metrika.emailCopyGoal('Подвал')
   metrika.metrikaReachGoal(pochta.name, pochta.params?.())
-  assert.deepEqual(calls.at(-1), [123456, 'reachGoal', 'pochta', { 'Почта': { 'Подвал': '/catalog/rels-r65' } }])
+  assert.deepEqual(calls.slice(-2).map(call => call[0]), [123456, 654321])
+  assert.deepEqual(calls.at(-1), [654321, 'reachGoal', 'pochta', { 'Почта': { 'Подвал': '/catalog/rels-r65' } }])
   window.location.pathname = '/'
   let changes = 0
   const unsubscribe = subscribeCookieConsent(() => changes++)
@@ -62,10 +63,10 @@ test('metrika works without consent, call tracking waits for it and stops after 
   saveCookieConsent('necessary')
   const count = calls.length
   metrika.metrikaReachGoal('forma'); metrika.metrikaHit('/catalog', '/')
-  assert.equal(calls.length, count + 2, 'refusing call tracking keeps metrika')
+  assert.equal(calls.length, count + 4, 'refusing call tracking keeps metrika')
   window.location.pathname = '/admin/login'
   metrika.metrikaReachGoal('forma'); metrika.metrikaHit('/admin', '/')
-  assert.equal(calls.length, count + 2, 'admin pages are not tracked')
+  assert.equal(calls.length, count + 4, 'admin pages are not tracked')
   window.location.pathname = '/'
   assert.equal(changes, 3)
   unsubscribe()
