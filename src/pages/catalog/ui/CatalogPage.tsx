@@ -12,11 +12,16 @@ import { CatalogCategories } from '@/widgets/catalog-categories/CatalogCategorie
 import { Layout } from '@/widgets/Layout'
 import { Pagination } from '@/shared/ui/Pagination'
 import { CatalogToolbar } from './CatalogToolbar'
+import { categoryTexts } from '@/shared/seo/category-texts'
+import {
+  CategoryArticle,
+  CategoryIntro,
+} from '@/widgets/category-text/CategoryText'
 
 export function CatalogPage() {
   const [params] = useSearchParams()
   const { pathname } = useLocation()
-  const { categorySlug: category = '' } = useParams()
+  const { categorySlug: category = '', subcategorySlug } = useParams()
   const {
     products,
     categories,
@@ -78,16 +83,23 @@ export function CatalogPage() {
   const summary = filterValue.search
     ? `«${filterValue.search}» · ${info}`
     : `Название, артикул… · ${info}`
+  // Текст раздела — только на первой странице: на 2-й и дальше он повторял бы первую.
+  const text = category
+    ? categoryTexts[catalogPath(category, subcategorySlug)]
+    : undefined
+  const pageText = pagination.page <= 1 ? text : undefined
   return (
     <Layout>
       <div className="container mx-auto px-6 py-10 xl:px-8">
         <Breadcrumbs items={crumbs} />
         <div className="mb-8">
           <h1 className="page-title">
-            {currentSubcategory?.name ??
+            {text?.h1 ??
+              currentSubcategory?.name ??
               currentCategory?.name ??
               'Каталог материалов'}
           </h1>
+          {pageText && <CategoryIntro text={pageText} />}
           <p className="mt-3 text-muted-foreground" role="status">
             {loading
               ? 'Загрузка товаров…'
@@ -188,7 +200,8 @@ export function CatalogPage() {
             )}
           </div>
         </div>
-        {currentCategory?.description && !currentSubcategory && (
+        {pageText && <CategoryArticle text={pageText} />}
+        {!text && currentCategory?.description && !currentSubcategory && (
           <section
             className="mt-12 max-w-4xl border-t border-border pt-8"
             aria-label={`О категории ${currentCategory.name}`}
