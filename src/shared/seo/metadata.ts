@@ -1,5 +1,5 @@
 import { plainText } from '../lib/plain-text.ts'
-import { PHONE_CITY, PHONE_MOBILE } from '../lib/phones.ts'
+import { PHONE_CITY, PHONE_FREE, PHONE_MOBILE } from '../lib/phones.ts'
 import { buildProductFaq } from '../lib/product-faq.ts'
 import { catalogPath, catalogSelection, detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
 import { catalogMeta, pageMeta, type MetaPair } from './meta-traer.ts'
@@ -88,7 +88,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ПроРельс.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ПроРельс'
-  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: [PHONE_CITY, PHONE_MOBILE].filter(Boolean), email: 'zakaz@prorelsa.ru' })
+  if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: [PHONE_FREE, PHONE_CITY, PHONE_MOBILE].filter(Boolean), email: 'zakaz@prorelsa.ru' })
   const socialDescription = summary(description)
   return { title, description: socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }
 }

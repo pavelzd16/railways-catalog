@@ -3,12 +3,13 @@ import { Link } from 'react-router'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
 import { emailCopyGoal } from '@/shared/analytics/metrika'
-import { PHONE_CALL, PHONE_CITY, PHONE_MOBILE, tel } from '@/shared/lib/phones'
+import { PHONE_CALL, PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE, tel } from '@/shared/lib/phones'
 const COPY_PHONE = 'Скопировать номер телефона'
 const COPY_EMAIL = 'Скопировать адрес почты'
 export function HomeContacts() {
   // Номера и почта копируются нажатием на текст или на значок рядом,
   // звонок — по значку телефона слева.
+  const phoneFree = useCopy(PHONE_FREE)
   const phoneMain = useCopy(PHONE_CITY)
   const phoneSales = useCopy(PHONE_MOBILE)
   const email = useCopy('zakaz@prorelsa.ru', emailCopyGoal('Главная, блок контактов'))
@@ -23,15 +24,37 @@ export function HomeContacts() {
           </p>
         </div>
         <div className="space-y-4">
+          {/* Крупно — бесплатный номер, городской и мобильный под ним. */}
+          <div>
+            <div className="flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl">
+              <a
+                href={tel(PHONE_FREE)}
+                aria-label={`Позвонить: ${PHONE_FREE}`}
+                title="Позвонить"
+                className="-m-1 shrink-0 rounded-md p-1 text-primary hover:bg-primary/10"
+              >
+                <FiPhone className="h-6 w-6" />
+              </a>
+              <CopyValue
+                state={phoneFree}
+                label={COPY_PHONE}
+                className="whitespace-nowrap hover:text-primary"
+              >
+                {PHONE_FREE}
+              </CopyValue>
+              <CopyButton compact state={phoneFree} label={COPY_PHONE} />
+            </div>
+            <p className="mt-1 pl-9 text-sm text-muted-foreground">{PHONE_FREE_NOTE}</p>
+          </div>
           {/* Если городского нет, на его месте пусто — того же размера. */}
-          <div className={`flex items-center gap-3 text-2xl font-bold tracking-tight sm:text-3xl ${PHONE_CITY ? '' : 'invisible'}`} aria-hidden={!PHONE_CITY || undefined}>
+          <div className={`flex items-center gap-3 text-lg font-bold ${PHONE_CITY ? '' : 'invisible'}`} aria-hidden={!PHONE_CITY || undefined}>
             <a
               href={PHONE_CITY ? tel(PHONE_CITY) : undefined}
               aria-label={`Позвонить: ${PHONE_CITY}`}
               title="Позвонить"
               className="-m-1 shrink-0 rounded-md p-1 text-primary hover:bg-primary/10"
             >
-              <FiPhone className="h-6 w-6" />
+              <FiPhone />
             </a>
             <CopyValue
               state={phoneMain}

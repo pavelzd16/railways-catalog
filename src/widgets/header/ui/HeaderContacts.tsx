@@ -5,7 +5,7 @@ import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { useCopy } from '@/shared/ui/use-copy'
 import { emailCopyGoal } from '@/shared/analytics/metrika'
-import { PHONE_CALL, PHONE_CITY, PHONE_MOBILE, tel } from '@/shared/lib/phones'
+import { PHONE_CALL, PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE, tel } from '@/shared/lib/phones'
 import { ContactMeModal } from './ContactMeModal'
 
 const EMAIL = 'zakaz@prorelsa.ru'
@@ -128,6 +128,9 @@ export function HeaderContacts() {
           // Отступ сверху — часть списка: мышь идёт от номера к списку, не выходя из блока.
           <div id="header-contacts-panel" aria-label="Контакты" className="absolute right-0 top-full z-50 pt-2">
             <div className="panel-enter w-76 rounded-lg border border-border bg-white p-5 text-left text-foreground shadow-lg">
+              <PanelLabel>{PHONE_FREE_NOTE}</PanelLabel>
+              <PanelPhone phone={PHONE_FREE} />
+              <div className="my-4 border-t border-border" />
               <PanelLabel>Мобильный и мессенджеры</PanelLabel>
               <PanelPhone phone={PHONE_MOBILE} />
               <div className="mt-3">
