@@ -14,6 +14,7 @@ const companyLinks = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
   ['Калькулятор', '/calculator'],
+  ['Статьи', '/stati'],
   ['О компании', '/about'],
   ['Контакты', '/contacts'],
 ]

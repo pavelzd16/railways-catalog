@@ -67,7 +67,7 @@ export function App() {
         <Route path="/calculator" element={<CalculatorPage />} />
         <Route path="/stati" element={<ArticlesPage />} />
         <Route path="/stati/:slug" element={<ArticlePage />} />
-        <Route path="/cart"element={<CartPage />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
 
         <Route path="/admin/login" element={<AdminLoginPage />} />

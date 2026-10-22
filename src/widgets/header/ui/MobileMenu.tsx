@@ -272,6 +272,10 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
                 Калькулятор
               </MobileNavLink>
 
+              <MobileNavLink to="/stati" onClick={closeMenu}>
+                Статьи
+              </MobileNavLink>
+
               <MobileNavLink to="/about" onClick={closeMenu}>
                 О компании
               </MobileNavLink>
