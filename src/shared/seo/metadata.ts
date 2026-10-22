@@ -1,7 +1,8 @@
 import { plainText } from '../lib/plain-text.ts'
 import { PHONE_CITY, PHONE_FREE, PHONE_MOBILE } from '../lib/phones.ts'
 import { buildProductFaq } from '../lib/product-faq.ts'
-import { catalogPath, catalogSelection, detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
+import { splitArticleBody } from '../../entities/article/lib/article-body.ts'
+import { articlesPage, catalogPath, catalogSelection, detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
 import { catalogMeta, pageMeta, type MetaPair } from './meta-traer.ts'
 
 export type Metadata = { title: string; description: string; socialDescription: string; canonical: string; robots: string; image: string; jsonLd: Record<string, unknown>[] }
@@ -52,6 +53,18 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     noindex ||= (!!selection.categorySlug && !category) || (!!selection.subcategorySlug && !subcategory)
     if (data.status === 404) [title, description] = notFound
   }
+  if (path === '/stati') {
+    // Список статей: пагинация как в каталоге, любые другие параметры (?sort=, ?search=…) — варианты списка, не страницы.
+    const page = articlesPage(url.searchParams)
+    if (page > 1) {
+      canonicalPath += `?page=${page}`
+      title = title.replace(/ \| ПроРельс$/, ` — страница ${page} | ПроРельс`)
+      description += ` Страница ${page}.`
+    }
+    noindex ||= [...url.searchParams.keys()].some((key) => !['page', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(key))
+    if (data.status === 404) [title, description] = notFound
+    else jsonLd.push({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, description, url: data.siteUrl + canonicalPath, isPartOf: { '@type': 'WebSite', name: 'ПроРельс', url: data.siteUrl }, publisher: company })
+  }
   const route = detailRoute(path)
   if (route?.kind === 'product' && data.product?.slug === route.slug) {
     const product = data.product
@@ -83,8 +96,25 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     canonicalPath = `/services/${encodeURIComponent(service.slug)}`
     if (service.image) image = new URL(service.image, data.siteUrl).href
     jsonLd.push({ '@context': 'https://schema.org', '@type': 'Service', name: plainText(service.title), description: plainText(service.fullDescription || service.description), url: data.siteUrl + canonicalPath, provider: { ...company, url: data.siteUrl } })
+  } else if (route?.kind === 'article' && data.article?.slug === route.slug) {
+    const article = data.article
+    const articleTitle = plainText(article.title)
+    title = articleTitle.endsWith('ПроРельс') ? articleTitle : `${articleTitle} | ПроРельс`
+    description = plainText(article.description)
+    canonicalPath = `/stati/${encodeURIComponent(article.slug)}`
+    if (article.image) image = new URL(article.image, data.siteUrl).href
+    const articleUrl = data.siteUrl + canonicalPath
+    // Крошки здесь — в JSON-LD; на самой странице Breadcrumbs размечает их ещё и microdata.
+    jsonLd.push({
+      '@context': 'https://schema.org', '@type': 'Article', headline: plainText(article.h1), description, url: articleUrl, mainEntityOfPage: articleUrl,
+      datePublished: article.publishedAt, dateModified: article.updatedAt, author: company, publisher: company,
+      ...(article.image ? { image: [image] } : {}),
+    })
+    jsonLd.push({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', data.siteUrl + '/'], ['Статьи', data.siteUrl + '/stati'], [plainText(article.h1), articleUrl]].map(([name, item], index) => ({ '@type': 'ListItem', position: index + 1, name, item })) })
+    const faq = splitArticleBody(article.body).faq
+    if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
   } else if (route) {
-    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ПроРельс' : 'Услуга не найдена | ПроРельс') : 'Загрузка страницы | ПроРельс'
+    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ПроРельс' : route.kind === 'article' ? 'Статья не найдена | ПроРельс' : 'Услуга не найдена | ПроРельс') : 'Загрузка страницы | ПроРельс'
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ПроРельс.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ПроРельс'
