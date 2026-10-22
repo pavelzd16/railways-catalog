@@ -16,6 +16,7 @@ const links = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
   ['Калькулятор', '/calculator'],
+  ['Статьи', '/stati'],
   ['О компании', '/about'],
   ['Контакты', '/contacts'],
 ]

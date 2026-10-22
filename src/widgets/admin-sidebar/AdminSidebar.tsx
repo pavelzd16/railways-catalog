@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router'
-import { FiBarChart2, FiBox, FiMenu, FiShoppingCart, FiTool, FiInbox, FiSettings, FiX } from 'react-icons/fi'
+import { FiBarChart2, FiBookOpen, FiBox, FiMenu, FiShoppingCart, FiTool, FiInbox, FiSettings, FiX } from 'react-icons/fi'
 import { cn } from '@/shared/lib/cn'
 
 export function AdminSidebar() {
@@ -11,6 +11,7 @@ export function AdminSidebar() {
     { to: '/admin', label: 'Дашборд', icon: FiBarChart2 },
     { to: '/admin/products', label: 'Продукты', icon: FiBox },
     { to: '/admin/services', label: 'Услуги', icon: FiTool },
+    { to: '/admin/articles', label: 'Статьи', icon: FiBookOpen },
     { to: '/admin/requests', label: 'Заявки', icon: FiInbox },
     { to: '/admin/chats', label: 'Чаты', icon: FiInbox },
     { to: '/admin/orders', label: 'Заказы', icon: FiShoppingCart },
@@ -48,7 +49,7 @@ export function AdminSidebar() {
         <nav className="space-y-2 p-4">
           <div className="space-y-1">
             {menuItems.map((item) => {
-              const isActive = location.pathname === item.to
+              const isActive = location.pathname === item.to || (item.to !== '/admin' && location.pathname.startsWith(item.to + '/'))
               const Icon = item.icon
               return (
                 <Link

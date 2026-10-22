@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useNavigationType } from 'react-router'
 import { categoryApi } from '@/entities/category/api/category.api'
 import { productApi } from '@/entities/product/api/product.api'
 import { serviceApi } from '@/entities/service/api/service.api'
+import { articleApi } from '@/entities/article/api/article.api'
 import { detailRoute, productPath, type PageData } from './route-data'
 import { movedProductSlug } from './product-slug-moves'
 import { getMetadata } from './metadata'
@@ -46,12 +47,12 @@ export function PageDataProvider({ initial, children }: { initial: PageData; chi
     const moved = route.kind === 'product' ? movedProductSlug(route.slug) : undefined
     const request = route.kind === 'product'
       ? productApi.getBySlug(route.slug).catch((error) => { if (moved && error?.response?.status === 404) return productApi.getBySlug(moved); throw error })
-      : serviceApi.getBySlug(route.slug)
+      : route.kind === 'service' ? serviceApi.getBySlug(route.slug) : articleApi.getBySlug(route.slug)
     request.then((value) => {
       if (cancelled) return
       const next = { url, siteUrl: initial.siteUrl, ssr: false, status: 200, [route.kind]: value }
       setLoaded(next)
-      const canonical = route.kind === 'product' ? productPath(value as NonNullable<PageData['product']>) : `/services/${encodeURIComponent(value.slug)}`
+      const canonical = route.kind === 'product' ? productPath(value as NonNullable<PageData['product']>) : `/${route.kind === 'service' ? 'services' : 'stati'}/${encodeURIComponent(value.slug)}`
       if (pathname !== canonical) navigate(canonical + search, { replace: true })
     }).catch((error) => {
       if (!cancelled) setLoaded({ url, siteUrl: initial.siteUrl, ssr: false, status: error?.response?.status === 404 ? 404 : 503 })

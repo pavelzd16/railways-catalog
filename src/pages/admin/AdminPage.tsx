@@ -7,6 +7,8 @@ import { getToken, removeToken } from '@/entities/auth/model/auth.model'
 import { AdminProductsPage } from './products'
 import { AdminOrdersPage } from './orders'
 import { AdminServicesPage } from './services/AdminServicesPage'
+import { AdminArticlesPage } from './articles/AdminArticlesPage'
+import { ArticlePreviewPage } from './articles/ArticlePreviewPage'
 import { AdminRequestsPage } from './requests/AdminRequestsPage'
 import { AdminSettingsPage } from './settings/AdminSettingsPage'
 import { AdminDashboardPage as Dashboard } from './dashboard/AdminDashboardPage'
@@ -37,6 +39,8 @@ export function AdminPage() {
           <Route path="/products" element={<AdminProductsPage />} />
           <Route path="/orders" element={<AdminOrdersPage />} />
           <Route path="/services" element={<AdminServicesPage />} />
+          <Route path="/articles" element={<AdminArticlesPage />} />
+          <Route path="/articles/preview/:id" element={<ArticlePreviewPage />} />
           <Route path="/requests" element={<AdminRequestsPage />} />
           <Route path="/chats" element={<Suspense fallback={<p className="p-8">Загружаем чаты…</p>}><AdminChatsPage /></Suspense>} />
           <Route path="/settings" element={<AdminSettingsPage />} />

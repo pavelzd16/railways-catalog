@@ -1,0 +1,170 @@
+/* Раздел «Статьи»: тёмная шапка статьи и оформление текста статьи из базы (готовый HTML),
+   по согласованному макету stranica-stati.html. Остальное — классами Tailwind в разметке. */
+
+/* Хлебные крошки на тёмной шапке — светлые */
+.stati-hero nav[aria-label='Хлебные крошки'] {
+  color: #aeb8c2;
+}
+.stati-hero nav[aria-label='Хлебные крошки'] .text-foreground {
+  color: #fff;
+}
+
+/* Текст статьи. Правила оформления — только для HTML из базы (.stati-html), чтобы не задевать
+   карточки товаров и услуг между кусками текста. */
+.stati-body,
+.stati-body-rest {
+  color: #3a4550;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.stati-body > .stati-html:first-child > :first-child {
+  margin-top: 0;
+}
+/* Вводный абзац — крупнее и темнее, как на макете */
+.stati-body > .stati-html:first-child > p:first-child {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+}
+.stati-html h2 {
+  margin: 2.5rem 0 1rem;
+  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: hsl(var(--foreground));
+}
+.stati-html h3 {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: hsl(var(--foreground));
+}
+.stati-html p {
+  margin: 1rem 0 0;
+}
+.stati-html ul,
+.stati-html ol {
+  margin: 1rem 0 0;
+  padding-left: 1.5rem;
+}
+.stati-html ul {
+  list-style: disc;
+}
+.stati-html ol {
+  list-style: decimal;
+}
+.stati-html li + li {
+  margin-top: 0.5rem;
+}
+.stati-html li::marker {
+  color: hsl(var(--primary));
+}
+.stati-html a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.stati-html b,
+.stati-html strong {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+/* Таблицы: тёмная строка заголовка и зебра; широкие прокручиваются по горизонтали */
+.stati-html .tbl {
+  margin: 1.5rem 0 0;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+}
+.stati-html > table {
+  margin: 1.5rem 0 0;
+  border: 1px solid hsl(var(--border));
+}
+.stati-html table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+/* Таблица без обёртки .tbl (вставлена в админке) прокручивается сама, внутри колонки текста:
+   иначе на телефоне широкая таблица раздвигает всю страницу */
+.stati-html table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.stati-html .tbl table {
+  display: table;
+  max-width: none;
+  overflow: visible;
+  min-width: 36rem;
+}
+.stati-html th {
+  padding: 0.625rem 0.875rem;
+  background: #151d25;
+  color: #fff;
+  font-weight: 700;
+  text-align: left;
+  vertical-align: top;
+}
+.stati-html td {
+  padding: 0.625rem 0.875rem;
+  border-top: 1px solid hsl(var(--border));
+  vertical-align: top;
+}
+.stati-html tr:nth-child(odd) td {
+  background: #f5f7f9;
+}
+
+/* Заметка-акцент с оранжевой чертой слева */
+.stati-html .note {
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid hsl(var(--primary));
+  background: #f3f5f7;
+  font-size: 0.9375rem;
+}
+
+/* Картинки и схемы с подписью */
+.stati-html img {
+  max-width: 100%;
+  height: auto;
+}
+.stati-html figure {
+  margin: 1.75rem 0 0;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+}
+.stati-html figure img {
+  display: block;
+  width: 100%;
+  background: #fff;
+}
+.stati-html figcaption {
+  padding: 0.75rem 1rem;
+  background: #f5f7f9;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 599px) {
+  .stati-body,
+  .stati-body-rest {
+    font-size: 0.9375rem;
+  }
+  .stati-body > .stati-html:first-child > p:first-child {
+    font-size: 1.0625rem;
+  }
+  .stati-html table {
+    font-size: 0.8125rem;
+  }
+  .stati-html th,
+  .stati-html td {
+    padding: 0.5rem 0.625rem;
+  }
+}
