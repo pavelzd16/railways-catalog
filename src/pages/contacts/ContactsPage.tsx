@@ -5,7 +5,7 @@ import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
 import { emailCopyGoal, type MetrikaGoal } from '@/shared/analytics/metrika'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
-import { PHONE_CITY, PHONE_MOBILE, tel } from '@/shared/lib/phones'
+import { PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE, tel } from '@/shared/lib/phones'
 import { Layout } from '@/widgets/Layout'
 import { useState } from 'react'
 import {
@@ -21,6 +21,15 @@ const PARTNER_CARD_URL = '/data/Карта партнера ИНВИА1.pdf'
 const PARTNER_CARD_FILENAME = 'Карта партнера ИНВИА1.pdf'
 
 const CONTACTS = [
+  {
+    id: 'phone-free',
+    icon: FiPhone,
+    title: 'Бесплатный телефон',
+    value: PHONE_FREE,
+    subvalue: PHONE_FREE_NOTE,
+    href: tel(PHONE_FREE),
+    copy: { value: PHONE_FREE, label: 'Скопировать номер телефона' },
+  },
   {
     id: 'phone-1',
     icon: FiPhone,
@@ -58,8 +67,6 @@ const CONTACTS = [
     icon: FiMessageCircle,
     title: 'Мессенджеры',
     value: <MessengerLinks showPhone />,
-    // Карточек пять: мессенджеры занимают две колонки, чтобы в сетке из трёх не было пустой ячейки.
-    wide: true,
   },
 ]
 

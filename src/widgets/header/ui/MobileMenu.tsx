@@ -8,7 +8,7 @@ import { MobileNavLink } from '@/widgets/header/ui/MobileNavLink'
 import { Button } from '@/shared/ui/Button'
 import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
 import { useCopy } from '@/shared/ui/use-copy'
-import { PHONE_CITY, PHONE_MOBILE, tel } from '@/shared/lib/phones'
+import { PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE, tel } from '@/shared/lib/phones'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 
 interface MobileMenuProps {
@@ -283,6 +283,7 @@ export function MobileMenu({ open, onOpenChange }: MobileMenuProps) {
 
             <div className="mt-auto border-t border-border pt-5">
               <div className="mb-3"><MessengerLinks /></div>
+              <PhoneRow phone={PHONE_FREE} href={tel(PHONE_FREE)} note={PHONE_FREE_NOTE} />
               {/* Если городского нет, на его месте пусто — того же размера. */}
               {PHONE_CITY ? (
                 <PhoneRow phone={PHONE_CITY} href={tel(PHONE_CITY)} note="Отдел продаж" />

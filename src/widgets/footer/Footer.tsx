@@ -8,7 +8,7 @@ import { FiDownload, FiPhone } from 'react-icons/fi'
 import { useCategories } from '@/entities/category/model/hooks/useCategories'
 import { Button } from '@/shared/ui/Button'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
-import { PHONE_CITY, PHONE_MOBILE } from '@/shared/lib/phones'
+import { PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE } from '@/shared/lib/phones'
 import { catalogPath } from '@/shared/seo/route-data'
 const companyLinks = [
   ['Услуги', '/services'],
@@ -22,6 +22,7 @@ export function Footer() {
   const { categories, isLoading } = useCategories()
   const [callbackOpen, setCallbackOpen] = useState(false)
   const email = useCopy('zakaz@prorelsa.ru', emailCopyGoal('Подвал'))
+  const phoneFree = useCopy(PHONE_FREE)
   const phoneMain = useCopy(PHONE_CITY)
   const phoneSales = useCopy(PHONE_MOBILE)
   return (
@@ -58,6 +59,19 @@ export function Footer() {
           <div>
             <h2 className="mb-4 text-base font-bold">Контакты</h2>
             <div className="space-y-2 text-sm">
+              <div>
+                <div className="flex items-center gap-2">
+                  <CopyValue
+                    state={phoneFree}
+                    label={COPY_PHONE}
+                    className="whitespace-nowrap text-base font-bold"
+                  >
+                    {PHONE_FREE}
+                  </CopyValue>
+                  <CopyButton state={phoneFree} compact label={COPY_PHONE} />
+                </div>
+                <p className="footer-muted text-xs">{PHONE_FREE_NOTE}</p>
+              </div>
               {/* Если городского нет, на его месте пусто — того же размера. */}
               <div className={`flex items-center gap-2 ${PHONE_CITY ? '' : 'invisible'}`} aria-hidden={!PHONE_CITY || undefined}>
                 <CopyValue
