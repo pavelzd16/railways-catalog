@@ -5,7 +5,7 @@ import { Layout } from '@/widgets/Layout'
 import { ContactMeModal } from '@/widgets/header/ui/ContactMeModal'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
 import { useArticle } from '@/entities/article/model/useArticle'
-import { splitArticleBody } from '@/entities/article/lib/article-body'
+import { splitArticleBody, type ArticleBlock } from '@/entities/article/lib/article-body'
 import { ArticleCard } from '@/entities/article/ui/ArticleCard'
 import { ArticleProductCard } from '@/entities/article/ui/ArticleProductCard'
 import type { ArticleFull, ArticleProduct } from '@/entities/article/model/types'
@@ -30,7 +30,7 @@ const GRID = 'lg:grid lg:grid-cols-[220px_minmax(0,780px)] lg:justify-center lg:
 /** Статья целиком (без шапки и подвала сайта): тёмная шапка, оглавление, текст, вопросы, призыв, ссылки. */
 export function ArticleView({ article }: { article: ArticleFull }) {
   const [contactOpen, setContactOpen] = useState(false)
-  const { blocks, toc, faq } = useMemo(() => splitArticleBody(article.body), [article.body])
+  const { blocks, toc, faq, faqAfter } = useMemo(() => splitArticleBody(article.body), [article.body])
   const productsBySku = useMemo(() => new Map(article.products.map((product) => [product.sku, product])), [article.products])
   const servicesBySlug = useMemo(() => new Map(article.services.map((service) => [service.slug, service])), [article.services])
   // «Разделы каталога» — разные раздел/подраздел товаров статьи
@@ -45,6 +45,44 @@ export function ArticleView({ article }: { article: ArticleFull }) {
   const date = publishedDate(article.publishedAt)
   const hasFaqHeading = toc.some((item) => item.title.toLowerCase() === 'частые вопросы')
   const openContact = () => setContactOpen(true)
+
+  // Один блок текста: кусок HTML, карточки товаров по меткам или ссылка на услугу
+  const renderBlock = (block: ArticleBlock, index: number) => {
+    if (block.type === 'html') {
+      // HTML статьи чистит API при сохранении (скрипты, обработчики, javascript:)
+      return <div key={index} className="stati-html" dangerouslySetInnerHTML={{ __html: block.html }} />
+    }
+    if (block.type === 'cards') {
+      const products = block.skus
+        .map((sku) => productsBySku.get(sku))
+        .filter((product): product is ArticleProduct => !!product)
+      if (!products.length) return null
+      return (
+        <div key={index} className="my-6 grid gap-4 sm:grid-cols-2">
+          {products.map((product) => (
+            <ArticleProductCard key={product.sku} product={product} specs={block.specs} />
+          ))}
+        </div>
+      )
+    }
+    const service = servicesBySlug.get(block.slug)
+    if (!service) return null
+    return (
+      <Link
+        key={index}
+        to={`/services/${encodeURIComponent(service.slug)}`}
+        className="my-6 flex items-center gap-4 rounded-[10px] border border-border bg-muted p-4 text-sm transition-colors hover:border-[hsl(var(--primary))]"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-bold text-foreground">Услуга: {service.title}</span>
+          {service.description && (
+            <span className="mt-1 block text-[13px] leading-relaxed text-muted-foreground">{service.description}</span>
+          )}
+        </span>
+        <FiArrowRight className="h-5 w-5 shrink-0 text-[hsl(var(--primary))]" aria-hidden="true" />
+      </Link>
+    )
+  }
 
   return (
     <>
@@ -112,42 +150,7 @@ export function ArticleView({ article }: { article: ArticleFull }) {
 
             <div className="min-w-0">
               <div className="stati-body">
-                {blocks.map((block, index) => {
-                  if (block.type === 'html') {
-                    // HTML статьи чистит API при сохранении (скрипты, обработчики, javascript:)
-                    return <div key={index} className="stati-html" dangerouslySetInnerHTML={{ __html: block.html }} />
-                  }
-                  if (block.type === 'cards') {
-                    const products = block.skus
-                      .map((sku) => productsBySku.get(sku))
-                      .filter((product): product is ArticleProduct => !!product)
-                    if (!products.length) return null
-                    return (
-                      <div key={index} className="my-6 grid gap-4 sm:grid-cols-2">
-                        {products.map((product) => (
-                          <ArticleProductCard key={product.sku} product={product} specs={block.specs} />
-                        ))}
-                      </div>
-                    )
-                  }
-                  const service = servicesBySlug.get(block.slug)
-                  if (!service) return null
-                  return (
-                    <Link
-                      key={index}
-                      to={`/services/${encodeURIComponent(service.slug)}`}
-                      className="my-6 flex items-center gap-4 rounded-[10px] border border-border bg-muted p-4 text-sm transition-colors hover:border-[hsl(var(--primary))]"
-                    >
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-bold text-foreground">Услуга: {service.title}</span>
-                        {service.description && (
-                          <span className="mt-1 block text-[13px] leading-relaxed text-muted-foreground">{service.description}</span>
-                        )}
-                      </span>
-                      <FiArrowRight className="h-5 w-5 shrink-0 text-[hsl(var(--primary))]" aria-hidden="true" />
-                    </Link>
-                  )
-                })}
+                {blocks.slice(0, faqAfter).map((block, index) => renderBlock(block, index))}
               </div>
 
               {faq.length > 0 && (
@@ -161,6 +164,13 @@ export function ArticleView({ article }: { article: ArticleFull }) {
                     }))}
                   />
                 </section>
+              )}
+
+              {/* Разделы, которые в тексте идут после частых вопросов */}
+              {faqAfter < blocks.length && (
+                <div className="stati-body-rest">
+                  {blocks.slice(faqAfter).map((block, index) => renderBlock(block, faqAfter + index))}
+                </div>
               )}
 
               <section className="mt-10 flex flex-col gap-4 rounded-[10px] bg-[#151D25] p-6 text-white sm:flex-row sm:items-center">

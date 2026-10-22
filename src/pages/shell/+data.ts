@@ -2,7 +2,7 @@ import type { PageContextServer } from 'vike/types'
 import { redirect, render } from 'vike/abort'
 import { apiOrigins, siteUrl } from '@/renderer/server-config'
 import { fetchFromApi } from '@/renderer/api-fetch'
-import { articlesPage, catalogSelection, detailRoute, isKnownPath, isUnknownCatalogSelection, legacyCatalogRedirect, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
+import { articlesPage, articleSlugRedirect, catalogSelection, detailRoute, isKnownPath, isUnknownCatalogSelection, legacyCatalogRedirect, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
 import { movedProductSlug } from '@/shared/seo/product-slug-moves'
 import { catalogQuery, productQueryString } from '@/shared/lib/catalog-query'
 
@@ -14,6 +14,8 @@ export async function data(pageContext: PageContextServer): Promise<PageData> {
   if (legacy) throw redirect(legacy, 301)
   const catalog = catalogSelection(pathname)
   const route = detailRoute(pathname)
+  const articleRedirect = articleSlugRedirect(route)
+  if (articleRedirect) throw redirect(articleRedirect + url.search, 301)
   const result: PageData = { url: pathname + url.search, siteUrl, status: isKnownPath(pathname) ? 200 : 404, ssr: rendersOnServer(pathname) }
   const categories = (route && route.kind !== 'article') || catalog
     ? fetchFromApi(apiOrigins, '/api/product-category?limit=100', 8000).then(async (response) => response.ok ? (await response.json()).items : undefined).catch(() => undefined)

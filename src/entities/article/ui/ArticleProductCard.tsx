@@ -68,7 +68,7 @@ export function ArticleProductCard({ product, specs }: { product: ArticleProduct
           </span>
           <span className="font-bold text-foreground">
             {product.price ? `${formatPrice(product.price)} ₽` : 'Цена по запросу'}
-            {product.price && unit ? <span className="text-[13px] font-normal text-muted-foreground"> {unit}</span> : null}
+            {!!product.price && !!unit ? <span className="text-[13px] font-normal text-muted-foreground"> {unit}</span> : null}
           </span>
         </div>
         <div className="mt-3">

@@ -11,7 +11,8 @@
 
 /* Текст статьи. Правила оформления — только для HTML из базы (.stati-html), чтобы не задевать
    карточки товаров и услуг между кусками текста. */
-.stati-body {
+.stati-body,
+.stati-body-rest {
   color: #3a4550;
   font-size: 1rem;
   line-height: 1.75;
@@ -88,7 +89,17 @@
   font-size: 0.875rem;
   line-height: 1.5;
 }
+/* Таблица без обёртки .tbl (вставлена в админке) прокручивается сама, внутри колонки текста:
+   иначе на телефоне широкая таблица раздвигает всю страницу */
+.stati-html table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
 .stati-html .tbl table {
+  display: table;
+  max-width: none;
+  overflow: visible;
   min-width: 36rem;
 }
 .stati-html th {
@@ -142,7 +153,8 @@
 }
 
 @media (max-width: 599px) {
-  .stati-body {
+  .stati-body,
+  .stati-body-rest {
     font-size: 0.9375rem;
   }
   .stati-body > .stati-html:first-child > p:first-child {

@@ -56,13 +56,18 @@ function parseFaqPairs(inner: string, faq: ArticleFaq[]): void {
   }
 }
 
+// Место вопросов в тексте: вырезанный раздел заменяется этой меткой, по ней блоки делятся на «до» и «после».
+// Символ метки U+E000 (частная область Юникода) splitArticleBody заранее убирает из тела — с текстом её не спутать.
+const FAQ_SLOT = '\uE000faq\uE000'
+
 function extractFaq(html: string): { html: string; faq: ArticleFaq[] } {
   const faq: ArticleFaq[] = []
   let found = false
   const rest = html.replace(/<div\s+class="faq"\s*>([\s\S]*?)<\/div>/gi, (_m, inner: string) => {
-    found = true
     parseFaqPairs(inner, faq)
-    return ''
+    if (found) return ''
+    found = true
+    return FAQ_SLOT
   })
   if (found) return { html: rest, faq }
 
@@ -75,7 +80,7 @@ function extractFaq(html: string): { html: string; faq: ArticleFaq[] } {
     const next = rest.slice(start).search(/<h2[\s>]/i)
     const end = next === -1 ? rest.length : start + next
     parseFaqPairs(rest.slice(start, end), faq)
-    return { html: rest.slice(0, start) + rest.slice(end), faq }
+    return { html: rest.slice(0, start) + FAQ_SLOT + rest.slice(end), faq }
   }
   return { html: rest, faq }
 }
@@ -109,9 +114,11 @@ export function splitArticleBody(body: string): {
   blocks: ArticleBlock[]
   toc: ArticleToc[]
   faq: ArticleFaq[]
+  /** Сколько блоков рисуется до частых вопросов: вопросы встают на своё место в тексте, а не всегда в конец. */
+  faqAfter: number
 } {
   // H1 рисует шапка статьи; в теле он может быть, а может и не быть
-  let html = (body ?? '').replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/i, '')
+  let html = (body ?? '').replace(/\uE000/g, '').replace(/^\s*<h1[^>]*>[\s\S]*?<\/h1>/i, '')
   html = html.replace(/(?:<p>\s*)?\[\[TOC\]\](?:\s*<\/p>)?/g, '')
 
   const faqPart = extractFaq(html)
@@ -124,13 +131,16 @@ export function splitArticleBody(body: string): {
     if (clean) blocks.push({ type: 'html', html: clean })
   }
 
-  const marker = /(?:<p>\s*)?\[\[(CARD|SERVICE)\s+([^\]]*?)\s*\]\](?:\s*<\/p>)?/g
+  const marker = /(?:<p>\s*)?\[\[(CARD|SERVICE)\s+([^\]]*?)\s*\]\](?:\s*<\/p>)?|\uE000faq\uE000/g
   let last = 0
+  let faqAfter: number | null = null
   let m: RegExpExecArray | null
   while ((m = marker.exec(heads.html))) {
     pushHtml(heads.html.slice(last, m.index))
     last = m.index + m[0].length
-    if (m[1] === 'SERVICE') {
+    if (m[0] === FAQ_SLOT) {
+      faqAfter = blocks.length
+    } else if (m[1] === 'SERVICE') {
       blocks.push({ type: 'service', slug: m[2].trim() })
     } else {
       // {Подпись|Подпись} после артикула — показываемые характеристики
@@ -147,5 +157,10 @@ export function splitArticleBody(body: string): {
   }
   pushHtml(heads.html.slice(last))
 
-  return { blocks, toc: heads.toc, faq: faqPart.faq }
+  return {
+    blocks,
+    toc: heads.toc,
+    faq: faqPart.faq,
+    faqAfter: faqPart.faq.length > 0 && faqAfter !== null ? faqAfter : blocks.length,
+  }
 }

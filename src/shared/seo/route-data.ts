@@ -28,6 +28,16 @@ export function detailRoute(pathname: string): DetailRoute | null {
   try { return { kind: product ? 'product' : service ? 'service' : 'article', slug: decodeURIComponent(match[1]) } } catch { return null }
 }
 
+/**
+ * Адрес статьи в другом регистре (/stati/Relsy-R65): slug в базе только [a-z0-9-], поэтому API ответил бы 404.
+ * Возвращает канонический адрес для 301 до запроса к API; null — адрес уже в нижнем регистре или это не статья.
+ */
+export function articleSlugRedirect(route: DetailRoute | null): string | null {
+  if (route?.kind !== 'article') return null
+  const slug = route.slug.toLowerCase()
+  return slug === route.slug ? null : `/stati/${encodeURIComponent(slug)}`
+}
+
 export function productPath(product: { categorySlug: string; subcategorySlug?: string; slug: string }): string {
   return '/catalog/' + [product.categorySlug, ...(product.subcategorySlug ? [product.subcategorySlug] : []), 'product', product.slug].map(encodeURIComponent).join('/')
 }

@@ -8,6 +8,7 @@ function imageForm(image: File): FormData {
   return form
 }
 
+// Создание, правка и обложка возвращают элемент списка (без текста), а не статью целиком.
 export const articleApi = {
   /** Публичный список: только опубликованные. */
   async getAll(params?: PaginationParams): Promise<PaginatedResponse<ArticleListItem>> {
@@ -31,13 +32,13 @@ export const articleApi = {
     return data
   },
 
-  async create(dto: CreateArticleDto): Promise<ArticleFull> {
-    const { data } = await baseApi.post<ArticleFull>('/article', dto)
+  async create(dto: CreateArticleDto): Promise<ArticleListItem> {
+    const { data } = await baseApi.post<ArticleListItem>('/article', dto)
     return data
   },
 
-  async update(id: string, dto: UpdateArticleDto): Promise<ArticleFull> {
-    const { data } = await baseApi.put<ArticleFull>(`/article/${id}`, dto)
+  async update(id: string, dto: UpdateArticleDto): Promise<ArticleListItem> {
+    const { data } = await baseApi.put<ArticleListItem>(`/article/${id}`, dto)
     return data
   },
 
@@ -46,8 +47,8 @@ export const articleApi = {
   },
 
   /** Обложка статьи. */
-  async uploadCover(id: string, image: File): Promise<ArticleFull> {
-    const { data } = await baseApi.put<ArticleFull>(`/article/${id}/image`, imageForm(image), {
+  async uploadCover(id: string, image: File): Promise<ArticleListItem> {
+    const { data } = await baseApi.put<ArticleListItem>(`/article/${id}/image`, imageForm(image), {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     return data
