@@ -16,6 +16,8 @@ import { AdminPage } from './pages/admin'
 import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
 import { CalculatorPage } from './pages/calculator/CalculatorPage'
+import { ArticlesPage } from './pages/stati/ArticlesPage'
+import { ArticlePage } from './pages/stati/ArticlePage'
 import { CookieConsentBanner } from './widgets/cookie-consent/CookieConsentBanner'
 import { usePageData } from './shared/seo/page-context'
 import { legacyCatalogRedirect } from './shared/seo/route-data'
@@ -63,7 +65,9 @@ export function App() {
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
         <Route path="/calculator" element={<CalculatorPage />} />
-        <Route path="/cart" element={<CartPage />} />
+        <Route path="/stati" element={<ArticlesPage />} />
+        <Route path="/stati/:slug" element={<ArticlePage />} />
+        <Route path="/cart"element={<CartPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
 
         <Route path="/admin/login" element={<AdminLoginPage />} />

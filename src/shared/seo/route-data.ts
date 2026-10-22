@@ -1,10 +1,11 @@
 import type { Category } from '@/entities/category/model/types'
 import type { ProductDetailed } from '@/entities/product/api/product.api'
 import type { Service } from '@/entities/service/model/types'
+import type { ArticleFull, ArticleListItem } from '@/entities/article/model/types'
 import type { Product } from '@/entities/product/model/types'
 import type { PaginatedResponse } from '@/shared/api'
 
-export type DetailRoute = { kind: 'product' | 'service'; slug: string }
+export type DetailRoute = { kind: 'product' | 'service' | 'article'; slug: string }
 export type PageData = {
   url: string
   siteUrl: string
@@ -14,14 +15,17 @@ export type PageData = {
   catalog?: { key: string; response: PaginatedResponse<Product> }
   product?: ProductDetailed
   service?: Service
+  article?: ArticleFull
+  articles?: PaginatedResponse<ArticleListItem>
 }
 
 export function detailRoute(pathname: string): DetailRoute | null {
   const product = pathname.match(/^\/catalog\/[^/]+\/(?:[^/]+\/)?product\/([^/]+)\/?$/)
   const service = pathname.match(/^\/services\/([^/]+)\/?$/)
-  const match = product || service
+  const article = pathname.match(/^\/stati\/([^/]+)\/?$/)
+  const match = product || service || article
   if (!match) return null
-  try { return { kind: product ? 'product' : 'service', slug: decodeURIComponent(match[1]) } } catch { return null }
+  try { return { kind: product ? 'product' : service ? 'service' : 'article', slug: decodeURIComponent(match[1]) } } catch { return null }
 }
 
 export function productPath(product: { categorySlug: string; subcategorySlug?: string; slug: string }): string {
@@ -75,6 +79,13 @@ export function isUnknownCatalogSelection({ categorySlug, subcategorySlug }: Cat
   return !!subcategorySlug && !category?.subcategories?.some((item) => item.slug === subcategorySlug)
 }
 
+/** Номер страницы списка статей из ?page=: целое от 1, всё остальное (мусор, 0, минус, дробь) — первая страница. */
+export function articlesPage(searchParams: URLSearchParams): number {
+  const raw = searchParams.get('page') ?? ''
+  const page = /^\d+$/.test(raw) ? Number(raw) : 1
+  return Number.isSafeInteger(page) && page >= 1 ? page : 1
+}
+
 export function isKnownPath(pathname: string): boolean {
-  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
+  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/stati', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
 }
