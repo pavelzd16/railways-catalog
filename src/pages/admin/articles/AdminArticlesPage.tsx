@@ -23,8 +23,7 @@ export function AdminArticlesPage() {
   const openPreview = (id: string) => navigate(`/admin/articles/preview/${id}`)
   const formProps = { onLoad: getArticle, onCreate: createArticle, onUpdate: updateArticle, onPreview: openPreview }
 
-  // Если сервер не прислал признак, судим по дате публикации
-  const published = (article: ArticleListItem) => ((article.published ?? !!article.publishedAt) ? 'Да' : 'Нет')
+  const published = (article: ArticleListItem) => (article.published ? 'Да' : 'Нет')
 
   const actions = (article: ArticleListItem) => (
     <div className="flex gap-1">

@@ -7,8 +7,7 @@ export interface ArticleListItem {
   h1: string
   category: string
   image?: string | null
-  /** Признак публикации приходит в списке админки (в публичном списке все статьи опубликованы). */
-  published?: boolean
+  published: boolean
   publishedAt?: string | null
   updatedAt: string
   /** Время чтения считает сервер; сайт его не пересчитывает. */

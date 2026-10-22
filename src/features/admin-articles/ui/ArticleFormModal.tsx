@@ -12,6 +12,7 @@ import { slugify, sanitizeSlug, getImageUrl } from '@/shared/lib'
 import { articleApi } from '@/entities/article/api/article.api'
 import type { ArticleFull, ArticleListItem, CreateArticleDto, UpdateArticleDto } from '@/entities/article/model/types'
 import { ARTICLE_CATEGORIES, ARTICLE_DESCRIPTION_HINT, articleSaveError, slugError } from '../model/constants'
+import { CoverUploadError } from '../model/useAdminArticles'
 
 interface ArticleFormModalProps {
   open: boolean
@@ -24,6 +25,12 @@ interface ArticleFormModalProps {
   /** Открыть предпросмотр сохранённой статьи. */
   onPreview: (id: string) => void
 }
+
+const CLOSE_CONFIRM = 'Закрыть без сохранения? Изменения пропадут.'
+
+// Снимок полей формы: по нему узнаём, есть ли несохранённые правки
+const snapshot = (fields: unknown[], cover: File | null) => JSON.stringify([...fields, cover ? `${cover.name}:${cover.size}` : null])
+const EMPTY_SNAPSHOT = snapshot(['', '', '', '', ARTICLE_CATEGORIES[0], '', false], null)
 
 const CATEGORY_OPTIONS = ARTICLE_CATEGORIES.map((category) => ({ value: category, label: category }))
 
@@ -44,6 +51,11 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
   const [error, setError] = useState<string | null>(null)
   const bodyBox = useRef<HTMLDivElement>(null)
   const imageInput = useRef<HTMLInputElement>(null)
+  // Статья, уже сохранённая из этой формы (создана, но обложка не загрузилась): дальше правим её, а не создаём заново
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [baseline, setBaseline] = useState(EMPTY_SNAPSHOT)
+  const editId = article?.id ?? savedId
+  const isDirty = snapshot([slug, title, description, h1, category, body, published], cover) !== baseline
 
   const resetForm = () => {
     setSlug('')
@@ -57,6 +69,8 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
     setCover(null)
     setCoverUrl(undefined)
     setError(null)
+    setSavedId(null)
+    setBaseline(EMPTY_SNAPSHOT)
   }
 
   useEffect(() => {
@@ -77,6 +91,7 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
         setBody(full.body)
         setPublished(full.published)
         setCoverUrl(full.image ? getImageUrl(full.image) : undefined)
+        setBaseline(snapshot([full.slug, full.title, full.description, full.h1, full.category, full.body, full.published], null))
       })
       .catch(() => {
         if (!cancelled) setError('Не удалось загрузить статью')
@@ -131,9 +146,20 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
       published,
     }
     try {
-      return article ? await onUpdate(article.id, dto, cover) : await onCreate(dto, cover)
+      return editId ? await onUpdate(editId, dto, cover) : await onCreate(dto, cover)
     } catch (err) {
-      setError(articleSaveError(err, article ? 'Не удалось сохранить статью' : 'Не удалось создать статью'))
+      if (err instanceof CoverUploadError) {
+        // Текст уже сохранён — переходим к правке этой статьи, чтобы повтор не упёрся в «адрес занят»
+        setSavedId(err.saved.id)
+        setBaseline(snapshot([slug, title, description, h1, category, body, published], null))
+        setError(
+          editId
+            ? 'Изменения сохранены, но обложку загрузить не удалось — попробуйте ещё раз'
+            : 'Статья создана, но обложку загрузить не удалось — попробуйте ещё раз',
+        )
+        return null
+      }
+      setError(articleSaveError(err, editId ? 'Не удалось сохранить статью' : 'Не удалось создать статью'))
       return null
     } finally {
       setIsSubmitting(false)
@@ -162,15 +188,20 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
+    // Позицию курсора запоминаем до загрузки; на время загрузки текст закрыт для правки (disabled), чтобы позиция не уехала
+    const textarea = bodyBox.current?.querySelector('textarea')
+    const start = textarea?.selectionStart ?? body.length
+    const end = textarea?.selectionEnd ?? body.length
     setIsUploading(true)
     try {
       const { path } = await articleApi.uploadImage(file)
       const figure = `<figure><img src="${path}" alt=""><figcaption></figcaption></figure>`
-      const textarea = bodyBox.current?.querySelector('textarea')
-      const start = textarea?.selectionStart ?? body.length
-      const end = textarea?.selectionEnd ?? body.length
-      const insert = `${start > 0 && body[start - 1] !== '\n' ? '\n' : ''}${figure}\n`
-      setBody(body.slice(0, start) + insert + body.slice(end))
+      setBody((prev) => {
+        const from = Math.min(start, prev.length)
+        const to = Math.min(end, prev.length)
+        const insert = `${from > 0 && prev[from - 1] !== '\n' ? '\n' : ''}${figure}\n`
+        return prev.slice(0, from) + insert + prev.slice(to)
+      })
       toast.success('Картинка вставлена в текст — впишите описание в alt и figcaption')
     } catch {
       toast.error('Не удалось загрузить картинку')
@@ -179,7 +210,9 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
     }
   }
 
+  // Esc, фон и «Отмена»: при несохранённых правках спрашиваем
   const handleClose = () => {
+    if (isDirty && !window.confirm(CLOSE_CONFIRM)) return
     resetForm()
     onOpenChange(false)
   }
@@ -192,7 +225,7 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
       open={open}
       onOpenChange={handleClose}
       className="max-w-3xl"
-      title={article ? 'Редактировать статью' : 'Добавить статью'}
+      title={editId ? 'Редактировать статью' : 'Добавить статью'}
       description="Заполните поля статьи. Опубликованные статьи видны на сайте в разделе «Статьи»."
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -251,7 +284,7 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
               rows={20}
               spellCheck={false}
               className="min-h-[28rem] font-mono text-[13px] leading-relaxed"
-              disabled={busy}
+              disabled={busy || isUploading}
             />
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -272,11 +305,14 @@ export function ArticleFormModal({ open, onOpenChange, article, onLoad, onCreate
           <Button type="button" variant="ghost" onClick={handleClose} disabled={isSubmitting}>
             Отмена
           </Button>
-          <Button type="button" variant="outline" onClick={handlePreview} disabled={busy}>
-            Посмотреть, как будет
-          </Button>
+          <div className="flex flex-col items-end">
+            <Button type="button" variant="outline" onClick={handlePreview} disabled={busy}>
+              Посмотреть, как будет
+            </Button>
+            <span className="mt-1 text-xs text-muted-foreground">Статья сохранится и откроется предпросмотр</span>
+          </div>
           <Button type="submit" disabled={busy}>
-            {isSubmitting ? 'Сохранение...' : article ? 'Сохранить' : 'Создать'}
+            {isSubmitting ? 'Сохранение...' : editId ? 'Сохранить' : 'Создать'}
           </Button>
         </div>
       </form>

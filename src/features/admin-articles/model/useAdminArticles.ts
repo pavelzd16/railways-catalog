@@ -5,6 +5,26 @@ import type { PaginationMeta } from '@/shared/api'
 
 export const ADMIN_ARTICLES_PER_PAGE = 20
 
+/** Статья сохранена, а обложка не загрузилась: форма переходит к правке уже сохранённой статьи. */
+export class CoverUploadError extends Error {
+  saved: ArticleListItem
+  constructor(saved: ArticleListItem) {
+    super('Не удалось загрузить обложку')
+    this.saved = saved
+  }
+}
+
+// Сохраняет статью, затем обложку; сбой обложки не теряет уже сохранённую статью
+async function saveWithCover(save: () => Promise<ArticleListItem>, id: (saved: ArticleListItem) => string, cover: File | null) {
+  const saved = await save()
+  if (!cover) return saved
+  try {
+    return await articleApi.uploadCover(id(saved), cover)
+  } catch {
+    throw new CoverUploadError(saved)
+  }
+}
+
 interface UseAdminArticlesReturn {
   articles: ArticleListItem[]
   pagination: PaginationMeta
@@ -56,23 +76,19 @@ export function useAdminArticles(): UseAdminArticlesReturn {
   }, [loadArticles])
 
   const createArticle = useCallback(async (dto: CreateArticleDto, cover: File | null) => {
-    let saved: ArticleListItem = await articleApi.create(dto)
     try {
-      if (cover) saved = await articleApi.uploadCover(saved.id, cover)
+      return await saveWithCover(() => articleApi.create(dto), (saved) => saved.id, cover)
     } finally {
       await loadArticles(pageRef.current)
     }
-    return saved
   }, [loadArticles])
 
   const updateArticle = useCallback(async (id: string, dto: UpdateArticleDto, cover: File | null) => {
-    let saved: ArticleListItem = await articleApi.update(id, dto)
     try {
-      if (cover) saved = await articleApi.uploadCover(id, cover)
+      return await saveWithCover(() => articleApi.update(id, dto), () => id, cover)
     } finally {
       await loadArticles(pageRef.current)
     }
-    return saved
   }, [loadArticles])
 
   const deleteArticle = useCallback(async (id: string) => {
