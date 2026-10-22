@@ -272,7 +272,7 @@ test('articles list: title, canonical and noindex follow the catalog pagination 
   assert.match(missing.robots, /noindex/)
 })
 
-test('article metadata: title with brand, Article/BreadcrumbList/FAQPage markup, no FAQPage without questions', () => {
+test('article metadata: title with brand, Article/FAQPage markup without BreadcrumbList, no FAQPage without questions', () => {
   const base = { id: 1, slug: 'relsy-r65', title: 'Рельсы Р65 и Р50: как выбрать', description: 'Что учесть при выборе рельсов.', h1: 'Как выбрать рельсы', category: 'Рельсы', image: '/uploads/a.webp', publishedAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-05T00:00:00.000Z', readingMinutes: 5, published: true, products: [], services: [], related: [] }
   const faqBody = '<h2>Частые вопросы</h2><h3>Чем Р65 отличается от Р50?</h3><p>Массой метра.</p>'
   const siteUrl = 'https://catalog.example'
@@ -283,11 +283,11 @@ test('article metadata: title with brand, Article/BreadcrumbList/FAQPage markup,
   assert.equal(meta.image, `${siteUrl}/uploads/a.webp`)
   assert.match(meta.robots, /^index/)
   const types = meta.jsonLd.map((item) => item['@type'])
-  assert.deepEqual(types, ['Article', 'BreadcrumbList', 'FAQPage'])
+  assert.deepEqual(types, ['Article', 'FAQPage'])
+  assert.ok(!types.includes('BreadcrumbList'))
   assert.equal(meta.jsonLd[0].headline, 'Как выбрать рельсы')
   assert.equal(meta.jsonLd[0].datePublished, base.publishedAt)
   assert.equal(meta.jsonLd[0].dateModified, base.updatedAt)
-  assert.deepEqual(meta.jsonLd[1].itemListElement.map((item) => item.name), ['Главная', 'Статьи', 'Как выбрать рельсы'])
   const branded = getMetadata('/stati/relsy-r65', { url: '/stati/relsy-r65', siteUrl, status: 200, ssr: true, article: { ...base, title: 'Рельсы | ПроРельс', body: '<p>Текст</p>' } })
   assert.equal(branded.title, 'Рельсы | ПроРельс')
   assert.ok(!branded.jsonLd.some((item) => item['@type'] === 'FAQPage'))

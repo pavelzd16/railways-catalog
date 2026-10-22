@@ -9,6 +9,7 @@ export type Metadata = { title: string; description: string; socialDescription: 
 // Title и description страниц, услуг, каталога и товаров — из таблицы мета-тегов (meta-traer.ts, meta-tovary.ts).
 // Ниже — запасные шаблоны в том же стиле: для корзины и для того, что появится на сайте позже таблицы.
 const pages: Record<string, MetaPair> = {
+  '/stati': ['Статьи о материалах ВСП: рельсы, шпалы, стрелочные переводы | ПроРельс', 'Полезные материалы о верхнем строении пути: как выбрать рельсы, шпалы, скрепления и стрелочные переводы, что проверить и что указать в заявке.'],
   '/cart': ['Корзина — заявка на материалы | ПроРельс', 'Выбранные материалы и количество для заявки в ПроРельс. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
 const notFound: MetaPair = ['Страница не найдена | ПроРельс', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ПроРельс.']
@@ -104,13 +105,12 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     canonicalPath = `/stati/${encodeURIComponent(article.slug)}`
     if (article.image) image = new URL(article.image, data.siteUrl).href
     const articleUrl = data.siteUrl + canonicalPath
-    // Крошки здесь — в JSON-LD; на самой странице Breadcrumbs размечает их ещё и microdata.
     jsonLd.push({
       '@context': 'https://schema.org', '@type': 'Article', headline: plainText(article.h1), description, url: articleUrl, mainEntityOfPage: articleUrl,
       datePublished: article.publishedAt, dateModified: article.updatedAt, author: company, publisher: company,
       ...(article.image ? { image: [image] } : {}),
     })
-    jsonLd.push({ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [['Главная', data.siteUrl + '/'], ['Статьи', data.siteUrl + '/stati'], [plainText(article.h1), articleUrl]].map(([name, item], index) => ({ '@type': 'ListItem', position: index + 1, name, item })) })
+    // Хлебные крошки размечены microdata в Breadcrumbs — в JSON-LD их не дублируем.
     const faq = splitArticleBody(article.body).faq
     if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
   } else if (route) {
