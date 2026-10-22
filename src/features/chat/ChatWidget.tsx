@@ -11,6 +11,17 @@ import './chat.css'
 
 const SESSION_KEY = 'prorels-chat-session-v1'
 const QUICK_REPLIES = ['Купить рельсы', 'Купить ж/д крепёж', 'Получить КП']
+/** Окно само открывается один раз на браузер, через 12 с после входа на сайт. */
+const AUTO_OPEN_KEY = 'prorels-chat-auto-opened'
+const AUTO_OPEN_DELAY = 12000
+
+function markAutoOpened() {
+  try {
+    localStorage.setItem(AUTO_OPEN_KEY, '1')
+  } catch {
+    /* No storage. */
+  }
+}
 
 /** 10 цифр номера после +7: «8 917…», «+7 917…» и «917…» дают одно и то же. */
 function phoneDigits(value: string) {
@@ -59,6 +70,7 @@ export default function ChatWidget() {
   const opener = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLElement>(null)
   const phoneInput = useRef<HTMLInputElement>(null)
+  const autoOpened = useRef(false)
   const online = managersOnline()
   const {
     socket,
@@ -76,8 +88,32 @@ export default function ChatWidget() {
     }
   }, [socket, open])
   useEffect(() => {
+    if (session) return
+    try {
+      // Без хранилища не открываем: иначе окно выскакивало бы на каждом заходе.
+      if (localStorage.getItem(AUTO_OPEN_KEY)) return
+    } catch {
+      return
+    }
+    const timer = window.setTimeout(() => {
+      try {
+        // Посетитель уже открывал чат сам — повторно не навязываем.
+        if (localStorage.getItem(AUTO_OPEN_KEY)) return
+      } catch {
+        return
+      }
+      markAutoOpened()
+      autoOpened.current = true
+      setOpen(true)
+    }, AUTO_OPEN_DELAY)
+    return () => window.clearTimeout(timer)
+  }, [session])
+  useEffect(() => {
     if (!open) return
-    panel.current?.focus()
+    markAutoOpened()
+    // Само открывшееся окно не забирает фокус у поля, где посетитель печатает.
+    if (!autoOpened.current) panel.current?.focus()
+    autoOpened.current = false
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false)
