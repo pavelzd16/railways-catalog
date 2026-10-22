@@ -16,10 +16,16 @@
   gap: 10px;
   padding: 15px 20px;
   border-radius: 8px;
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
   box-shadow: 0 6px 24px #1c1f2226;
   font-weight: 700;
+  transition: background-color 0.15s;
+}
+.chat-launcher:hover,
+.chat-primary:not(:disabled):hover,
+.chat-send:not(:disabled):hover {
+  background: #e85e14;
 }
 .chat-launcher svg {
   width: 21px;
@@ -47,8 +53,8 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 .chat-eyebrow {
   display: block;
@@ -70,14 +76,15 @@
   margin: 0;
   font-size: 11px;
   line-height: 1.5;
-  color: #ffffffd9;
+  color: hsl(var(--accent-foreground));
 }
 .chat-panel-header .chat-dot {
   flex-shrink: 0;
-  background: #ffffff80;
+  background: #1c1f2266;
 }
 .chat-panel-header .chat-dot.connected {
-  background: #4ade80;
+  background: hsl(var(--success));
+  box-shadow: 0 0 0 2px #ffffffb3;
 }
 .chat-icon-button {
   display: grid;
@@ -88,7 +95,7 @@
   border-radius: 4px;
 }
 .chat-icon-button:hover {
-  background: #ffffff1f;
+  background: #1c1f221a;
 }
 .chat-start {
   padding: 24px;
@@ -171,17 +178,17 @@
 }
 .chat-quick-reply {
   padding: 8px 14px;
-  border: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--accent));
   border-radius: 999px;
-  color: hsl(var(--primary));
+  color: hsl(var(--foreground));
   background: white;
   font-weight: 600;
   font-size: 13px;
   transition: background-color 0.15s, color 0.15s;
 }
 .chat-quick-reply:hover {
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 .chat-optional {
   color: hsl(var(--muted-foreground));
@@ -210,8 +217,9 @@
 }
 .chat-primary {
   padding: 13px 18px;
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  transition: background-color 0.15s;
   font-weight: 700;
   border-radius: 6px;
 }
@@ -311,8 +319,8 @@
   border-radius: 4px;
 }
 .chat-send {
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
   border-radius: 6px;
   width: 40px;
   height: 40px;
@@ -364,13 +372,13 @@
   height: 21px;
   padding: 0 5px;
   border-radius: 11px;
-  background: hsl(var(--primary));
-  color: white;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
   font-size: 10px;
 }
 .chat-launcher .chat-badge {
-  background: white;
-  color: hsl(var(--primary));
+  background: #1c1f22;
+  color: white;
 }
 .chat-widget :is(button, input, textarea, a):focus-visible,
 .admin-chats-page :is(button, input, textarea, a):focus-visible {
