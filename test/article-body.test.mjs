@@ -42,6 +42,21 @@ test('метки SERVICE, одиночная CARD, существующий id �
   assert.deepEqual(toc, [{ id: 'moj', title: 'Мой раздел' }])
 })
 
+test('вопросы без div.faq: раздел после h2 «Частые вопросы»', () => {
+  const { blocks, toc, faq } = splitArticleBody(
+    '<h2>Тема</h2><p>т</p><h2> частые вопросы </h2><h3>Q1?</h3><p>A1</p><h3>Q2?</h3><p>A2</p><h2>После</h2><p>п</p>'
+  )
+  assert.deepEqual(faq, [{ question: 'Q1?', answer: 'A1' }, { question: 'Q2?', answer: 'A2' }])
+  assert.equal(toc.length, 3)
+  const html = blocks.map((b) => b.html).join('')
+  assert.ok(!html.includes('<h3') && html.includes('частые вопросы') && html.includes('После'))
+})
+
+test('повтор готового id в h2 уникализируется', () => {
+  const { toc } = splitArticleBody('<h2 id="x">А</h2><h2 id="x">Б</h2>')
+  assert.deepEqual(toc.map((t) => t.id), ['x', 'x-2'])
+})
+
 test('пустое тело не падает', () => {
   assert.deepEqual(splitArticleBody(''), { blocks: [], toc: [], faq: [] })
 })
@@ -52,8 +67,9 @@ test('все 24 исходные статьи разбираются без ос
   assert.equal(files.length, 24)
   for (const f of files) {
     const body = fs.readFileSync(path.join(SRC, f), 'utf8').replace(/^[\s\S]*?\n===\r?\n/, '')
-    const { blocks, toc } = splitArticleBody(body)
+    const { blocks, toc, faq } = splitArticleBody(body)
     assert.ok(toc.length > 0, f)
+    assert.ok(faq.length > 0, f)
     for (const b of blocks.filter((x) => x.type === 'html')) {
       assert.ok(!b.html.includes('[['), f)
       assert.ok(!b.html.includes('<h1'), f)

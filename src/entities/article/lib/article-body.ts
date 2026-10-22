@@ -46,17 +46,37 @@ function plainText(html: string): string {
     .trim()
 }
 
+// Пары <h3> → <p> из куска html
+function parseFaqPairs(inner: string, faq: ArticleFaq[]): void {
+  const re = /<h3[^>]*>([\s\S]*?)<\/h3>\s*(?:<p[^>]*>([\s\S]*?)<\/p>)?/gi
+  let m: RegExpExecArray | null
+  while ((m = re.exec(inner))) {
+    const question = plainText(m[1])
+    if (question) faq.push({ question, answer: plainText(m[2] ?? '') })
+  }
+}
+
 function extractFaq(html: string): { html: string; faq: ArticleFaq[] } {
   const faq: ArticleFaq[] = []
+  let found = false
   const rest = html.replace(/<div\s+class="faq"\s*>([\s\S]*?)<\/div>/gi, (_m, inner: string) => {
-    const re = /<h3[^>]*>([\s\S]*?)<\/h3>\s*(?:<p[^>]*>([\s\S]*?)<\/p>)?/gi
-    let m: RegExpExecArray | null
-    while ((m = re.exec(inner))) {
-      const question = plainText(m[1])
-      if (question) faq.push({ question, answer: plainText(m[2] ?? '') })
-    }
+    found = true
+    parseFaqPairs(inner, faq)
     return ''
   })
+  if (found) return { html: rest, faq }
+
+  // Без div.faq: раздел после <h2>«Частые вопросы» до следующего <h2> или конца текста
+  const head = /<h2[^>]*>([\s\S]*?)<\/h2>/gi
+  let h: RegExpExecArray | null
+  while ((h = head.exec(rest))) {
+    if (plainText(h[1]).toLowerCase() !== 'частые вопросы') continue
+    const start = h.index + h[0].length
+    const next = rest.slice(start).search(/<h2[\s>]/i)
+    const end = next === -1 ? rest.length : start + next
+    parseFaqPairs(rest.slice(start, end), faq)
+    return { html: rest.slice(0, start) + rest.slice(end), faq }
+  }
   return { html: rest, faq }
 }
 
@@ -74,9 +94,9 @@ function numberHeadings(html: string): { html: string; toc: ArticleToc[] } {
     const title = plainText(inner)
     const own = /\sid\s*=\s*"([^"]*)"/i.exec(attrs)
     if (own && own[1]) {
-      used.add(own[1])
-      toc.push({ id: own[1], title })
-      return `<h2${attrs}>${inner}</h2>`
+      const id = unique(own[1])
+      toc.push({ id, title })
+      return `<h2${attrs.replace(/(\sid\s*=\s*")[^"]*"/i, `$1${id}"`)}>${inner}</h2>`
     }
     const id = unique(slugify(title))
     toc.push({ id, title })
