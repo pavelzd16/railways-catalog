@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FiMessageSquare, FiX } from 'react-icons/fi'
+import { FiArrowUp, FiMessageSquare, FiX } from 'react-icons/fi'
 import { useLocation } from 'react-router'
 import { ChatThread } from './ChatThread'
 import {
@@ -10,6 +10,30 @@ import { ChatSessionError, readChatSession, type ChatSession } from './chat-sess
 import './chat.css'
 
 const SESSION_KEY = 'prorels-chat-session-v1'
+const QUICK_REPLIES = ['Купить рельсы', 'Купить ж/д крепёж', 'Получить КП']
+
+/** 10 цифр номера после +7: «8 917…», «+7 917…» и «917…» дают одно и то же. */
+function phoneDigits(value: string) {
+  let digits = value.replace(/\D/g, '')
+  if (digits.length > 10 && /^[78]/.test(digits)) digits = digits.slice(1)
+  return digits.slice(0, 10)
+}
+function formatPhone(digits: string) {
+  const tail = [digits.slice(3, 6), digits.slice(6, 8), digits.slice(8, 10)]
+    .filter(Boolean)
+    .join('-')
+  return [digits.slice(0, 3), tail].filter(Boolean).join(' ')
+}
+/** Пн–Пт 8:00–17:00 по Москве. */
+function managersOnline() {
+  const now = new Date()
+  const moscow = new Date(
+    now.getTime() + (now.getTimezoneOffset() + 180) * 60000,
+  )
+  const day = moscow.getDay()
+  const hour = moscow.getHours()
+  return day >= 1 && day <= 5 && hour >= 8 && hour < 17
+}
 
 export default function ChatWidget() {
   const { pathname } = useLocation()
@@ -22,14 +46,20 @@ export default function ChatWidget() {
       return null
     }
   })
+  const [step, setStep] = useState<'message' | 'intro'>('message')
+  const [message, setMessage] = useState('')
+  const [firstMessage, setFirstMessage] = useState('')
   const [name, setName] = useState('')
-  const [contact, setContact] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [accepted, setAccepted] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [unread, setUnread] = useState(0)
   const opener = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLElement>(null)
+  const phoneInput = useRef<HTMLInputElement>(null)
+  const online = managersOnline()
   const {
     socket,
     error: connectionError,
@@ -68,8 +98,10 @@ export default function ChatWidget() {
         signal: AbortSignal.timeout(15000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name,
-          contact,
+          name: name.trim() || 'Без имени',
+          contact: [`+7 ${formatPhone(phone)}`, email.trim()]
+            .filter(Boolean)
+            .join(', '),
           policyAccepted: accepted,
           pageUrl: pathname,
         }),
@@ -80,6 +112,8 @@ export default function ChatWidget() {
       } catch {
         /* The current tab remains usable. */
       }
+      setFirstMessage(message.trim())
+      setMessage('')
       setSession(result)
     } catch (failure) {
       setError(
@@ -91,8 +125,16 @@ export default function ChatWidget() {
       setBusy(false)
     }
   }
+  const toIntro = (text: string) => {
+    if (!text.trim()) return
+    setMessage(text.trim())
+    setStep('intro')
+    requestAnimationFrame(() => phoneInput.current?.focus())
+  }
   const reset = () => {
     setSession(null)
+    setStep('message')
+    setFirstMessage('')
     try {
       localStorage.removeItem(SESSION_KEY)
     } catch {
@@ -114,7 +156,7 @@ export default function ChatWidget() {
         }}
       >
         <FiMessageSquare aria-hidden="true" />
-        <span>Написать нам</span>
+        <span>Поможем рассчитать стоимость!</span>
         {unread > 0 && <b className="chat-badge">{unread}</b>}
       </button>
       <section
@@ -128,9 +170,19 @@ export default function ChatWidget() {
       >
         <header className="chat-panel-header">
           <div>
-            <span className="chat-eyebrow">ПРОРЕЛЬС · ПОДБОР МАТЕРИАЛОВ</span>
-            <h2 id="prorels-chat-title">На связи с вами</h2>
-            <p>Пн–Пт, 8:00–17:00 · ответим в рабочее время</p>
+            <h2 id="prorels-chat-title">
+              {session && !expired
+                ? 'На связи с вами'
+                : step === 'intro'
+                  ? 'Представьтесь и начните чат!'
+                  : 'Напишите ваше сообщение'}
+            </h2>
+            <p>
+              <span className={online ? 'chat-dot connected' : 'chat-dot'} />
+              {online
+                ? 'Менеджеры на связи'
+                : 'Пн–Пт, 8:00–17:00 · ответим в рабочее время'}
+            </p>
           </div>
           <button
             aria-label="Свернуть чат"
@@ -150,13 +202,70 @@ export default function ChatWidget() {
               Начать новый чат
             </button>
           </div>
-        ) : session && socket ? (
-          <ChatThread
-            key={session.conversation.id}
-            socket={socket}
-            conversationId={session.conversation.id}
-            active={open}
-          />
+        ) : session ? (
+          socket ? (
+            <ChatThread
+              key={session.conversation.id}
+              socket={socket}
+              conversationId={session.conversation.id}
+              active={open}
+              firstMessage={firstMessage}
+            />
+          ) : (
+            <p className="chat-hint">Подключаем чат…</p>
+          )
+        ) : step === 'message' ? (
+          <div className="chat-thread">
+            <div className="chat-messages chat-quick">
+              {QUICK_REPLIES.map((reply) => (
+                <button
+                  key={reply}
+                  type="button"
+                  className="chat-quick-reply"
+                  onClick={() => toIntro(reply)}
+                >
+                  {reply}
+                </button>
+              ))}
+            </div>
+            <form
+              className="chat-compose"
+              onSubmit={(event) => {
+                event.preventDefault()
+                toIntro(message)
+              }}
+            >
+              <label className="sr-only" htmlFor="chat-first-message">
+                Сообщение
+              </label>
+              <textarea
+                id="chat-first-message"
+                placeholder="Введите сообщение"
+                maxLength={4000}
+                rows={2}
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === 'Enter' &&
+                    !event.shiftKey &&
+                    !event.nativeEvent.isComposing
+                  ) {
+                    event.preventDefault()
+                    toIntro(message)
+                  }
+                }}
+              />
+              <button
+                type="submit"
+                className="chat-send"
+                aria-label="Отправить сообщение"
+                disabled={!message.trim()}
+              >
+                <FiArrowUp aria-hidden="true" />
+              </button>
+            </form>
+          </div>
         ) : (
           <form
             className="chat-start"
@@ -165,30 +274,58 @@ export default function ChatWidget() {
               void start()
             }}
           >
-            <p>
-              Подскажем наличие, подберём крепёж и поможем с расчётом поставки.
-            </p>
             <label>
-              Как к вам обращаться
+              Ваше имя
               <input
                 autoComplete="name"
                 name="name"
-                required
                 maxLength={80}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Ваше имя"
+                placeholder="Как к вам обращаться"
               />
             </label>
             <label>
-              Телефон или почта{' '}
-              <span className="chat-optional">необязательно</span>
+              Ваш e-mail
               <input
+                type="email"
                 autoComplete="email"
-                maxLength={160}
-                value={contact}
-                onChange={(event) => setContact(event.target.value)}
-                placeholder="Чтобы связаться, если вы уйдёте"
+                name="email"
+                maxLength={100}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="mail@company.ru"
+              />
+            </label>
+            <label>
+              Ваш телефон <span className="chat-required">*</span>
+              <span className="chat-phone">
+                <span aria-hidden="true">+7</span>
+                <input
+                  ref={phoneInput}
+                  type="tel"
+                  autoComplete="tel-national"
+                  name="phone"
+                  required
+                  inputMode="tel"
+                  value={formatPhone(phone)}
+                  onChange={(event) =>
+                    setPhone(phoneDigits(event.target.value))
+                  }
+                  placeholder="000 000-00-00"
+                  aria-invalid={phone.length > 0 && phone.length < 10}
+                />
+              </span>
+            </label>
+            <label>
+              Ваше сообщение <span className="chat-required">*</span>
+              <textarea
+                name="message"
+                required
+                maxLength={4000}
+                rows={2}
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
               />
             </label>
             <label className="chat-consent">
@@ -199,11 +336,11 @@ export default function ChatWidget() {
                 onChange={(event) => setAccepted(event.target.checked)}
               />
               <span>
-                Согласен на{' '}
+                Я даю{' '}
                 <a href="/privacy#consent" target="_blank" rel="noreferrer">
-                  обработку персональных данных
+                  согласие
                 </a>{' '}
-                и ознакомлен с{' '}
+                на обработку персональных данных и ознакомлен с{' '}
                 <a href="/privacy" target="_blank" rel="noreferrer">
                   политикой конфиденциальности
                 </a>
@@ -218,9 +355,11 @@ export default function ChatWidget() {
             <button
               className="chat-primary"
               type="submit"
-              disabled={busy || !accepted || !name.trim()}
+              disabled={
+                busy || !accepted || phone.length < 10 || !message.trim()
+              }
             >
-              {busy ? 'Подключаем…' : 'Начать переписку'}
+              {busy ? 'Подключаем…' : 'Начать диалог'}
             </button>
           </form>
         )}

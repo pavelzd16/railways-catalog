@@ -14,11 +14,14 @@ export function ChatThread({
   conversationId,
   manager = false,
   active = true,
+  firstMessage,
 }: {
   socket: Socket
   conversationId: string
   manager?: boolean
   active?: boolean
+  /** Текст из анкеты посетителя: уходит первым сообщением в пустую переписку. */
+  firstMessage?: string
 }) {
   const ownRole = manager ? 'MANAGER' : 'VISITOR'
   const draftKey = `prorels-chat-draft:${conversationId}:${ownRole}`
@@ -39,6 +42,7 @@ export function ChatThread({
   const list = useRef<HTMLDivElement>(null)
   const latest = useRef<Message[]>([])
   const lastRead = useRef(0)
+  const firstSent = useRef(false)
 
   useEffect(() => {
     try {
@@ -167,9 +171,9 @@ export function ChatThread({
       setLoading(false)
     }
   }
-  const send = async () => {
-    if (!draft.trim() || sending || !connected) return
-    const body = draft.trim()
+  const send = async (text = draft) => {
+    const body = text.trim()
+    if (!body || sending || !connected) return
     if (pending.current?.body !== body)
       pending.current = { body, clientId: crypto.randomUUID() }
     try {
@@ -201,6 +205,16 @@ export function ChatThread({
       setSending(false)
     }
   }
+
+  useEffect(() => {
+    if (loading || !connected || firstSent.current || !firstMessage?.trim())
+      return
+    firstSent.current = true
+    if (messages.length) return
+    changeDraft(firstMessage)
+    void send(firstMessage)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, connected, firstMessage, messages.length])
 
   return (
     <div className="chat-thread">
