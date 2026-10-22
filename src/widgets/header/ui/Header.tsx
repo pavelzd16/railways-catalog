@@ -9,7 +9,6 @@ import { useCart } from '@/entities/cart/model/use-cart'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { positionsLabel } from '@/shared/lib/positions-count'
-import { PHONE_FREE, PHONE_FREE_NOTE, tel } from '@/shared/lib/phones'
 import { usePositionsCount } from '@/entities/product'
 import { HeaderContacts } from './HeaderContacts'
 
@@ -92,10 +91,7 @@ export function Header() {
               ))}
             </nav>
             <div className="hidden items-center gap-5 md:flex">
-              {/* Бесплатный номер — на месте часов работы: полоса заполнена, часы есть в списке контактов под мобильным. */}
-              <a href={tel(PHONE_FREE)} title={PHONE_FREE_NOTE} className="whitespace-nowrap font-bold text-foreground hover:text-primary">
-                {PHONE_FREE}
-              </a>
+              <span>Пн–Пт, 8:00–17:00</span>
               <MessengerLinks compact />
             </div>
           </div>
