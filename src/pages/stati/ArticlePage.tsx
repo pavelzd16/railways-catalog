@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { FiArrowRight, FiBookOpen, FiClock } from 'react-icons/fi'
+import { FiBookOpen, FiClock } from 'react-icons/fi'
 import { Layout } from '@/widgets/Layout'
 import { ContactMeModal } from '@/widgets/header/ui/ContactMeModal'
 import { NotFoundPage } from '@/pages/not-found/NotFoundPage'
 import { useArticle } from '@/entities/article/model/useArticle'
 import { splitArticleBody, type ArticleBlock } from '@/entities/article/lib/article-body'
 import { ArticleCard } from '@/entities/article/ui/ArticleCard'
-import { ArticleProductCard } from '@/entities/article/ui/ArticleProductCard'
-import type { ArticleFull, ArticleProduct } from '@/entities/article/model/types'
+import { ArticleBlockView } from '@/entities/article/ui/ArticleBlockView'
+import type { ArticleFull } from '@/entities/article/model/types'
 import { catalogPath } from '@/shared/seo/route-data'
 import { Accordion } from '@/shared/ui/Accordion'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
@@ -46,43 +46,10 @@ export function ArticleView({ article }: { article: ArticleFull }) {
   const hasFaqHeading = toc.some((item) => item.title.toLowerCase() === 'частые вопросы')
   const openContact = () => setContactOpen(true)
 
-  // Один блок текста: кусок HTML, карточки товаров по меткам или ссылка на услугу
-  const renderBlock = (block: ArticleBlock, index: number) => {
-    if (block.type === 'html') {
-      // HTML статьи чистит API при сохранении (скрипты, обработчики, javascript:)
-      return <div key={index} className="stati-html" dangerouslySetInnerHTML={{ __html: block.html }} />
-    }
-    if (block.type === 'cards') {
-      const products = block.skus
-        .map((sku) => productsBySku.get(sku))
-        .filter((product): product is ArticleProduct => !!product)
-      if (!products.length) return null
-      return (
-        <div key={index} className="my-6 grid gap-4 sm:grid-cols-2">
-          {products.map((product) => (
-            <ArticleProductCard key={product.sku} product={product} specs={block.specs} />
-          ))}
-        </div>
-      )
-    }
-    const service = servicesBySlug.get(block.slug)
-    if (!service) return null
-    return (
-      <Link
-        key={index}
-        to={`/services/${encodeURIComponent(service.slug)}`}
-        className="my-6 flex items-center gap-4 rounded-[10px] border border-border bg-muted p-4 text-sm transition-colors hover:border-[hsl(var(--primary))]"
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block font-bold text-foreground">Услуга: {service.title}</span>
-          {service.description && (
-            <span className="mt-1 block text-[13px] leading-relaxed text-muted-foreground">{service.description}</span>
-          )}
-        </span>
-        <FiArrowRight className="h-5 w-5 shrink-0 text-[hsl(var(--primary))]" aria-hidden="true" />
-      </Link>
-    )
-  }
+  // Один блок текста: общий вид с разделом «ГОСТы и нормативы»
+  const renderBlock = (block: ArticleBlock, index: number) => (
+    <ArticleBlockView key={index} block={block} productsBySku={productsBySku} servicesBySlug={servicesBySlug} />
+  )
 
   return (
     <>

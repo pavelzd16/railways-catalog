@@ -1,5 +1,6 @@
 import { formatSpec, paragraphs, plainText } from '@/shared/lib/plain-text'
 import { useCart } from '@/entities/cart'
+import { GostLinks } from '@/entities/normativ/ui/GostLinks'
 import { ProductCard } from '@/entities/product/ui/ProductCard'
 import {
   formatPrice,
@@ -224,7 +225,7 @@ export function ProductPage() {
 
             {product.gost && (
               <p className="mb-5 text-sm text-muted-foreground">
-                {product.gost}
+                <GostLinks gost={product.gost} normDocs={product.normDocs} />
               </p>
             )}
 
