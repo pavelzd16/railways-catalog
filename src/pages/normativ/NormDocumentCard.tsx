@@ -1,8 +1,10 @@
 import { Link } from 'react-router'
-import { FiDownload, FiFileText } from 'react-icons/fi'
+import { FiDownload, FiExternalLink, FiFileText } from 'react-icons/fi'
 import type { NormDocumentFull } from '@/entities/normativ/model/types'
-import { formatFileSize, formatIntroducedAt, kindLabel, safeHttpUrl, statusLabel } from '@/entities/normativ/lib/norm-labels'
+import { formatFileSize, formatIntroducedAt, kindLabel, statusLabel } from '@/entities/normativ/lib/norm-labels'
+import { documentViewer, sourceLabel } from '@/entities/normativ/lib/norm-document-view'
 import { Button } from '@/shared/ui/Button'
+import { DOWNLOAD_BUTTON, OPEN_BUTTON } from './NormDocumentViewer'
 
 /** Метка «Действует» / «Заменён на …»: замена — ссылка, если она есть в справочнике. */
 export function NormStatus({ document }: { document: Pick<NormDocumentFull, 'status' | 'replacedBy'> & { replacedByDoc?: { slug: string; code: string } | null } }) {
@@ -14,7 +16,10 @@ export function NormStatus({ document }: { document: Pick<NormDocumentFull, 'sta
   )
 }
 
-/** Карточка документа: номер, название, статус, дата введения, область применения, источник, файл и запрос цены. */
+/**
+ * Карточка документа: номер, название, статус, дата введения, область применения, источник текста, файл и запрос цены.
+ * Ссылок на другие сайты нет: источник — простым текстом (sourceUrl остаётся в данных), файл — с нашего сайта.
+ */
 export function NormDocumentCard({
   document,
   onRequestFile,
@@ -25,8 +30,9 @@ export function NormDocumentCard({
   onRequestPrice: () => void
 }) {
   const introduced = formatIntroducedAt(document.introducedAt)
-  const source = safeHttpUrl(document.sourceUrl)
+  const view = documentViewer(document)
   const size = formatFileSize(document.fileSize)
+  const source = sourceLabel(document.sourceName)
   return (
     <aside className="normativ-card p-5" aria-label="Карточка документа">
       <div className="flex flex-wrap items-center gap-2">
@@ -63,26 +69,24 @@ export function NormDocumentCard({
         )}
         {source && (
           <div>
-            <dt>Официальный источник</dt>
-            <dd>
-              <a href={source} target="_blank" rel="noopener noreferrer">
-                {document.sourceName || 'Страница документа'}
-              </a>
-            </dd>
+            <dt>Текст документа</dt>
+            <dd>{source}</dd>
           </div>
         )}
       </dl>
 
       <div className="mt-5 grid gap-2.5">
-        {document.file ? (
-          <a
-            href={document.file}
-            download={document.fileName || undefined}
-            className="normativ-btn inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-base font-semibold tracking-[0.01em] text-accent-foreground transition-colors duration-200 hover:bg-[#E85E14]"
-          >
-            <FiDownload className="h-4 w-4" aria-hidden="true" />
-            Скачать PDF{size && ` (${size})`}
-          </a>
+        {view.file ? (
+          <>
+            <a href={view.file} download={view.downloadName} className={DOWNLOAD_BUTTON}>
+              <FiDownload className="h-4 w-4" aria-hidden="true" />
+              Скачать PDF{size && ` (${size})`}
+            </a>
+            <a href={view.file} target="_blank" rel="noopener" className={OPEN_BUTTON}>
+              <FiExternalLink className="h-4 w-4" aria-hidden="true" />
+              Открыть в новом окне
+            </a>
+          </>
         ) : (
           <Button onClick={onRequestFile}>
             <FiFileText className="mr-2 h-4 w-4" aria-hidden="true" />

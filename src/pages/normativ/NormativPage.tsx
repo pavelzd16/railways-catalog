@@ -8,12 +8,14 @@ import { ArticleBlockView } from '@/entities/article/ui/ArticleBlockView'
 import { ArticleProductCard } from '@/entities/article/ui/ArticleProductCard'
 import type { NormDocumentFull } from '@/entities/normativ/model/types'
 import { kindLabel } from '@/entities/normativ/lib/norm-labels'
+import { unlinkExternalLinks } from '@/entities/normativ/lib/norm-document-view'
 import { catalogPath } from '@/shared/seo/route-data'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Accordion } from '@/shared/ui/Accordion'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { NormDocumentCard, NormStatus } from './NormDocumentCard'
+import { NormDocumentViewer } from './NormDocumentViewer'
 import '../stati/stati.css'
 import './normativ.css'
 
@@ -26,7 +28,8 @@ type Request = 'file' | 'price'
 export function NormativView({ document }: { document: NormDocumentFull }) {
   // Форма берёт текст комментария один раз при монтировании — монтируем её только по нажатию, с нужным текстом.
   const [request, setRequest] = useState<Request | null>(null)
-  const { blocks, toc, faq, faqAfter } = useMemo(() => splitArticleBody(document.body), [document.body])
+  // Внешние ссылки выжимки рисуются простым текстом: страница документа не уводит на другие сайты.
+  const { blocks, toc, faq, faqAfter } = useMemo(() => splitArticleBody(unlinkExternalLinks(document.body)), [document.body])
   const productsBySku = useMemo(() => new Map(document.products.map((product) => [product.sku, product])), [document.products])
   const servicesBySlug = useMemo(() => new Map(document.services.map((service) => [service.slug, service])), [document.services])
   // «Разделы каталога» — разные раздел/подраздел товаров документа
@@ -108,6 +111,7 @@ export function NormativView({ document }: { document: NormDocumentFull }) {
             </aside>
 
             <div className="min-w-0">
+              <NormDocumentViewer document={document} />
               <div className="stati-body">{blocks.slice(0, faqAfter).map(renderBlock)}</div>
 
               {faq.length > 0 && (

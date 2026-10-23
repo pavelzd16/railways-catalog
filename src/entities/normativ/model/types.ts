@@ -19,6 +19,8 @@ export interface NormListItem {
   /** Slug-и разделов каталога, к которым относится документ. */
   sections: string[]
   hasFile: boolean
+  /** Число страниц PDF; null — не известно. */
+  pageCount?: number | null
   updatedAt: string
 }
 
@@ -46,6 +48,10 @@ export interface NormDocumentFull {
   fileName: string | null
   /** Размер файла в байтах. */
   fileSize: number | null
+  /** Число страниц PDF; null — не известно. */
+  pageCount?: number | null
+  /** Картинки первых страниц PDF по порядку (`/uploads/<uuid>.webp`): лист документа на странице. */
+  previews?: string[]
   title: string
   description: string
   h1: string
