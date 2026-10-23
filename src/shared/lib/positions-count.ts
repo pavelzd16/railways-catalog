@@ -1,5 +1,5 @@
 /**
- * Счётчик позиций в шапке: «600+ позиций в наличии и под заказ».
+ * Счётчик позиций в шапке: «600+ позиций».
  * Число из каталога округляется вниз — «+» тогда всегда правда.
  */
 
@@ -22,7 +22,7 @@ export function positionsValue(count: number): string {
   return `${String(count).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')}+`
 }
 
-/** «1 200+ позиций в наличии и под заказ» — строка в шапке. */
+/** «1 200+ позиций» — строка в шапке: полная подпись не помещается рядом с меню. */
 export function positionsLabel(count: number): string {
-  return `${positionsValue(count)} ${POSITIONS_CAPTION}`
+  return `${positionsValue(count)} позиций`
 }
