@@ -21,6 +21,31 @@ const links = [
   ['Контакты', '/contacts'],
 ]
 
+// ЧЕРНОВИК: варианты меню в серой полосе для сравнения (?menu=0…4).
+// После выбора оставить один вариант, переключатель убрать.
+const MENU_VARIANTS = [
+  'Как сейчас',
+  'Тёмные жирные + черта',
+  'Плашки',
+  'Оранжевые',
+  'Отдельная строка',
+]
+
+function menuLinkClass(variant: number, isActive: boolean) {
+  switch (variant) {
+    case 1:
+      return `whitespace-nowrap px-3 font-semibold text-foreground underline-offset-4 hover:text-primary hover:underline ${isActive ? 'text-primary underline' : ''}`
+    case 2:
+      return `whitespace-nowrap rounded-md border px-3 py-1 font-medium shadow-sm transition-colors hover:border-primary hover:text-primary ${isActive ? 'border-primary bg-primary text-white hover:text-white' : 'border-border bg-white text-foreground'}`
+    case 3:
+      return `whitespace-nowrap font-semibold text-primary underline-offset-4 hover:underline ${isActive ? 'underline decoration-2' : ''}`
+    case 4:
+      return `-mb-px whitespace-nowrap border-b-[3px] py-2.5 text-[15px] font-semibold transition-colors hover:border-primary hover:text-primary ${isActive ? 'border-primary text-primary' : 'border-transparent text-foreground'}`
+    default:
+      return `whitespace-nowrap rounded-sm hover:text-primary ${isActive ? 'font-bold text-primary' : ''}`
+  }
+}
+
 export function Header() {
   const headerRef = useRef<HTMLElement>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -28,6 +53,26 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   const { totalItems } = useCart()
   const positions = usePositionsCount()
+  const [menu, setMenu] = useState(0)
+  useEffect(() => {
+    const n = Number(new URLSearchParams(window.location.search).get('menu'))
+    if (n >= 0 && n < MENU_VARIANTS.length) setMenu(n)
+  }, [])
+  const chooseMenu = (n: number) => {
+    setMenu(n)
+    const url = new URL(window.location.href)
+    url.searchParams.set('menu', String(n))
+    window.history.replaceState(window.history.state, '', url)
+  }
+  const navLinks = links.map(([label, to]) => (
+    <NavLink
+      key={to}
+      to={`${to}?menu=${menu}`}
+      className={({ isActive }) => menuLinkClass(menu, isActive)}
+    >
+      {label}
+    </NavLink>
+  ))
   useEffect(() => {
     const scroll = () => {
       const scrollY = Math.max(0, window.scrollY)
@@ -73,26 +118,18 @@ export function Header() {
               <Link to="/catalog" className="font-bold text-foreground hover:text-primary">
                 {positionsLabel(positions)}
               </Link>
-              <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
+              <span className={`hidden ${menu >= 1 && menu <= 3 ? '2xl:inline' : 'xl:inline'}`}>· Зеленодольск · Поставки по России и СНГ</span>
             </div>
-            <nav
-              aria-label="Основная навигация"
-              className="hidden items-center gap-4 lg:flex"
-            >
-              {links.map(([label, to]) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  className={({ isActive }) =>
-                    `whitespace-nowrap rounded-sm hover:text-primary ${isActive ? 'font-bold text-primary' : ''}`
-                  }
-                >
-                  {label}
-                </NavLink>
-              ))}
-            </nav>
-            <div className="hidden items-center gap-5 md:flex">
-              <span>Пн–Пт, 8:00–17:00</span>
+            {menu !== 4 && (
+              <nav
+                aria-label="Основная навигация"
+                className={`hidden items-center lg:flex ${menu === 1 ? 'divide-x divide-foreground/25' : menu === 2 ? 'gap-2' : 'gap-4'}`}
+              >
+                {navLinks}
+              </nav>
+            )}
+            <div className="hidden shrink-0 items-center gap-5 md:flex">
+              <span className="whitespace-nowrap">Пн–Пт, 8:00–17:00</span>
               <MessengerLinks compact />
             </div>
           </div>
@@ -162,6 +199,20 @@ export function Header() {
             <FiMenu className="h-6 w-6" />
           </button>
         </div>
+        {menu === 4 && (
+          <div className="hidden lg:block">
+            <div className="header-meta" inert={scrolled}>
+              <div>
+                <nav
+                  aria-label="Основная навигация"
+                  className="flex items-center gap-8 border-t border-border"
+                >
+                  {navLinks}
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="header-meta" inert={scrolled}>
           <div>
             <div className="pb-3 md:hidden">
@@ -170,6 +221,21 @@ export function Header() {
           </div>
         </div>
       </div>
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-4 left-4 z-50 flex flex-col gap-1 rounded-lg border border-border bg-white p-2 text-sm text-foreground shadow-lg">
+          <b className="px-1">Вариант меню</b>
+          {MENU_VARIANTS.map((name, i) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => chooseMenu(i)}
+              className={`rounded px-2 py-1 text-left ${menu === i ? 'bg-primary text-white' : 'hover:bg-muted'}`}
+            >
+              {i}. {name}
+            </button>
+          ))}
+        </div>
+      )}
       <MobileMenu open={mobileOpen} onOpenChange={setMobileOpen} />
       <RequestFormModal
         open={requestOpen}
