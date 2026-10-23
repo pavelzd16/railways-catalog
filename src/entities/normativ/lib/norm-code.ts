@@ -7,7 +7,7 @@ const LATIN_TO_CYRILLIC: Record<string, string> = { P: 'Р', C: 'С', T: 'Т', O
 
 /**
  * Номер для сравнения: верхний регистр, ё→е, один пробел, тире → «-», латиница-двойники → кириллица
- * (только если в строке есть кириллица), «ГОСТ Р» и «ГОСТ» с пробелом перед числом.
+ * (только если в строке есть кириллица), «ГОСТР»/«ГОСТ Р53866» → «ГОСТ Р 53866», «ГОСТ4121» → «ГОСТ 4121».
  */
 export function normalizeCode(code: string): string {
   let text = code
@@ -17,7 +17,8 @@ export function normalizeCode(code: string): string {
     .trim()
     .replace(/[‐-―−]/g, '-')
   if (/[А-Я]/.test(text)) text = text.replace(/[PCTOEAKMHBX]/g, (letter) => LATIN_TO_CYRILLIC[letter])
-  return text.replace(/ГОСТ ?Р ?(?=\d)/g, 'ГОСТ Р ').replace(/ГОСТ ?(?=\d)/g, 'ГОСТ ')
+  // как в API: «ГОСТР ИСО», «ГОСТ Р53866» → «ГОСТ Р» отдельным словом; «ГОСТ4121» → пробел перед числом
+  return text.replace(/ГОСТ ?Р(?= |\d|$)/g, 'ГОСТ Р').replace(/(ГОСТ Р|ГОСТ)(?=\d)/g, '$1 ')
 }
 
 // «(заменён на ГОСТ 5812-2014)»: начало с союзом, сам номер, закрывающая скобка
@@ -46,7 +47,8 @@ export function parseGostField(gost: string | null | undefined): { code: string;
   const result: { code: string; replacedBy: string | null }[] = []
   for (const part of splitParts(gost ?? '')) {
     const replaced = part.match(REPLACED)
-    const code = (replaced ? part.replace(REPLACED, '') : part).replace(/\s+/g, ' ').trim()
+    // как в API: номер — как написан, обрезаны только края
+    const code = (replaced ? part.replace(REPLACED, ' ') : part).trim()
     if (code) result.push({ code, replacedBy: replaced ? replaced[2].trim() || null : null })
   }
   return result
