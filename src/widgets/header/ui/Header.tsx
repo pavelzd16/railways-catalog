@@ -68,13 +68,12 @@ export function Header() {
       >
         <div>
           <div className="container mx-auto flex items-center justify-between gap-4 px-6 py-2 text-[13px] xl:px-8">
-            {/* Счётчик ведёт в каталог; город — с 1536 px, уже ему тесно рядом с меню.
-                «Поставки по России и СНГ» не влезают рядом с жирным меню и на 1600 px. */}
+            {/* Счётчик ведёт в каталог; город и доставка — там, где хватает места. */}
             <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
               <Link to="/catalog" className="font-bold text-foreground hover:text-primary">
                 {positionsLabel(positions)}
               </Link>
-              <span className="hidden 2xl:inline">· Зеленодольск</span>
+              <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
             </div>
             {/* Пункты оранжевые и жирные, между ними черта — чтобы отличались
                 от серого текста полосы и было видно, что на них можно нажать. */}
