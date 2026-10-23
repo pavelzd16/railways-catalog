@@ -75,24 +75,26 @@ export function Header() {
               </Link>
               <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
             </div>
+            {/* Пункты оранжевые и жирные, между ними черта — чтобы отличались
+                от серого текста полосы и было видно, что на них можно нажать. */}
             <nav
               aria-label="Основная навигация"
-              className="hidden items-center gap-4 lg:flex"
+              className="hidden items-center divide-x divide-foreground/25 lg:flex"
             >
               {links.map(([label, to]) => (
                 <NavLink
                   key={to}
                   to={to}
                   className={({ isActive }) =>
-                    `whitespace-nowrap rounded-sm hover:text-primary ${isActive ? 'font-bold text-primary' : ''}`
+                    `whitespace-nowrap px-2.5 font-semibold leading-none text-primary underline-offset-4 hover:underline ${isActive ? 'underline decoration-2' : ''}`
                   }
                 >
                   {label}
                 </NavLink>
               ))}
             </nav>
-            <div className="hidden items-center gap-5 md:flex">
-              <span>Пн–Пт, 8:00–17:00</span>
+            <div className="hidden shrink-0 items-center gap-5 md:flex">
+              <span className="whitespace-nowrap">Пн–Пт, 8:00–17:00</span>
               <MessengerLinks compact />
             </div>
           </div>
