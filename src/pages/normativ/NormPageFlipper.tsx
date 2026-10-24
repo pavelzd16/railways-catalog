@@ -2,15 +2,16 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { FiFileText } from 'react-icons/fi'
 import type { NormDocumentFull } from '@/entities/normativ/model/types'
 import { documentViewer } from '@/entities/normativ/lib/norm-document-view'
-import { clampSheet, clampStart, revealSheet, sheetAt, shiftStart, stripImages, stripLabel, stripSheets, tileLabel } from '@/entities/normativ/lib/page-flipper'
+import { clampSheet, clampStart, revealSheet, sheetAt, shiftStart, stripLabel, stripSheets, tileLabel } from '@/entities/normativ/lib/page-flipper'
+import { UploadImg } from '@/shared/ui/UploadImg'
 import { FlipArrow } from './FlipArrow'
-import { usePreloadSources, useStripSize, useSwipe } from './use-page-flipper'
+import { useStripSize, useSwipe } from './use-page-flipper'
 import { NormPageReader } from './NormPageReader'
 
 /**
  * Листалка документа в тёмной шапке под заголовком: полоса маленьких страниц (5 в ряд от 1280 px, иначе 3)
  * между круглыми стрелками, под каждой «Стр. N», общая подпись «Стр. 1–5 из 11», свайп на телефоне.
- * Стрелки сдвигают полосу на одну страницу; нажатие на страницу — окно чтения на ней. Картинки — видимые и соседние.
+ * Стрелки сдвигают полосу на одну страницу; нажатие на страницу — окно чтения на ней. Картинки — лёгкие WebP-копии (UploadImg), оригиналы грузит только окно чтения.
  * Без картинок, но с файлом — лист-заглушка с номером; без файла листалки нет («Документ по запросу» — в карточке).
  * На ПК полоса занимает всю свободную высоту левой колонки, так что её низ — вровень с низом карточки справа.
  */
@@ -34,7 +35,6 @@ export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
   }, [reading, current])
   const go = (delta: number) => setFirst(shiftStart(start, delta, view.sheets, perRow))
   const swipe = useSwipe(go)
-  usePreloadSources(stripImages(view, start, perRow))
 
   if (view.mode === 'request') return null
 
@@ -83,8 +83,9 @@ export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
                     className="normativ-sheet normativ-sheet--button normativ-sheet--tile"
                   >
                     {item.kind === 'page' ? (
-                      <img
+                      <UploadImg
                         src={item.src}
+                        sizes="140px"
                         alt={`Страница ${item.page}: ${document.code}`}
                         decoding="async"
                         draggable={false}

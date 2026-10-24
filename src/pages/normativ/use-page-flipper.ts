@@ -1,4 +1,4 @@
-// Общее у листалки в шапке и окна чтения: свайп и подгрузка соседних страниц.
+// Общее у листалки в шапке и окна чтения: свайп, размер полосы и подгрузка соседних страниц окна чтения.
 import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import type { DocumentViewer } from '@/entities/normativ/lib/norm-document-view'
 import { imagesToLoad, stripSize, swipeStep } from '@/entities/normativ/lib/page-flipper'
@@ -44,18 +44,6 @@ export function useSwipe(onStep: (delta: number) => void, threshold?: number) {
       },
     },
   }
-}
-
-/** Картинки, которые нужны полосе (видимые и соседние): грузятся заранее, остальные — когда до них долистают. */
-export function usePreloadSources(sources: string[]) {
-  const key = sources.join('|')
-  useEffect(() => {
-    for (const src of key ? key.split('|') : []) {
-      const image = new Image()
-      image.decoding = 'async'
-      image.src = src
-    }
-  }, [key])
 }
 
 /** Сколько страниц в ряду полосы: на сервере и при первой отрисовке — 3, после загрузки — по ширине окна. */
