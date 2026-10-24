@@ -114,15 +114,3 @@ export function tileLabel(view: FlipperView, sheet: number): string {
   const current = sheetAt(view, sheet)
   return current.kind === 'page' ? `Стр. ${current.page}` : `Стр. ${moreRange(current)}`
 }
-
-/** Картинки полосы: видимые страницы и по одной соседней с каждой стороны (остальные не грузятся). */
-export function stripImages(view: FlipperView, first: number, perRow: number): string[] {
-  const shown = stripSheets(first, view.sheets, perRow)
-  if (!shown.length) return []
-  const result: string[] = []
-  for (const sheet of [...shown, shown[0] - 1, shown[shown.length - 1] + 1]) {
-    const src = view.pages[sheet - 1]
-    if (sheet >= 1 && src && !result.includes(src)) result.push(src)
-  }
-  return result
-}

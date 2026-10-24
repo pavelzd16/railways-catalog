@@ -65,7 +65,7 @@ test('свайп: влево — следующий лист, вправо — �
 })
 
 // Полоса маленьких страниц в шапке (дополнение 24.10 (3))
-import { clampStart, revealSheet, shiftStart, stripImages, stripLabel, stripSheets, stripSize, tileLabel } from '../src/entities/normativ/lib/page-flipper.ts'
+import { clampStart, revealSheet, shiftStart, stripLabel, stripSheets, stripSize, tileLabel } from '../src/entities/normativ/lib/page-flipper.ts'
 
 test('сколько страниц в ряд: 5 от 1280 px, иначе 3', () => {
   assert.equal(stripSize(1920), 5)
@@ -108,11 +108,4 @@ test('подпись полосы «Стр. 1–5 из 11»', () => {
   assert.equal(stripLabel(view(100, 130), 99, 3), 'Стр. 99–130 из 130', 'лист «Дальше» в полосе — до конца PDF')
   assert.equal(tileLabel(v, 3), 'Стр. 3')
   assert.equal(tileLabel(view(3, 9), 4), 'Стр. 4–9')
-})
-
-test('картинки полосы: видимые и по одной соседней с каждой стороны', () => {
-  const v = view(11)
-  assert.deepEqual(stripImages(v, 1, 3), ['/uploads/p1.webp', '/uploads/p2.webp', '/uploads/p3.webp', '/uploads/p4.webp'])
-  assert.deepEqual(stripImages(v, 5, 3), ['/uploads/p5.webp', '/uploads/p6.webp', '/uploads/p7.webp', '/uploads/p4.webp', '/uploads/p8.webp'])
-  assert.equal(stripImages(v, 7, 5).length, 6, 'в конце — только соседняя слева')
 })

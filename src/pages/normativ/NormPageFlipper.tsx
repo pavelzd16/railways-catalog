@@ -85,7 +85,7 @@ export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
                     {item.kind === 'page' ? (
                       <UploadImg
                         src={item.src}
-                        sizes="140px"
+                        sizes="(min-width: 1024px) 140px, (min-width: 640px) calc((100vw - 182px) / 3), calc((100vw - 150px) / 3)"
                         alt={`Страница ${item.page}: ${document.code}`}
                         decoding="async"
                         draggable={false}
