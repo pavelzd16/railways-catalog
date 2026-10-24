@@ -60,3 +60,69 @@ export function swipeStep(dx: number, dy: number, threshold = 40): -1 | 0 | 1 {
   if (Math.abs(dx) < threshold || Math.abs(dx) <= Math.abs(dy)) return 0
   return dx < 0 ? 1 : -1
 }
+
+// Полоса маленьких страниц в шапке: «first» — номер первого видимого листа, «perRow» — сколько листов в ряду.
+
+/** Сколько страниц в ряду: 5 от 1280 px, на средних и на телефоне — 3. */
+export function stripSize(width: number): number {
+  return width >= 1280 ? 5 : 3
+}
+
+/** Первый видимый лист в границах: ряд не выходит за последний лист; листов меньше ряда — 1. */
+export function clampStart(first: number, sheets: number, perRow: number): number {
+  const last = Math.max(1, Math.floor(sheets) - Math.max(1, Math.floor(perRow)) + 1)
+  if (!Number.isFinite(first)) return 1
+  return Math.min(last, Math.max(1, Math.floor(first)))
+}
+
+/** Сдвиг полосы стрелкой или свайпом: на одну страницу, края не проходит. */
+export function shiftStart(first: number, delta: number, sheets: number, perRow: number): number {
+  return clampStart(clampStart(first, sheets, perRow) + delta, sheets, perRow)
+}
+
+/** Номера видимых листов: столько, сколько есть (но не больше ряда). */
+export function stripSheets(first: number, sheets: number, perRow: number): number[] {
+  const start = clampStart(first, sheets, perRow)
+  const end = Math.min(Math.floor(sheets), start + Math.max(1, Math.floor(perRow)) - 1)
+  const result: number[] = []
+  for (let sheet = start; sheet <= end; sheet++) result.push(sheet)
+  return result
+}
+
+/** Первый видимый лист так, чтобы выбранный лист был в полосе (двигаем минимально). */
+export function revealSheet(first: number, sheet: number, sheets: number, perRow: number): number {
+  const start = clampStart(first, sheets, perRow)
+  const target = clampSheet(sheet, sheets)
+  if (target < start) return clampStart(target, sheets, perRow)
+  if (target > start + perRow - 1) return clampStart(target - perRow + 1, sheets, perRow)
+  return start
+}
+
+/** Общая подпись полосы: «Стр. 1–5 из 11»; лист «Дальше» в полосе тянет диапазон до конца PDF. */
+export function stripLabel(view: FlipperView, first: number, perRow: number): string {
+  const shown = stripSheets(first, view.sheets, perRow)
+  if (!shown.length) return ''
+  const from = sheetAt(view, shown[0])
+  const to = sheetAt(view, shown[shown.length - 1])
+  const start = from.kind === 'page' ? from.page : from.from
+  const end = to.kind === 'page' ? to.page : to.to
+  return end > start ? `Стр. ${start}–${end} из ${view.pageCount}` : `Стр. ${start} из ${view.pageCount}`
+}
+
+/** Подпись под маленькой страницей: «Стр. 3»; лист «Дальше» — «Стр. 101–130». */
+export function tileLabel(view: FlipperView, sheet: number): string {
+  const current = sheetAt(view, sheet)
+  return current.kind === 'page' ? `Стр. ${current.page}` : `Стр. ${moreRange(current)}`
+}
+
+/** Картинки полосы: видимые страницы и по одной соседней с каждой стороны (остальные не грузятся). */
+export function stripImages(view: FlipperView, first: number, perRow: number): string[] {
+  const shown = stripSheets(first, view.sheets, perRow)
+  if (!shown.length) return []
+  const result: string[] = []
+  for (const sheet of [...shown, shown[0] - 1, shown[shown.length - 1] + 1]) {
+    const src = view.pages[sheet - 1]
+    if (sheet >= 1 && src && !result.includes(src)) result.push(src)
+  }
+  return result
+}

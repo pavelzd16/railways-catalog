@@ -62,8 +62,8 @@ export function NormativView({ document }: { document: NormDocumentFull }) {
               ]}
             />
             {/* На ПК карточка документа — справа от заголовка, на телефоне — под ним; в обоих случаях над выжимкой */}
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-14">
-              <div className="min-w-0 lg:pt-4">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-stretch lg:gap-14">
+              <div className="flex min-w-0 flex-col lg:pt-4">
                 <div className="mb-4 flex flex-wrap items-center gap-2 text-[13px]">
                   <span className="normativ-chip normativ-chip--kind">{kindLabel(document.kind)}</span>
                   <NormStatus document={document} />
@@ -76,7 +76,10 @@ export function NormativView({ document }: { document: NormDocumentFull }) {
                 {/* Сам документ — листалка страниц; кнопки «Скачать PDF» и «Открыть в новом окне» — только в карточке */}
                 <NormPageFlipper key={document.slug} document={document} />
               </div>
-              <NormDocumentCard document={document} onRequestFile={requestFile} onRequestPrice={requestPrice} />
+              {/* Обёртка не даёт карточке растянуться за высотой левой колонки: полоса подгоняется под карточку, не наоборот */}
+              <div className="lg:self-start">
+                <NormDocumentCard document={document} onRequestFile={requestFile} onRequestPrice={requestPrice} />
+              </div>
             </div>
           </div>
         </header>

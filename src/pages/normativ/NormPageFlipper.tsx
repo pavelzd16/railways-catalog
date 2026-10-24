@@ -1,35 +1,40 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { FiFileText, FiMaximize2 } from 'react-icons/fi'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { FiFileText } from 'react-icons/fi'
 import type { NormDocumentFull } from '@/entities/normativ/model/types'
 import { documentViewer } from '@/entities/normativ/lib/norm-document-view'
-import { MORE_SHEET_TEXT, clampSheet, sheetAt, sheetLabel, stepSheet } from '@/entities/normativ/lib/page-flipper'
+import { clampSheet, clampStart, revealSheet, sheetAt, shiftStart, stripImages, stripLabel, stripSheets, tileLabel } from '@/entities/normativ/lib/page-flipper'
 import { FlipArrow } from './FlipArrow'
-import { usePreloadNeighbours, useSwipe } from './use-page-flipper'
+import { usePreloadSources, useStripSize, useSwipe } from './use-page-flipper'
 import { NormPageReader } from './NormPageReader'
 
 /**
- * Листалка документа в тёмной шапке под заголовком: лист текущей страницы (белый, A4) между круглыми стрелками,
- * «Стр. N из M», свайп на телефоне. Нажатие на лист — окно чтения во весь экран. Картинки — по мере листания.
+ * Листалка документа в тёмной шапке под заголовком: полоса маленьких страниц (5 в ряд от 1280 px, иначе 3)
+ * между круглыми стрелками, под каждой «Стр. N», общая подпись «Стр. 1–5 из 11», свайп на телефоне.
+ * Стрелки сдвигают полосу на одну страницу; нажатие на страницу — окно чтения на ней. Картинки — видимые и соседние.
  * Без картинок, но с файлом — лист-заглушка с номером; без файла листалки нет («Документ по запросу» — в карточке).
+ * На ПК полоса занимает всю свободную высоту левой колонки, так что её низ — вровень с низом карточки справа.
  */
 export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
   const view = useMemo(() => documentViewer(document), [document])
+  const perRow = useStripSize()
+  const [first, setFirst] = useState(1)
   const [sheet, setSheet] = useState(1)
   const [reading, setReading] = useState(false)
-  // После закрытия окна фокус — снова на листе (на телефоне касание не ставит фокус на кнопку, и вернуть его некуда).
-  const sheetRef = useRef<HTMLButtonElement>(null)
+  // После закрытия окна фокус — снова на странице (на телефоне касание не ставит фокус на кнопку, и вернуть его некуда).
+  const stripRef = useRef<HTMLDivElement>(null)
   const wasReading = useRef(false)
+  const current = clampSheet(sheet, view.sheets)
+  const start = clampStart(first, view.sheets, perRow)
   useEffect(() => {
     if (reading) wasReading.current = true
     else if (wasReading.current) {
       wasReading.current = false
-      sheetRef.current?.focus({ preventScroll: true })
+      stripRef.current?.querySelector<HTMLElement>(`[data-sheet="${current}"]`)?.focus({ preventScroll: true })
     }
-  }, [reading])
-  const current = clampSheet(sheet, view.sheets)
-  const go = (delta: number) => setSheet((value) => stepSheet(value, delta, view.sheets))
+  }, [reading, current])
+  const go = (delta: number) => setFirst(shiftStart(start, delta, view.sheets, perRow))
   const swipe = useSwipe(go)
-  usePreloadNeighbours(view, current)
+  usePreloadSources(stripImages(view, start, perRow))
 
   if (view.mode === 'request') return null
 
@@ -46,50 +51,64 @@ export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
     )
   }
 
-  const shown = sheetAt(view, current)
-  const label = sheetLabel(view, current)
-  const open = () => {
-    if (!swipe.consumeSwipe()) setReading(true)
+  const shown = stripSheets(start, view.sheets, perRow)
+  const maxStart = clampStart(Number.MAX_SAFE_INTEGER, view.sheets, perRow)
+  const open = (value: number) => {
+    if (swipe.consumeSwipe()) return
+    setSheet(value)
+    setReading(true)
   }
 
   return (
-    <section aria-label={`Документ ${document.code}: страницы`} className="normativ-flipper">
-      <div className="normativ-flipper-row">
-        <FlipArrow direction={-1} disabled={current <= 1} onClick={() => go(-1)} />
-        <div className="normativ-flipper-stage" {...swipe.handlers}>
-          <button
-            ref={sheetRef}
-            type="button"
-            onClick={open}
-            aria-haspopup="dialog"
-            aria-label={`${label}. Открыть крупно для чтения`}
-            className="normativ-sheet normativ-sheet--button group"
-          >
-            {shown.kind === 'page' ? (
-              <img
-                key={shown.src}
-                src={shown.src}
-                alt={`Страница ${shown.page}: ${document.code}`}
-                decoding="async"
-                draggable={false}
-                className="normativ-sheet-img"
-              />
-            ) : (
-              <span className="normativ-sheet-more">
-                <FiFileText className="h-8 w-8 text-[hsl(var(--primary))]" aria-hidden="true" />
-                <span className="mt-3 block">{MORE_SHEET_TEXT}</span>
-              </span>
-            )}
-            <span className="normativ-sheet-hint" aria-hidden="true">
-              <FiMaximize2 className="h-4 w-4" />
-              Читать
-            </span>
-          </button>
+    <section
+      aria-label={`Документ ${document.code}: страницы`}
+      className="normativ-flipper normativ-flipper--strip"
+      style={{ '--strip-count': perRow } as CSSProperties}
+    >
+      <div className="normativ-strip-area" {...swipe.handlers}>
+        <div className="normativ-strip-block">
+          <FlipArrow direction={-1} disabled={start <= 1} onClick={() => go(-1)} />
+          <div ref={stripRef} className="normativ-strip">
+            {shown.map((value) => {
+              const item = sheetAt(view, value)
+              const name = tileLabel(view, value)
+              return (
+                <div key={value} className="normativ-tile">
+                  <button
+                    type="button"
+                    data-sheet={value}
+                    onClick={() => open(value)}
+                    aria-haspopup="dialog"
+                    aria-label={`${name}. Открыть крупно для чтения`}
+                    className="normativ-sheet normativ-sheet--button normativ-sheet--tile"
+                  >
+                    {item.kind === 'page' ? (
+                      <img
+                        src={item.src}
+                        alt={`Страница ${item.page}: ${document.code}`}
+                        decoding="async"
+                        draggable={false}
+                        className="normativ-sheet-img"
+                      />
+                    ) : (
+                      <span className="normativ-sheet-more normativ-sheet-more--tile">
+                        <FiFileText className="h-5 w-5 text-[hsl(var(--primary))]" aria-hidden="true" />
+                        <span className="mt-1 block">Дальше — в PDF</span>
+                      </span>
+                    )}
+                  </button>
+                  <span className="normativ-tile-label" aria-hidden="true">
+                    {name}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+          <FlipArrow direction={1} disabled={start >= maxStart} onClick={() => go(1)} />
         </div>
-        <FlipArrow direction={1} disabled={current >= view.sheets} onClick={() => go(1)} />
       </div>
       <p className="normativ-flipper-label" aria-live="polite">
-        {label}
+        {stripLabel(view, start, perRow)}
       </p>
 
       {reading && (
@@ -97,7 +116,11 @@ export function NormPageFlipper({ document }: { document: NormDocumentFull }) {
           view={view}
           code={document.code}
           sheet={current}
-          onSheetChange={(value) => setSheet(clampSheet(value, view.sheets))}
+          onSheetChange={(value) => {
+            const next = clampSheet(value, view.sheets)
+            setSheet(next)
+            setFirst(revealSheet(start, next, view.sheets, perRow))
+          }}
           onClose={() => setReading(false)}
         />
       )}

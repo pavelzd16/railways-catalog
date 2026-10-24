@@ -1,7 +1,7 @@
 // Общее у листалки в шапке и окна чтения: свайп и подгрузка соседних страниц.
-import { useCallback, useEffect, useRef, type TouchEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import type { DocumentViewer } from '@/entities/normativ/lib/norm-document-view'
-import { imagesToLoad, swipeStep } from '@/entities/normativ/lib/page-flipper'
+import { imagesToLoad, stripSize, swipeStep } from '@/entities/normativ/lib/page-flipper'
 
 /** Соседние страницы подгружаются заранее (после показа текущей), остальные — только когда до них долистают. */
 export function usePreloadNeighbours(view: DocumentViewer, sheet: number) {
@@ -44,4 +44,29 @@ export function useSwipe(onStep: (delta: number) => void, threshold?: number) {
       },
     },
   }
+}
+
+/** Картинки, которые нужны полосе (видимые и соседние): грузятся заранее, остальные — когда до них долистают. */
+export function usePreloadSources(sources: string[]) {
+  const key = sources.join('|')
+  useEffect(() => {
+    for (const src of key ? key.split('|') : []) {
+      const image = new Image()
+      image.decoding = 'async'
+      image.src = src
+    }
+  }, [key])
+}
+
+/** Сколько страниц в ряду полосы: на сервере и при первой отрисовке — 3, после загрузки — по ширине окна. */
+export function useStripSize(): number {
+  const [size, setSize] = useState(3)
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 1280px)')
+    const update = () => setSize(stripSize(query.matches ? 1280 : 0))
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  return size
 }
