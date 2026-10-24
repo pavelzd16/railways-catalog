@@ -22,34 +22,53 @@ test('подпись «N страниц · PDF · M МБ»; без числа с
   assert.equal(documentFacts({ pageCount: 2, fileSize: null }), '2 страницы · PDF')
 })
 
-test('блок «Документ»: лист первой страницы и не больше двух миниатюр', () => {
+test('листалка: все картинки страниц по порядку, число страниц и листов', () => {
   const view = documentViewer(doc())
-  assert.equal(view.mode, 'sheet')
-  assert.equal(view.sheet, '/uploads/p1.webp')
-  assert.deepEqual(view.thumbs, [{ src: '/uploads/p2.webp', page: 2, href: '/uploads/a.pdf#page=2' }, { src: '/uploads/p3.webp', page: 3, href: '/uploads/a.pdf#page=3' }])
+  assert.equal(view.mode, 'pages')
+  assert.deepEqual(view.pages, ['/uploads/p1.webp', '/uploads/p2.webp', '/uploads/p3.webp'])
+  assert.equal(view.pageCount, 9)
+  assert.equal(view.more, true, 'картинок меньше, чем страниц, — последний лист «Дальше — в PDF-файле»')
+  assert.equal(view.sheets, 4)
   assert.equal(view.file, '/uploads/a.pdf')
   assert.equal(view.downloadName, 'ГОСТ 4121-96.pdf')
   assert.equal(view.facts, '9 страниц · PDF · 0,2 МБ')
-  assert.equal(view.morePages, 6, 'ещё страниц после миниатюр')
+
+  const full = documentViewer(doc({ pageCount: 3 }))
+  assert.equal(full.more, false)
+  assert.equal(full.sheets, 3)
+  assert.equal(documentViewer(doc({ pageCount: null })).pageCount, 3, 'число страниц неизвестно — по картинкам')
+  assert.equal(documentViewer(doc({ pageCount: null })).more, false)
 })
 
-test('блок «Документ»: файл без картинок — лист-заглушка; без файла — «Документ по запросу»', () => {
+test('листалка: больше 100 картинок не показывается, у длинного документа — лист «Дальше — в PDF-файле»', () => {
+  const previews = Array.from({ length: 120 }, (_, i) => `/uploads/p${i + 1}.webp`)
+  const view = documentViewer(doc({ previews, pageCount: 130 }))
+  assert.equal(view.pages.length, 100)
+  assert.equal(view.pages[99], '/uploads/p100.webp')
+  assert.equal(view.more, true)
+  assert.equal(view.sheets, 101)
+})
+
+test('листалка: файл без картинок — лист-заглушка; без файла — «Документ по запросу»', () => {
   const placeholder = documentViewer(doc({ previews: [], pageCount: null }))
   assert.equal(placeholder.mode, 'placeholder')
-  assert.equal(placeholder.sheet, null)
-  assert.deepEqual(placeholder.thumbs, [])
+  assert.deepEqual(placeholder.pages, [])
+  assert.equal(placeholder.sheets, 1)
+  assert.equal(placeholder.more, false)
   assert.equal(placeholder.file, '/uploads/a.pdf')
   assert.equal(placeholder.facts, 'PDF · 0,2 МБ')
   assert.equal(documentViewer(doc({ previews: undefined })).mode, 'placeholder', 'старый ответ API без поля previews')
-  assert.equal(documentViewer(doc({ file: null, fileName: null, fileSize: null })).mode, 'request')
+  const request = documentViewer(doc({ file: null, fileName: null, fileSize: null }))
+  assert.equal(request.mode, 'request')
+  assert.equal(request.sheets, 0)
+  assert.deepEqual(request.pages, [])
   assert.equal(documentViewer(doc({ fileName: null })).downloadName, 'ГОСТ 4121-96.pdf', 'имя по номеру')
 })
 
-test('блок «Документ»: файл и картинки — только со своего сайта', () => {
+test('листалка: файл и картинки — только со своего сайта', () => {
   assert.equal(documentViewer(doc({ file: 'https://files.stroyinf.ru/a.pdf' })).mode, 'request', 'чужой адрес файла не выводится')
   const view = documentViewer(doc({ previews: ['https://evil.example/p1.webp', '/uploads/p2.webp'] }))
-  assert.equal(view.sheet, '/uploads/p2.webp')
-  assert.deepEqual(view.thumbs, [])
+  assert.deepEqual(view.pages, ['/uploads/p2.webp'])
 })
 
 test('внешняя ссылка — любой другой домен, свои адреса и якоря — нет', () => {

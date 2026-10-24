@@ -15,7 +15,7 @@ import { Accordion } from '@/shared/ui/Accordion'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { NormDocumentCard, NormStatus } from './NormDocumentCard'
-import { NormDocumentViewer } from './NormDocumentViewer'
+import { NormPageFlipper } from './NormPageFlipper'
 import '../stati/stati.css'
 import './normativ.css'
 
@@ -73,6 +73,8 @@ export function NormativView({ document }: { document: NormDocumentFull }) {
                 </h1>
                 <p className="mt-5 max-w-[720px] text-base leading-relaxed text-[#d5dce2] lg:text-[17px]">{document.description}</p>
                 <p className="mt-5 text-xs text-[#aeb8c2]">Выжимка ПроРельс</p>
+                {/* Сам документ — листалка страниц; кнопки «Скачать PDF» и «Открыть в новом окне» — только в карточке */}
+                <NormPageFlipper key={document.slug} document={document} />
               </div>
               <NormDocumentCard document={document} onRequestFile={requestFile} onRequestPrice={requestPrice} />
             </div>
@@ -111,7 +113,6 @@ export function NormativView({ document }: { document: NormDocumentFull }) {
             </aside>
 
             <div className="min-w-0">
-              <NormDocumentViewer document={document} />
               <div className="stati-body">{blocks.slice(0, faqAfter).map(renderBlock)}</div>
 
               {faq.length > 0 && (

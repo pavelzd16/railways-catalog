@@ -4,7 +4,12 @@ import type { NormDocumentFull } from '@/entities/normativ/model/types'
 import { formatFileSize, formatIntroducedAt, kindLabel, statusLabel } from '@/entities/normativ/lib/norm-labels'
 import { documentViewer, sourceLabel } from '@/entities/normativ/lib/norm-document-view'
 import { Button } from '@/shared/ui/Button'
-import { DOWNLOAD_BUTTON, OPEN_BUTTON } from './NormDocumentViewer'
+
+// Кнопки — как Button сайта (оранжевая основная, светлая с рамкой); ссылками, чтобы работали «Скачать» и новая вкладка.
+const BUTTON =
+  'inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-base font-semibold tracking-[0.01em] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const DOWNLOAD_BUTTON = `${BUTTON} normativ-btn bg-accent text-accent-foreground hover:bg-[#E85E14]`
+const OPEN_BUTTON = `${BUTTON} normativ-btn border border-border bg-white text-foreground hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]`
 
 /** Метка «Действует» / «Заменён на …»: замена — ссылка, если она есть в справочнике. */
 export function NormStatus({ document }: { document: Pick<NormDocumentFull, 'status' | 'replacedBy'> & { replacedByDoc?: { slug: string; code: string } | null } }) {

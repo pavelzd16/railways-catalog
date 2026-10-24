@@ -1,4 +1,4 @@
-// Блок «Документ» на странице норматива: лист первой страницы PDF, миниатюры, подпись и кнопки — чистые правила,
+// Документ на странице норматива: картинки страниц для листалки в шапке, подпись и файл для карточки — чистые правила,
 // и выжимка без ссылок на другие сайты (дополнение 24.10: документ — у нас на сайте, источник называется текстом).
 import { formatFileSize } from './norm-labels.ts'
 import type { NormDocumentFull } from '../model/types.ts'
@@ -24,23 +24,23 @@ export function documentFacts({ pageCount, fileSize }: { pageCount?: number | nu
 // Файлы документа лежат в хранилище API и отдаются с нашего же адреса (/uploads/… проксирует сайт).
 const OWN_UPLOAD = /^\/uploads\/[^/?#\s][^?#\s]*$/
 
-export interface DocumentViewerThumb {
-  src: string
-  /** Номер страницы — для подписи и ссылки «#page=N» (встроенный просмотрщик браузера откроет нужную страницу). */
-  page: number
-  href: string
-}
+/** Картинок страниц в листалке — не больше 100 (как NORM_PREVIEWS_MAX в API); остальное — в PDF-файле. */
+export const MAX_PREVIEW_PAGES = 100
 
 export interface DocumentViewer {
-  /** sheet — есть картинка первой страницы; placeholder — файл есть, картинок нет; request — «Документ по запросу». */
-  mode: 'sheet' | 'placeholder' | 'request'
-  sheet: string | null
-  thumbs: DocumentViewerThumb[]
+  /** pages — есть картинки страниц (листалка); placeholder — файл есть, картинок нет (лист-заглушка); request — «Документ по запросу». */
+  mode: 'pages' | 'placeholder' | 'request'
+  /** Картинки страниц по порядку — только свои (/uploads/…), не больше MAX_PREVIEW_PAGES. */
+  pages: string[]
+  /** Страниц в PDF; если не известно — по числу картинок. */
+  pageCount: number
+  /** PDF длиннее картинок — последний лист листалки «Дальше — в PDF-файле». */
+  more: boolean
+  /** Листов в листалке: страницы и лист «Дальше»; у заглушки — 1, без файла — 0. */
+  sheets: number
   file: string | null
   downloadName: string
   facts: string
-  /** Сколько страниц ещё после миниатюр (0 — неизвестно или нет). */
-  morePages: number
 }
 
 type ViewerInput = Pick<NormDocumentFull, 'code' | 'file' | 'fileName' | 'fileSize'> & {
@@ -51,21 +51,14 @@ type ViewerInput = Pick<NormDocumentFull, 'code' | 'file' | 'fileName' | 'fileSi
 export function documentViewer(document: ViewerInput): DocumentViewer {
   const file = document.file && OWN_UPLOAD.test(document.file) ? document.file : null
   const downloadName = document.fileName || `${document.code}.pdf`
-  if (!file) return { mode: 'request', sheet: null, thumbs: [], file: null, downloadName, facts: '', morePages: 0 }
-  const images = (document.previews ?? []).filter((src) => OWN_UPLOAD.test(src))
-  const [sheet = null, ...rest] = images
-  const thumbs = sheet ? rest.slice(0, 2).map((src, index) => ({ src, page: index + 2, href: `${file}#page=${index + 2}` })) : []
-  const shown = sheet ? 1 + thumbs.length : 0
-  const morePages = document.pageCount && document.pageCount > shown && shown ? document.pageCount - shown : 0
-  return {
-    mode: sheet ? 'sheet' : 'placeholder',
-    sheet,
-    thumbs,
-    file,
-    downloadName,
-    facts: documentFacts({ pageCount: document.pageCount, fileSize: document.fileSize }),
-    morePages,
-  }
+  const known = document.pageCount && document.pageCount > 0 ? document.pageCount : 0
+  if (!file) return { mode: 'request', pages: [], pageCount: known, more: false, sheets: 0, file: null, downloadName, facts: '' }
+  const pages = (document.previews ?? []).filter((src) => OWN_UPLOAD.test(src)).slice(0, MAX_PREVIEW_PAGES)
+  const facts = documentFacts({ pageCount: document.pageCount, fileSize: document.fileSize })
+  if (!pages.length) return { mode: 'placeholder', pages, pageCount: known, more: false, sheets: 1, file, downloadName, facts }
+  const pageCount = Math.max(known, pages.length)
+  const more = pageCount > pages.length
+  return { mode: 'pages', pages, pageCount, more, sheets: pages.length + (more ? 1 : 0), file, downloadName, facts }
 }
 
 // Адрес сайта в тексте: «protect.gost.ru», «www.minstroyrf.gov.ru», «https://…/путь».
