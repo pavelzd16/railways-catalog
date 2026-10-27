@@ -10,6 +10,7 @@ export type Metadata = { title: string; description: string; socialDescription: 
 // Ниже — запасные шаблоны в том же стиле: для корзины и для того, что появится на сайте позже таблицы.
 const pages: Record<string, MetaPair> = {
   '/stati': ['Статьи о материалах ВСП: рельсы, шпалы, стрелочные переводы | ПроРельс', 'Полезные материалы о верхнем строении пути: как выбрать рельсы, шпалы, скрепления и стрелочные переводы, что проверить и что указать в заявке.'],
+  '/normativ': ['ГОСТы и нормативы на материалы ВСП: рельсы, шпалы, крепёж | ПроРельс', 'Справочник ГОСТ, ТУ и документов РЖД на рельсы, шпалы, скрепления и крановые пути: что действует, чем заменено, с файлом для скачивания.'],
   '/cart': ['Корзина — заявка на материалы | ПроРельс', 'Выбранные материалы и количество для заявки в ПроРельс. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
 const notFound: MetaPair = ['Страница не найдена | ПроРельс', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ПроРельс.']
@@ -66,6 +67,12 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     if (data.status === 404) [title, description] = notFound
     else jsonLd.push({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, description, url: data.siteUrl + canonicalPath, isPartOf: { '@type': 'WebSite', name: 'ПроРельс', url: data.siteUrl }, publisher: company })
   }
+  if (path === '/normativ') {
+    // Поиск и фильтры списка (?q=, ?razdel=, ?tip=) — варианты страницы: в индекс не пускаем, canonical остаётся на /normativ.
+    noindex ||= [...url.searchParams.keys()].some((key) => !['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'].includes(key))
+    if (data.status === 404) [title, description] = notFound
+    else jsonLd.push({ '@context': 'https://schema.org', '@type': 'CollectionPage', name: title, description, url: data.siteUrl + canonicalPath, isPartOf: { '@type': 'WebSite', name: 'ПроРельс', url: data.siteUrl }, publisher: company })
+  }
   const route = detailRoute(path)
   if (route?.kind === 'product' && data.product?.slug === route.slug) {
     const product = data.product
@@ -114,8 +121,21 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     // Хлебные крошки размечены microdata в Breadcrumbs — в JSON-LD их не дублируем.
     const faq = splitArticleBody(article.body).faq
     if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
+  } else if (route?.kind === 'normativ' && data.normativ?.slug === route.slug) {
+    const document = data.normativ
+    const documentTitle = plainText(document.title)
+    title = documentTitle.endsWith('ПроРельс') ? documentTitle : `${documentTitle} | ПроРельс`
+    description = plainText(document.description)
+    canonicalPath = `/normativ/${encodeURIComponent(document.slug)}`
+    const documentUrl = data.siteUrl + canonicalPath
+    jsonLd.push({
+      '@context': 'https://schema.org', '@type': 'Article', headline: plainText(document.h1), description, url: documentUrl, mainEntityOfPage: documentUrl,
+      datePublished: document.publishedAt, dateModified: document.updatedAt, author: company, publisher: company,
+    })
+    const faq = splitArticleBody(document.body).faq
+    if (faq.length) jsonLd.push({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
   } else if (route) {
-    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ПроРельс' : route.kind === 'article' ? 'Статья не найдена | ПроРельс' : 'Услуга не найдена | ПроРельс') : 'Загрузка страницы | ПроРельс'
+    title = data.status === 404 ? (route.kind === 'product' ? 'Товар не найден | ПроРельс' : route.kind === 'article' ? 'Статья не найдена | ПроРельс' : route.kind === 'normativ' ? 'Документ не найден | ПроРельс' : 'Услуга не найдена | ПроРельс') : 'Загрузка страницы | ПроРельс'
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ПроРельс.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ПроРельс'

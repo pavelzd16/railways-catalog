@@ -2,10 +2,11 @@ import type { Category } from '@/entities/category/model/types'
 import type { ProductDetailed } from '@/entities/product/api/product.api'
 import type { Service } from '@/entities/service/model/types'
 import type { ArticleFull, ArticleListItem } from '@/entities/article/model/types'
+import type { NormDocumentFull, NormListItem } from '@/entities/normativ/model/types'
 import type { Product } from '@/entities/product/model/types'
 import type { PaginatedResponse } from '@/shared/api'
 
-export type DetailRoute = { kind: 'product' | 'service' | 'article'; slug: string }
+export type DetailRoute = { kind: 'product' | 'service' | 'article' | 'normativ'; slug: string }
 export type PageData = {
   url: string
   siteUrl: string
@@ -17,15 +18,19 @@ export type PageData = {
   service?: Service
   article?: ArticleFull
   articles?: PaginatedResponse<ArticleListItem>
+  normativ?: NormDocumentFull
+  /** Список документов раздела «ГОСТы и нормативы» (все опубликованные, без пагинации). */
+  normativList?: NormListItem[]
 }
 
 export function detailRoute(pathname: string): DetailRoute | null {
   const product = pathname.match(/^\/catalog\/[^/]+\/(?:[^/]+\/)?product\/([^/]+)\/?$/)
   const service = pathname.match(/^\/services\/([^/]+)\/?$/)
   const article = pathname.match(/^\/stati\/([^/]+)\/?$/)
-  const match = product || service || article
+  const normativ = pathname.match(/^\/normativ\/([^/]+)\/?$/)
+  const match = product || service || article || normativ
   if (!match) return null
-  try { return { kind: product ? 'product' : service ? 'service' : 'article', slug: decodeURIComponent(match[1]) } } catch { return null }
+  try { return { kind: product ? 'product' : service ? 'service' : article ? 'article' : 'normativ', slug: decodeURIComponent(match[1]) } } catch { return null }
 }
 
 /**
@@ -36,6 +41,19 @@ export function articleSlugRedirect(route: DetailRoute | null): string | null {
   if (route?.kind !== 'article') return null
   const slug = route.slug.toLowerCase()
   return slug === route.slug ? null : `/stati/${encodeURIComponent(slug)}`
+}
+
+/**
+ * Адрес раздела «ГОСТы и нормативы» в другом регистре (/Normativ/GOST-4121-96): slug в базе только [a-z0-9-].
+ * Возвращает канонический адрес для 301 до запроса к API; null — адрес уже в нижнем регистре или это не раздел.
+ */
+export function normativRedirect(pathname: string): string | null {
+  const match = pathname.match(/^\/normativ(?:\/([^/]+))?\/?$/i)
+  if (!match) return null
+  let slug = match[1]
+  if (slug !== undefined) { try { slug = decodeURIComponent(slug) } catch { return null } }
+  const canonical = '/normativ' + (slug !== undefined ? `/${encodeURIComponent(slug.toLowerCase())}` : '')
+  return canonical === pathname.replace(/\/$/, '') ? null : canonical
 }
 
 export function productPath(product: { categorySlug: string; subcategorySlug?: string; slug: string }): string {
@@ -97,5 +115,5 @@ export function articlesPage(searchParams: URLSearchParams): number {
 }
 
 export function isKnownPath(pathname: string): boolean {
-  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/stati', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
+  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/stati', '/normativ', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
 }

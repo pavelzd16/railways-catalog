@@ -1,5 +1,6 @@
 import { productQueryString } from '@/shared/lib/catalog-query';
 import { baseApi, type PaginatedResponse } from '@/shared/api';
+import type { ProductNormDoc } from '@/entities/normativ/model/types';
 import type {
   Product,
   CreateProductDto,
@@ -23,6 +24,8 @@ export interface ProductDetailed extends Product {
     categorySlug: string;
   };
   similarProducts?: Product[];
+  /** Документы справочника «ГОСТы и нормативы», чьи номера есть в строке ГОСТ товара. */
+  normDocs?: ProductNormDoc[];
 }
 
 export const productApi = {

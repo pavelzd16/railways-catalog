@@ -1,0 +1,527 @@
+/* Раздел «ГОСТы и нормативы»: общие стили шапки и текста берутся из stati.css (классы .stati-hero, .stati-html, .stati-body);
+   здесь карточка документа, список, листалка страниц в шапке и окно чтения. */
+
+/* Карточка документа в тёмной шапке: светлая плашка, чтобы читалась на тёмном фоне */
+.normativ-card {
+  background: #fff;
+  color: hsl(var(--foreground));
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+.normativ-card dt {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.normativ-card dd {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.normativ-card a:not(.normativ-btn) {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Метки: тип документа, действует / заменён */
+.normativ-chip {
+  display: inline-block;
+  border-radius: 5px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.normativ-chip--kind {
+  background: #2c3742;
+  color: #fff;
+}
+.normativ-chip--active {
+  background: #e3f4e8;
+  color: #17683a;
+}
+.normativ-chip--replaced {
+  background: #fdeccf;
+  color: #8a4b05;
+}
+.normativ-chip--cancelled {
+  background: #f1dede;
+  color: #8f1d1d;
+}
+
+/* Строка списка: название-ссылка растягивается на всю строку */
+.normativ-row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  transition: border-color 0.15s;
+}
+.normativ-row:hover,
+.normativ-row:focus-within {
+  border-color: hsl(var(--primary));
+}
+.normativ-row-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.normativ-row a:not(.normativ-row-link) {
+  position: relative;
+  z-index: 1;
+}
+
+/* Чипы фильтров */
+.normativ-filter {
+  display: inline-block;
+  border: 1px solid hsl(var(--border));
+  border-radius: 9999px;
+  padding: 0.375rem 0.875rem;
+  font-size: 13px;
+  line-height: 1.3;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.normativ-filter:hover {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+.normativ-filter[aria-pressed='true'] {
+  border-color: #151d25;
+  background: #151d25;
+  color: #fff;
+}
+
+/* Листалка документа в тёмной шапке: лист между круглыми стрелками у краёв левой колонки */
+.normativ-flipper {
+  margin-top: 2rem;
+}
+.normativ-flipper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.normativ-flipper-stage {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: center;
+  /* Вертикальная прокрутка страницы пальцем остаётся, горизонтальный жест — свайп листа */
+  touch-action: pan-y pinch-zoom;
+}
+.normativ-flipper-stage > .normativ-sheet {
+  width: 100%;
+  max-width: 300px;
+}
+@media (min-width: 640px) {
+  .normativ-flipper-stage > .normativ-sheet {
+    max-width: 340px;
+  }
+}
+@media (min-width: 1024px) {
+  .normativ-flipper-stage > .normativ-sheet {
+    max-width: 360px;
+  }
+}
+/* Полоса маленьких страниц: 5 в ряд от 1280 px, иначе 3 (число — в --strip-count); стрелки по краям колонки */
+.normativ-flipper--strip {
+  display: flex;
+  flex-direction: column;
+}
+.normativ-strip-area {
+  --arrow: 2.5rem;
+  --gap: 0.5rem;
+  --tile-gap: 0.5rem;
+  --label: 1.75rem;
+  container-type: inline-size;
+  min-width: 0;
+  /* Вертикальная прокрутка страницы пальцем остаётся, горизонтальный жест — свайп полосы */
+  touch-action: pan-y pinch-zoom;
+}
+.normativ-strip-block {
+  --tile-width: calc((100cqw - 2 * var(--arrow) - 2 * var(--gap) - (var(--strip-count) - 1) * var(--tile-gap)) / var(--strip-count));
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--gap);
+}
+.normativ-strip {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--tile-gap);
+}
+.normativ-tile {
+  display: flex;
+  width: var(--tile-width);
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+}
+.normativ-tile > .normativ-sheet {
+  width: 100%;
+}
+.normativ-tile-label {
+  margin-top: 0.375rem;
+  height: calc(var(--label) - 0.375rem);
+  font-size: 0.8125rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: #d5dce2;
+}
+.normativ-sheet--tile {
+  border-radius: 1px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 8px 18px rgba(0, 0, 0, 0.35);
+}
+.normativ-sheet--tile:hover,
+.normativ-sheet--tile:focus-visible {
+  transform: translateY(-2px);
+}
+.normativ-sheet--tile:focus-visible {
+  outline-offset: 3px;
+}
+.normativ-sheet-more--tile {
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  line-height: 1.25;
+}
+.normativ-flipper--strip .normativ-arrow {
+  height: var(--arrow);
+  width: var(--arrow);
+}
+@media (min-width: 640px) {
+  .normativ-strip-area {
+    --arrow: 3rem;
+    --gap: 0.75rem;
+    --tile-gap: 0.75rem;
+  }
+}
+@media (min-width: 1280px) {
+  .normativ-strip-area {
+    --arrow: 3.5rem;
+  }
+}
+/* На ПК полоса занимает всю свободную высоту левой колонки: низ подписи — вровень с низом карточки справа.
+   Высота страницы — от этой высоты, но не шире, чем позволяет ряд. */
+@media (min-width: 1024px) {
+  .normativ-flipper--strip {
+    flex: 1 1 auto;
+    min-height: 9rem;
+  }
+  .normativ-strip-area {
+    container-type: size;
+    position: relative;
+    /* Базис 0: иначе браузер не знает высоту контейнера для единиц cqh */
+    flex: 1 1 0;
+    min-height: 9rem;
+  }
+  .normativ-strip-block {
+    --tile-width: min(
+      calc((100cqw - 2 * var(--arrow) - 2 * var(--gap) - (var(--strip-count) - 1) * var(--tile-gap)) / var(--strip-count)),
+      calc((100cqh - var(--label)) * 210 / 297)
+    );
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+}
+
+.normativ-flipper-label {
+  margin-top: 0.875rem;
+  text-align: center;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+  color: #d5dce2;
+}
+
+/* Круглые стрелки — оранжевые, как основные кнопки сайта */
+.normativ-arrow {
+  display: inline-flex;
+  flex: none;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  transition:
+    background-color 0.15s,
+    transform 0.15s,
+    opacity 0.15s;
+}
+@media (min-width: 640px) {
+  .normativ-arrow {
+    height: 3.5rem;
+    width: 3.5rem;
+  }
+}
+@media (min-width: 1280px) {
+  .normativ-arrow {
+    height: 4.25rem;
+    width: 4.25rem;
+  }
+}
+.normativ-arrow:hover:not(:disabled) {
+  background: #e85e14;
+  transform: scale(1.05);
+}
+.normativ-arrow:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.normativ-arrow:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.normativ-arrow:disabled {
+  cursor: default;
+  opacity: 0.3;
+  box-shadow: none;
+}
+
+/* Лист страницы: белый A4 с тонкой рамкой и тенью */
+.normativ-sheet {
+  position: relative;
+  display: block;
+  aspect-ratio: 210 / 297;
+  overflow: hidden;
+  border: 1px solid #d5dbe1;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 18px 40px rgba(0, 0, 0, 0.35);
+}
+.normativ-sheet--button {
+  cursor: zoom-in;
+  padding: 0;
+  text-align: left;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.normativ-sheet--button:hover,
+.normativ-sheet--button:focus-visible {
+  transform: translateY(-3px);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.14),
+    0 24px 48px rgba(0, 0, 0, 0.42);
+}
+.normativ-sheet--button:focus-visible {
+  outline: 3px solid hsl(var(--accent));
+  outline-offset: 4px;
+}
+.normativ-sheet-img {
+  display: block;
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+  animation: normativ-fade 0.18s ease-out;
+  user-select: none;
+}
+@keyframes normativ-fade {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .normativ-sheet-img,
+  .normativ-reader-img {
+    animation: none;
+  }
+  .normativ-sheet--button,
+  .normativ-arrow {
+    transition: none;
+  }
+}
+/* Подсказка «Читать»: на ПК — при наведении, на телефоне видна всегда */
+.normativ-sheet-hint {
+  position: absolute;
+  right: 0.625rem;
+  bottom: 0.625rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 6px;
+  background: rgba(21, 29, 37, 0.86);
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fff;
+  transition: opacity 0.2s;
+}
+@media (hover: hover) {
+  .normativ-sheet-hint {
+    opacity: 0;
+  }
+  .normativ-sheet--button:hover .normativ-sheet-hint,
+  .normativ-sheet--button:focus-visible .normativ-sheet-hint {
+    opacity: 1;
+  }
+}
+/* Лист-заглушка (картинок страниц нет) и лист «Дальше — в PDF-файле» */
+.normativ-sheet-blank,
+.normativ-sheet-more {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  border-top: 6px solid hsl(var(--primary));
+  padding: 12% 11% 9%;
+}
+.normativ-sheet-more {
+  justify-content: center;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+
+/* Окно чтения: тёмная подложка во весь экран, страница крупно */
+.normativ-reader {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: #0e141a;
+  color: #fff;
+  outline: none;
+}
+.normativ-reader-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1rem;
+  height: 3.5rem;
+  padding: 0 0.5rem 0 1rem;
+  background: #151d25;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.9375rem;
+}
+.normativ-reader-bar > p:first-child {
+  flex: 1 1 auto;
+}
+.normativ-reader-tool {
+  display: inline-flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #fff;
+  transition: background-color 0.15s;
+}
+.normativ-reader-tool:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.normativ-reader-tool:focus-visible {
+  outline: 3px solid hsl(var(--accent));
+  outline-offset: 1px;
+}
+.normativ-reader-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y pinch-zoom;
+  /* Снизу — место под стрелки на телефоне */
+  padding: 0 0 5.5rem;
+}
+.normativ-reader-page {
+  display: flex;
+  min-height: 100%;
+  align-items: flex-start;
+  /* safe — увеличенная страница шире окна прокручивается от левого края, а не обрезается */
+  justify-content: safe center;
+}
+.normativ-reader-img {
+  display: block;
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: normativ-fade 0.18s ease-out;
+  cursor: zoom-in;
+  user-select: none;
+}
+/* «Крупнее»: до натуральных 1400 px, на телефоне — в 2,5 раза шире экрана; прокрутка во все стороны */
+.normativ-reader--zoomed .normativ-reader-scroll {
+  overflow-x: auto;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+.normativ-reader--zoomed .normativ-reader-img {
+  width: min(1400px, 250%);
+  max-width: none;
+  flex: none;
+  cursor: zoom-out;
+}
+.normativ-reader-tool[aria-pressed='true'] {
+  background: rgba(255, 255, 255, 0.16);
+}
+.normativ-reader-more {
+  margin-top: 15vh;
+  width: min(100% - 2rem, 520px);
+  border-top: 6px solid hsl(var(--primary));
+  border-radius: 2px;
+  background: #fff;
+  padding: 2.5rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+}
+.normativ-reader-arrow {
+  position: fixed;
+  bottom: 1rem;
+  z-index: 1;
+}
+.normativ-reader-arrow--prev {
+  left: 1rem;
+}
+.normativ-reader-arrow--next {
+  right: 1rem;
+}
+@media (min-width: 768px) {
+  .normativ-reader-scroll {
+    padding: 1.5rem 6.5rem 2.5rem;
+  }
+  .normativ-reader-arrow {
+    top: calc(50% + 1.75rem);
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+  .normativ-reader-arrow:hover:not(:disabled) {
+    transform: translateY(-50%) scale(1.05);
+  }
+  .normativ-reader-arrow:active:not(:disabled) {
+    transform: translateY(-50%) scale(0.95);
+  }
+  .normativ-reader-arrow--prev {
+    left: 1.5rem;
+  }
+  .normativ-reader-arrow--next {
+    right: 1.5rem;
+  }
+}
