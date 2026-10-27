@@ -85,15 +85,16 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     // Хлебные крошки уже размечены microdata в Breadcrumbs — здесь только сам товар.
     const condition = { new: 'https://schema.org/NewCondition', used: 'https://schema.org/UsedCondition' }[product.condition as string]
     const properties = [...(product.gost ? [{ '@type': 'PropertyValue', name: 'ГОСТ', value: plainText(product.gost) }] : []), ...(product.specs ?? []).filter((spec) => !product.gost || plainText(spec.label).toLocaleLowerCase('ru') !== 'гост').map((spec) => ({ '@type': 'PropertyValue', name: plainText(spec.label), value: plainText(spec.value), ...(plainText(spec.unit) ? { unitText: plainText(spec.unit) } : {}) }))].filter((item) => item.name && item.value)
-    jsonLd.push({
+    // Product без offers/review/aggregateRating Яндекс Вебмастер и Google считают критической ошибкой, а Offer без цены — тоже ошибка.
+    // Отзывов и рейтинга у нас нет, поэтому товар без цены идёт без разметки Product (FAQ и крошки остаются).
+    if (product.price && product.price > 0) jsonLd.push({
       '@context': 'https://schema.org', '@type': 'Product', name: productTitle, sku: product.sku, url: data.siteUrl + canonicalPath,
       ...(productText ? { description: productText } : {}),
       ...(product.images.length ? { image: product.images.map((item) => new URL(item, data.siteUrl).href) } : {}),
       ...(product.category?.name ? { category: [product.category.name, product.subcategory?.name].filter(Boolean).map(plainText).join(' / ') } : {}),
       ...(condition ? { itemCondition: condition } : {}),
       ...(properties.length ? { additionalProperty: properties } : {}),
-      // Цены на сайте пока не заполнены; предложение без цены поисковики считают ошибкой, поэтому только при цене.
-      ...(product.price && product.price > 0 ? { offers: { '@type': 'Offer', price: product.price, priceCurrency: 'RUB', availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder', url: data.siteUrl + canonicalPath, ...(condition ? { itemCondition: condition } : {}), seller: company } } : {}),
+      offers: { '@type': 'Offer', price: product.price, priceCurrency: 'RUB', availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder', url: data.siteUrl + canonicalPath, ...(condition ? { itemCondition: condition } : {}), seller: company },
     })
     // Те же пары, что в блоке «Частые вопросы» карточки: одна функция на оба места, разойтись им негде.
     const faq = buildProductFaq(product)
