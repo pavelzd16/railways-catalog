@@ -66,6 +66,8 @@ export interface NormDocumentFull {
   relatedProducts: NormProduct[]
   services: ArticleService[]
   replacedByDoc: { slug: string; code: string } | null
+  /** Опубликованные документы, которые этот заменил (старые версии). Старый API поля не отдаёт. */
+  replaces?: { code: string; slug: string }[]
 }
 
 /** Документ справочника, найденный в строке ГОСТ товара (поле normDocs ответа GET /api/product/:slug). */

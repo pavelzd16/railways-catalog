@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { Link } from 'react-router'
 import { FiDownload, FiExternalLink, FiFileText } from 'react-icons/fi'
 import type { NormDocumentFull } from '@/entities/normativ/model/types'
@@ -57,6 +58,19 @@ export function NormDocumentCard({
               ) : (
                 document.replacedBy
               )}
+            </dd>
+          </div>
+        )}
+        {document.replaces && document.replaces.length > 0 && (
+          <div>
+            <dt>Заменил</dt>
+            <dd>
+              {document.replaces.map((old, index) => (
+                <Fragment key={old.slug}>
+                  {index > 0 && ', '}
+                  <Link to={`/normativ/${encodeURIComponent(old.slug)}`}>{old.code}</Link>
+                </Fragment>
+              ))}
             </dd>
           </div>
         )}
