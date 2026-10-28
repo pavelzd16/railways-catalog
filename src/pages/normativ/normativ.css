@@ -205,6 +205,12 @@
   height: var(--arrow);
   width: var(--arrow);
 }
+/* Телефон: запускалка чата (50 px, 14 px от края) стоит там, где правая стрелка полосы; стрелку отодвигаем влево */
+@media (max-width: 767px) {
+  .normativ-strip-area {
+    padding-right: 3.25rem;
+  }
+}
 @media (min-width: 640px) {
   .normativ-strip-area {
     --arrow: 3rem;
@@ -502,6 +508,12 @@
 }
 .normativ-reader-arrow--next {
   right: 1rem;
+}
+/* Телефон: в правом нижнем углу запускалка чата - обе стрелки окна чтения поднимаем над ней */
+@media (max-width: 767px) {
+  .normativ-reader-arrow {
+    bottom: 5.5rem;
+  }
 }
 @media (min-width: 768px) {
   .normativ-reader-scroll {

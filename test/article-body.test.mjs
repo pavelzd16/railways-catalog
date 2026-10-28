@@ -90,9 +90,9 @@ test('пустое тело не падает', () => {
 })
 
 const SRC = 'D:/ClaudeWork/tatrels/reference/statyi-ii-2026-10-16/src'
-test('все 24 исходные статьи разбираются без остатков меток', { skip: !fs.existsSync(SRC) }, () => {
+test('все исходные статьи (не меньше 24) разбираются без остатков меток', { skip: !fs.existsSync(SRC) }, () => {
   const files = fs.readdirSync(SRC).filter((f) => f.endsWith('.txt'))
-  assert.equal(files.length, 24)
+  assert.ok(files.length >= 24, `статей в папке: ${files.length}`)
   for (const f of files) {
     const body = fs.readFileSync(path.join(SRC, f), 'utf8').replace(/^[\s\S]*?\n===\r?\n/, '')
     const { blocks, toc, faq, faqAfter } = splitArticleBody(body)

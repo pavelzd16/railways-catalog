@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import { FiBookOpen, FiSearch } from 'react-icons/fi'
 import { Layout } from '@/widgets/Layout'
 import { normativApi } from '@/entities/normativ/api/normativ.api'
 import type { NormListItem } from '@/entities/normativ/model/types'
 import { normalizeCode } from '@/entities/normativ/lib/norm-code'
-import { filterNorms, kindGroupsWithDocs, sectionsWithDocs } from '@/entities/normativ/lib/norm-filter'
+import { filterNorms, filtersUrl, kindGroupsWithDocs, readFilters, sectionsWithDocs, type ListFilters as Filters } from '@/entities/normativ/lib/norm-filter'
 import { KIND_GROUPS, formatIntroducedAt, kindLabel } from '@/entities/normativ/lib/norm-labels'
 import { useCategoryData, usePageData } from '@/shared/seo/page-context'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
@@ -36,27 +36,20 @@ function useNormativList() {
   return { list, error: data.status >= 500 || (!!fetched.failed && !list) }
 }
 
-type Filters = { q: string; razdel: string; tip: string }
-
-function readFilters(search: string): Filters {
-  const params = new URLSearchParams(search)
-  return { q: params.get('q') ?? '', razdel: params.get('razdel') ?? '', tip: params.get('tip') ?? '' }
-}
-
-/** Адрес списка с фильтрами: ?q=…&razdel=…&tip=…; пустые параметры не пишутся. */
-function filtersUrl(filters: Filters): string {
-  const params = new URLSearchParams()
-  if (filters.q.trim()) params.set('q', filters.q)
-  if (filters.razdel) params.set('razdel', filters.razdel)
-  if (filters.tip) params.set('tip', filters.tip)
-  return '/normativ' + (params.size ? `?${params}` : '')
-}
-
 export function NormativListPage() {
-  const { search } = useLocation()
+  const { search, key } = useLocation()
   const { list, error } = useNormativList()
   const { categories } = useCategoryData()
   const [filters, setFilters] = useState<Filters>(() => readFilters(search))
+
+  // Новый переход (ссылка «ГОСТы и нормативы» в подвале) читает фильтры из адреса заново: адрес без параметров = чистый список.
+  // Свои правки фильтров адрес меняют через replaceState мимо роутера, key при этом не меняется.
+  const lastKey = useRef(key)
+  useEffect(() => {
+    if (lastKey.current === key) return
+    lastKey.current = key
+    setFilters(readFilters(search))
+  }, [key, search])
 
   // Поиск и фильтры работают в браузере. Адрес обновляем без перехода по роутеру: иначе данные страницы
   // сбросились бы на каждую букву. Состояние истории роутера сохраняем как было.

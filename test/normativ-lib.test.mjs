@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { filterNorms, sectionsWithDocs, kindGroupsWithDocs } from '../src/entities/normativ/lib/norm-filter.ts'
+import { filterNorms, sectionsWithDocs, kindGroupsWithDocs, readFilters, filtersUrl } from '../src/entities/normativ/lib/norm-filter.ts'
 import { formatIntroducedAt, formatFileSize, kindLabel, statusLabel, kindGroupOf, safeHttpUrl } from '../src/entities/normativ/lib/norm-labels.ts'
 
 const item = (over) => ({ slug: 'x', code: 'X', name: 'Y', kind: 'gost', status: 'active', replacedBy: null, introducedAt: null, scope: '', sections: [], hasFile: true, updatedAt: '2026-10-23T00:00:00Z', ...over })
@@ -58,4 +58,21 @@ test('ссылка на источник: только http и https', () => {
   assert.equal(safeHttpUrl('data:text/html,x'), null)
   assert.equal(safeHttpUrl('не адрес'), null)
   assert.equal(safeHttpUrl(null), null)
+})
+
+test('readFilters: параметры адреса q, razdel, tip; нет параметров - пустые', () => {
+  assert.deepEqual(readFilters('?q=4121&razdel=kranovye-relsy&tip=gost'), { q: '4121', razdel: 'kranovye-relsy', tip: 'gost' })
+  assert.deepEqual(readFilters(''), { q: '', razdel: '', tip: '' })
+  assert.deepEqual(readFilters('?utm=1'), { q: '', razdel: '', tip: '' })
+})
+
+test('filtersUrl: пустые параметры не пишутся; без фильтров - чистый /normativ', () => {
+  assert.equal(filtersUrl({ q: '', razdel: '', tip: '' }), '/normativ')
+  assert.equal(filtersUrl({ q: '  ', razdel: '', tip: '' }), '/normativ')
+  assert.equal(filtersUrl({ q: '4121', razdel: '', tip: 'gost' }), '/normativ?q=4121&tip=gost')
+})
+
+test('filtersUrl и readFilters взаимно обратны', () => {
+  const f = { q: 'рельсы Р65', razdel: 'kranovye-relsy', tip: 'tu' }
+  assert.deepEqual(readFilters(filtersUrl(f).replace('/normativ', '')), f)
 })

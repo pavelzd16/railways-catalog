@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { POSITIONS_FALLBACK, positionsLabel, positionsValue, roundPositions } from '../src/shared/lib/positions-count.ts'
+import { POSITIONS_CAPTION, POSITIONS_FALLBACK, positionsLabel, positionsValue, roundPositions } from '../src/shared/lib/positions-count.ts'
 
 test('число позиций округляется вниз до сотни, чтобы «+» был правдой', () => {
   assert.equal(roundPositions(630), 600)
@@ -15,10 +15,14 @@ test('меньше сотни — вниз до десятка, совсем м�
   assert.equal(roundPositions(Number.NaN), 0)
 })
 
-test('подпись: разряды неразрывным пробелом, «позиций» после круглого числа', () => {
-  assert.equal(positionsLabel(600), '600+ позиций в наличии и\u00a0под\u00a0заказ')
-  assert.equal(positionsLabel(1200), '1\u00a0200+ позиций в наличии и\u00a0под\u00a0заказ')
-  assert.equal(positionsLabel(12000), '12\u00a0000+ позиций в наличии и\u00a0под\u00a0заказ')
+test('строка шапки: разряды неразрывным пробелом, «позиций» после круглого числа', () => {
+  assert.equal(positionsLabel(600), '600+ позиций')
+  assert.equal(positionsLabel(1200), '1\u00a0200+ позиций')
+  assert.equal(positionsLabel(12000), '12\u00a0000+ позиций')
+})
+
+test('длинная подпись вынесена отдельно', () => {
+  assert.equal(POSITIONS_CAPTION, 'позиций в наличии и под заказ')
 })
 
 test('крупная цифра первого экрана — то же число без подписи', () => {

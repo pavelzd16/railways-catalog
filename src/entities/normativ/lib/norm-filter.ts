@@ -35,3 +35,25 @@ export function kindGroupsWithDocs(items: NormListItem[]): KindGroupId[] {
   const present = new Set(items.map((item) => kindGroupOf(item.kind)))
   return KIND_GROUPS.map((group) => group.id).filter((id) => present.has(id))
 }
+
+export interface ListFilters {
+  q: string
+  razdel: string
+  tip: string
+}
+
+/** Фильтры списка из строки адреса (?q=…&razdel=…&tip=…); нет параметров - пустые. */
+export function readFilters(search: string): ListFilters {
+  const params = new URLSearchParams(search)
+  return { q: params.get('q') ?? '', razdel: params.get('razdel') ?? '', tip: params.get('tip') ?? '' }
+}
+
+/** Адрес списка с фильтрами; пустые параметры не пишутся, без фильтров - чистый /normativ. */
+export function filtersUrl(filters: ListFilters): string {
+  const params = new URLSearchParams()
+  if (filters.q.trim()) params.set('q', filters.q)
+  if (filters.razdel) params.set('razdel', filters.razdel)
+  if (filters.tip) params.set('tip', filters.tip)
+  const query = params.toString()
+  return '/normativ' + (query ? `?${query}` : '')
+}
