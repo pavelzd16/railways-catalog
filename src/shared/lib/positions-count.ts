@@ -1,28 +1,19 @@
 /**
- * Счётчик позиций в шапке: «600+ позиций».
- * Число из каталога округляется вниз — «+» тогда всегда правда.
+ * Число позиций на сайте: «700+ позиций».
+ * Задано вручную, каталог не опрашивается (решение пользователя 29.10.2026: «просто цифра»).
  */
+export const POSITIONS = 700
 
-// Пока ответ каталога не пришёл (и если он не придёт). На 28.09.2026 в каталоге 630.
-export const POSITIONS_FALLBACK = 600
+// «и под заказ» держится вместе неразрывными пробелами: на первом экране подпись
+// переносится «позиций в наличии / и под заказ».
+export const POSITIONS_CAPTION = 'позиций в наличии и под заказ'
 
-/** Вниз до сотни, до сотни не набралось — до десятка; 0 — показывать нечего. */
-export function roundPositions(total: number): number {
-  if (!Number.isFinite(total) || total < 10) return 0
-  const step = total >= 100 ? 100 : 10
-  return Math.floor(total / step) * step
+/** «700+» — крупная цифра на первом экране. Разряды — неразрывным пробелом, как пишут цены. */
+export function positionsValue(count: number = POSITIONS): string {
+  return `${String(count).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}+`
 }
 
-// Число кратно десяти, поэтому «позиций» подходит всегда. «и под заказ» держится вместе
-// неразрывными пробелами: на первом экране подпись переносится «позиций в наличии / и под заказ».
-export const POSITIONS_CAPTION = 'позиций в наличии и\u00a0под\u00a0заказ'
-
-/** «1 200+» — крупная цифра на первом экране. Разряды — неразрывным пробелом, как пишут цены. */
-export function positionsValue(count: number): string {
-  return `${String(count).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')}+`
-}
-
-/** «1 200+ позиций» — строка в шапке: полная подпись не помещается рядом с меню. */
-export function positionsLabel(count: number): string {
+/** «700+ позиций» — строка в шапке: полная подпись не помещается рядом с меню. */
+export function positionsLabel(count: number = POSITIONS): string {
   return `${positionsValue(count)} позиций`
 }

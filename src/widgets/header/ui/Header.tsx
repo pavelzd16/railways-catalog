@@ -9,7 +9,6 @@ import { useCart } from '@/entities/cart/model/use-cart'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { positionsLabel } from '@/shared/lib/positions-count'
-import { usePositionsCount } from '@/entities/product'
 import { HeaderContacts } from './HeaderContacts'
 
 const links = [
@@ -27,7 +26,6 @@ export function Header() {
   const [requestOpen, setRequestOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { totalItems } = useCart()
-  const positions = usePositionsCount()
   useEffect(() => {
     const scroll = () => {
       const scrollY = Math.max(0, window.scrollY)
@@ -71,7 +69,7 @@ export function Header() {
             {/* Счётчик ведёт в каталог; город и доставка — там, где хватает места. */}
             <div className="flex min-w-0 items-center gap-1 whitespace-nowrap">
               <Link to="/catalog" className="font-bold text-foreground hover:text-primary">
-                {positionsLabel(positions)}
+                {positionsLabel()}
               </Link>
               <span className="hidden xl:inline">· Зеленодольск · Поставки по России и СНГ</span>
             </div>
