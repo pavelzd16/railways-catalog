@@ -1,11 +1,10 @@
-import { FiDownload, FiPhone } from 'react-icons/fi'
+import { FiPhone } from 'react-icons/fi'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { StatCard } from '@/shared/ui/StatCard'
 import { Layout } from '@/widgets/Layout'
+import { Requisites } from '@/widgets/requisites/Requisites'
 
-const PARTNER_CARD_URL = '/data/Карта партнера ИНВИА1.pdf'
-const PARTNER_CARD_FILENAME = 'Карта партнера ИНВИА1.pdf'
 
 const PRODUCT_RANGE = [
   'железнодорожные рельсы',
@@ -39,29 +38,6 @@ const CLIENT_PARAGRAPHS = [
   'Помогаем подобрать необходимые материалы, сформировать поставку, согласовать сроки и организовать доставку.',
   'Наша задача — сделать закупку железнодорожных материалов максимально понятной и удобной для клиента: от заявки до получения продукции на объекте.',
   'Мы строим работу на долгосрочном сотрудничестве, ответственном отношении к обязательствам и внимании к деталям.',
-]
-
-const REQUISITES = [
-  { label: 'Бренд', value: 'Группа компаний ИНВИА', full: true },
-  { label: 'Наименование', value: 'ООО «ИНВИА»' },
-  { label: 'ИНН', value: '1648052000' },
-  { label: 'КПП', value: '164801001' },
-  { label: 'ОГРН', value: '1201600037055' },
-  {
-    label: 'Юридический/фактический адрес',
-    value:
-      '422549, Респ Татарстан, Зеленодольский р-н, г Зеленодольск, ул Московская, ЗД.4, помещ.1',
-    full: true,
-  },
-  {
-    label: 'Почтовый адрес',
-    value: '422540, г. Зеленодольск, а/я 34',
-    full: true,
-  },
-  { label: 'Расчётный счёт', value: '40702810229070006758' },
-  { label: 'Корр. счёт', value: '30101810200000000824' },
-  { label: 'Банк', value: 'ФИЛИАЛ "НИЖЕГОРОДСКИЙ" АО "АЛЬФА-БАНК"' },
-  { label: 'БИК', value: '042202824' },
 ]
 
 const STATS = [
@@ -153,7 +129,7 @@ export function AboutPage() {
           ))}
         </div>
 
-        <RequisitesBlock />
+        <Requisites titleClassName="text-2xl font-bold text-foreground" />
 
         <div className="text-center">
           <Button size="lg" className="gap-2" onClick={handleOpenRequestForm}>
@@ -179,34 +155,6 @@ function TextSection({
       <div className="space-y-4 text-muted-foreground">
         {paragraphs.map((text, index) => (
           <p key={index}>{text}</p>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function RequisitesBlock() {
-  return (
-    <div className="mb-12 rounded-xl border border-border bg-card p-6">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Реквизиты</h2>
-
-        <a
-          href={encodeURI(PARTNER_CARD_URL)}
-          download={PARTNER_CARD_FILENAME}
-          className="inline-flex items-center justify-center gap-2 rounded-lg bg-accent-gradient px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
-        >
-          <FiDownload className="h-4 w-4" />
-          Скачать реквизиты
-        </a>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-        {REQUISITES.map((req) => (
-          <div key={req.label} className={req.full ? 'md:col-span-2' : ''}>
-            <span className="text-muted-foreground">{req.label}:</span>
-            <div className="font-medium text-foreground">{req.value}</div>
-          </div>
         ))}
       </div>
     </div>
