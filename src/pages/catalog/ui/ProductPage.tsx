@@ -202,6 +202,18 @@ export function ProductPage() {
                 ))}
               </div>
             )}
+
+            {/* preload="metadata": ролик не качается, пока его не включат; #t=0.1 — первый кадр вместо чёрного окна в Safari. */}
+            {product.video && (
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                src={`${getImageUrl(product.video)}#t=0.1`}
+                aria-label={`Видео: ${product.title}`}
+                className="mt-4 w-full rounded-xl border border-border bg-muted"
+              />
+            )}
           </div>
 
           <div className="min-w-0">
