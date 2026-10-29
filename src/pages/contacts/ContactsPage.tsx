@@ -7,18 +7,15 @@ import { emailCopyGoal, type MetrikaGoal } from '@/shared/analytics/metrika'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE, tel } from '@/shared/lib/phones'
 import { Layout } from '@/widgets/Layout'
+import { Requisites } from '@/widgets/requisites/Requisites'
 import { useState } from 'react'
 import {
   FiClock,
-  FiDownload,
   FiMail,
   FiMessageCircle,
   FiPhone,
   FiFileText,
 } from 'react-icons/fi'
-
-const PARTNER_CARD_URL = '/data/Карта партнера ИНВИА1.pdf'
-const PARTNER_CARD_FILENAME = 'Карта партнера ИНВИА1.pdf'
 
 const CONTACTS = [
   {
@@ -84,29 +81,6 @@ const ADDRESSES = [
   },
 ]
 
-const REQUISITES = [
-  { label: 'Бренд', value: 'Группа компаний ИНВИА', full: true },
-  { label: 'Наименование', value: 'ООО «ИНВИА»' },
-  { label: 'ИНН', value: '1648052000' },
-  { label: 'КПП', value: '164801001' },
-  { label: 'ОГРН', value: '1201600037055' },
-  {
-    label: 'Юридический/фактический адрес',
-    value:
-      '422549, Респ Татарстан, Зеленодольский р-н, г Зеленодольск, ул Московская, ЗД.4, помещ.1',
-    full: true,
-  },
-  {
-    label: 'Почтовый адрес',
-    value: '422540, г. Зеленодольск, а/я 34',
-    full: true,
-  },
-  { label: 'Расчётный счёт', value: '40702810229070006758' },
-  { label: 'Корр. счёт', value: '30101810200000000824' },
-  { label: 'Банк', value: 'ФИЛИАЛ "НИЖЕГОРОДСКИЙ" АО "АЛЬФА-БАНК"' },
-  { label: 'БИК', value: '042202824' },
-]
-
 export function ContactsPage() {
   const breadcrumbs = [
     { label: 'Главная', href: '/' },
@@ -132,29 +106,7 @@ export function ContactsPage() {
           ))}
         </div>
 
-        <div className="mb-12 rounded-xl border border-border bg-card p-6">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="section-title">Реквизиты</h2>
-
-            <a
-              href={encodeURI(PARTNER_CARD_URL)}
-              download={PARTNER_CARD_FILENAME}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-base font-bold text-white transition-opacity hover:opacity-90"
-            >
-              <FiDownload className="h-4 w-4" />
-              Скачать реквизиты
-            </a>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
-            {REQUISITES.map((req) => (
-              <div key={req.label} className={req.full ? 'md:col-span-2' : ''}>
-                <span className="text-muted-foreground">{req.label}:</span>
-                <div className="font-medium text-foreground">{req.value}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Requisites titleClassName="section-title" />
 
         <FeedbackForm />
       </div>

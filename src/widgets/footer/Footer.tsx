@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/Button'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { PHONE_CITY, PHONE_FREE, PHONE_FREE_NOTE, PHONE_MOBILE } from '@/shared/lib/phones'
 import { catalogPath } from '@/shared/seo/route-data'
+import { PARTNER_CARD_FILENAME, PARTNER_CARD_URL } from '@/widgets/requisites/Requisites'
 const companyLinks = [
   ['Услуги', '/services'],
   ['Доставка', '/delivery'],
@@ -114,8 +115,8 @@ export function Footer() {
                 Почтовый адрес: 422540, г. Зеленодольск, а/я 34
               </p>
               <a
-                href="/data/Карта партнера ИНВИА1.pdf"
-                download
+                href={encodeURI(PARTNER_CARD_URL)}
+                download={PARTNER_CARD_FILENAME}
                 className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/30 px-3 font-bold"
               >
                 <FiDownload />
