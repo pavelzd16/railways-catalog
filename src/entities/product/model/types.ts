@@ -18,6 +18,8 @@ export interface Product {
   stock: number;
   condition: ProductCondition;
   images: string[];
+  /** Ролик в карточке: /uploads/<файл>.mp4|webm, API отдаёт null, если его нет. */
+  video?: string | null;
   categorySlug: string;
   subcategorySlug?: string;
   description?: string;
