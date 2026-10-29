@@ -1,4 +1,6 @@
 import { FiDownload } from 'react-icons/fi'
+import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { useCopy } from '@/shared/ui/use-copy'
 
 /**
  * Реквизиты ООО «ИНВИА» на страницах «О компании» и «Контакты». Данные и PDF — по карте
@@ -8,7 +10,11 @@ import { FiDownload } from 'react-icons/fi'
 export const PARTNER_CARD_URL = '/data/Карта партнера ИНВИА1.pdf'
 export const PARTNER_CARD_FILENAME = 'Карта партнера ИНВИА.pdf'
 
-type Row = { label: string; value: string }
+/**
+ * `value` из нескольких частей выводится через « / » (ИНН / КПП).
+ * `copy` — каждая часть копируется нажатием на текст или на значок рядом.
+ */
+type Row = { label: string; value: string | string[]; copy?: boolean }
 
 const GROUPS: { title: string; rows: Row[] }[] = [
   {
@@ -16,31 +22,31 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     rows: [
       { label: 'Бренд', value: 'Группа компаний ИНВИА' },
       { label: 'Наименование', value: 'ООО «ИНВИА»' },
-      { label: 'ИНН', value: '1648052000' },
-      { label: 'КПП', value: '164801001' },
-      { label: 'ОГРН', value: '1201600037055' },
+      { label: 'ИНН / КПП', value: ['1648052000', '164801001'], copy: true },
+      { label: 'ОГРН', value: '1201600037055', copy: true },
       {
         label: 'Юридический / фактический адрес',
         value:
           '422549, Республика Татарстан, Зеленодольский р-н, г. Зеленодольск, ул. Московская, зд. 4, помещ. 1',
+        copy: true,
       },
-      { label: 'Почтовый адрес', value: '422540, г. Зеленодольск, а/я 34' },
+      { label: 'Почтовый адрес', value: '422540, г. Зеленодольск, а/я 34', copy: true },
     ],
   },
   {
     title: 'Банковские реквизиты',
     rows: [
       { label: 'Банк', value: 'ФИЛИАЛ «НИЖЕГОРОДСКИЙ» АО «АЛЬФА-БАНК»' },
-      { label: 'БИК', value: '042202824' },
-      { label: 'Расчётный счёт', value: '40702810229070014216' },
-      { label: 'Корр. счёт', value: '30101810200000000824' },
+      { label: 'БИК', value: '042202824', copy: true },
+      { label: 'Расчётный счёт', value: '40702810229070014216', copy: true },
+      { label: 'Корр. счёт', value: '30101810200000000824', copy: true },
     ],
   },
   {
     title: 'ЭДО',
     rows: [
       { label: 'Оператор', value: 'СБИС Тензор' },
-      { label: 'ID участника', value: '2BEf45e6c1997934c0899e1425c5fdb485e' },
+      { label: 'ID участника', value: '2BEf45e6c1997934c0899e1425c5fdb485e', copy: true },
     ],
   },
 ]
@@ -87,10 +93,40 @@ function Group({ title, rows }: { title: string; rows: Row[] }) {
             className="grid grid-cols-1 gap-0.5 py-2.5 sm:grid-cols-[12rem_1fr] sm:gap-4"
           >
             <dt className="text-muted-foreground">{row.label}</dt>
-            <dd className="break-words font-medium text-foreground">{row.value}</dd>
+            <dd className="break-words font-medium text-foreground">
+              <RowValue row={row} />
+            </dd>
           </div>
         ))}
       </dl>
     </div>
+  )
+}
+
+function RowValue({ row }: { row: Row }) {
+  const parts = Array.isArray(row.value) ? row.value : [row.value]
+  if (!row.copy) return parts.join(' / ')
+  const labels = row.label.split(' / ')
+  return (
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {parts.map((part, index) => (
+        <span key={part} className="inline-flex items-center gap-2">
+          {index > 0 && <span className="text-muted-foreground">/</span>}
+          <CopyPart value={part} label={`Скопировать: ${labels[index] ?? row.label}`} />
+        </span>
+      ))}
+    </span>
+  )
+}
+
+function CopyPart({ value, label }: { value: string; label: string }) {
+  const state = useCopy(value)
+  return (
+    <span className="inline-flex items-center gap-1">
+      <CopyValue state={state} label={label} className="hover:text-primary">
+        {value}
+      </CopyValue>
+      <CopyButton state={state} compact label={label} className="-my-1" />
+    </span>
   )
 }
