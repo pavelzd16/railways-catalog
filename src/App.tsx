@@ -16,6 +16,7 @@ import { AdminPage } from './pages/admin'
 import { HomePage } from './pages/home/HomePage'
 import { PrivacyPage } from './pages/privacy/PrivacyPage'
 import { CalculatorPage } from './pages/calculator/CalculatorPage'
+import { FaqPage } from './pages/faq/FaqPage'
 import { ArticlesPage } from './pages/stati/ArticlesPage'
 import { ArticlePage } from './pages/stati/ArticlePage'
 import { NormativListPage } from './pages/normativ/NormativListPage'
@@ -67,6 +68,7 @@ export function App() {
         <Route path="/contacts" element={<ContactsPage />} />
         <Route path="/delivery" element={<DeliveryPage />} />
         <Route path="/calculator" element={<CalculatorPage />} />
+        <Route path="/faq" element={<FaqPage />} />
         <Route path="/stati" element={<ArticlesPage />} />
         <Route path="/stati/:slug" element={<ArticlePage />} />
         <Route path="/normativ" element={<NormativListPage />} />
