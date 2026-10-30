@@ -1,6 +1,7 @@
 import { plainText } from '../lib/plain-text.ts'
 import { PHONE_CITY, PHONE_FREE, PHONE_MOBILE } from '../lib/phones.ts'
-import { buildProductFaq } from '../lib/product-faq.ts'
+import { buildProductFaq, type FaqItem } from '../lib/product-faq.ts'
+import { SITE_FAQ } from '../lib/site-faq.ts'
 import { splitArticleBody } from '../../entities/article/lib/article-body.ts'
 import { articlesPage, catalogPath, catalogSelection, detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
 import { catalogMeta, pageMeta, type MetaPair } from './meta-traer.ts'
@@ -11,12 +12,15 @@ export type Metadata = { title: string; description: string; socialDescription: 
 const pages: Record<string, MetaPair> = {
   '/stati': ['Статьи о материалах ВСП: рельсы, шпалы, стрелочные переводы | ПроРельс', 'Полезные материалы о верхнем строении пути: как выбрать рельсы, шпалы, скрепления и стрелочные переводы, что проверить и что указать в заявке.'],
   '/normativ': ['ГОСТы и нормативы на материалы ВСП: рельсы, шпалы, крепёж | ПроРельс', 'Справочник ГОСТ, ТУ и документов РЖД на рельсы, шпалы, скрепления и крановые пути: что действует, чем заменено, с файлом для скачивания.'],
+  '/faq': ['Частые вопросы: заказ рельсов и материалов ВСП | ПроРельс', 'Где заказать рельсы, шпалы, стрелочные переводы и путевой крепёж ПроРельс с доставкой по России и СНГ: ассортимент, адрес склада, телефоны и почта отдела продаж.'],
   '/cart': ['Корзина — заявка на материалы | ПроРельс', 'Выбранные материалы и количество для заявки в ПроРельс. Укажите контакты, чтобы согласовать стоимость и поставку.'],
 }
 const notFound: MetaPair = ['Страница не найдена | ПроРельс', 'Страница не найдена. Перейдите в каталог материалов или свяжитесь с ПроРельс.']
 
 // Бренд в title/description — ПроРельс (с 19.10.2026, таблица мета-тегов); организация в разметке — юрлицо ООО «ИНВИА».
 const company = { '@type': 'Organization', name: 'ИНВИА', legalName: 'ООО «ИНВИА»', taxID: '1648052000' }
+
+const faqPage = (faq: FaqItem[]) => ({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map((item) => ({ '@type': 'Question', name: item.question, acceptedAnswer: { '@type': 'Answer', text: item.answer } })) })
 
 const summary = (value: string) => { const text = plainText(value); return text.length <= 170 ? text : text.slice(0, 167).replace(/\s+\S*$/, '') + '…' }
 
@@ -139,6 +143,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
     description = data.status >= 500 ? 'Не удалось загрузить данные. Повторите попытку позже.' : 'Каталог материалов и услуг ПроРельс.'
   }
   if (data.status >= 500) title = 'Страница временно недоступна | ПроРельс'
+  if (path === '/faq' && data.status < 400) jsonLd.push(faqPage(SITE_FAQ))
   if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: [PHONE_FREE, PHONE_CITY, PHONE_MOBILE].filter(Boolean), email: 'zakaz@prorelsa.ru' })
   const socialDescription = summary(description)
   return { title, description: socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }

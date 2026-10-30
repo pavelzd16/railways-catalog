@@ -115,5 +115,5 @@ export function articlesPage(searchParams: URLSearchParams): number {
 }
 
 export function isKnownPath(pathname: string): boolean {
-  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/stati', '/normativ', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
+  return !!detailRoute(pathname) || !!catalogSelection(pathname) || ['/', '/catalog', '/services', '/about', '/contacts', '/delivery', '/calculator', '/faq', '/stati', '/normativ', '/privacy', '/cart', '/admin'].includes(pathname) || pathname.startsWith('/admin/')
 }
