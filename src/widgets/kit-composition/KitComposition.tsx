@@ -136,29 +136,31 @@ export function KitComposition({ kit }: { kit: Kit }) {
         Каждая деталь есть в каталоге и отдельно — по ссылке в таблице, если нужно доукомплектовать узлы.
       </p>
 
-      {/* На телефоне разрез шире экрана и прокручивается: целиком в 360 px номера деталей не прочесть. */}
-      <figure className="mb-6 max-w-3xl rounded-lg border border-border bg-card p-4">
-        <div className="overflow-x-auto">
-          <Kb65Scheme names={names} active={active} hovered={hovered} onHover={setHovered} onPick={pick} />
-        </div>
-        <figcaption className="mt-2 text-sm text-muted-foreground">
-          Узел КБ-65, разрез А-А. Наведите на номер — появится название детали, нажмите — покажем её в таблице.
-        </figcaption>
-      </figure>
+      {/* Разрез и вид/план — рядом на одном уровне; на телефоне друг под другом, разрез шире экрана и прокручивается. */}
+      <div className="mb-8 grid items-start gap-4 lg:grid-cols-2">
+        <figure className="min-w-0 rounded-lg border border-border bg-card p-4">
+          <div className="overflow-x-auto">
+            <Kb65Scheme names={names} active={active} hovered={hovered} onHover={setHovered} onPick={pick} />
+          </div>
+          <figcaption className="mt-2 text-sm text-muted-foreground">
+            Узел КБ-65, разрез А-А. Наведите на номер — появится название детали, нажмите — покажем её в таблице.
+          </figcaption>
+        </figure>
 
-      <figure className="mb-8 max-w-3xl rounded-lg border border-border bg-card p-4">
-        <img
-          src={PLAN.src}
-          width={PLAN.w}
-          height={PLAN.h}
-          loading="lazy"
-          alt="Скрепление КБ-65 на трёх железобетонных шпалах у рельсового стыка: вид сбоку и план, расстояние между стыковыми шпалами 420 мм"
-          className="block h-auto w-full"
-        />
-        <figcaption className="mt-2 text-sm text-muted-foreground">
-          Узлы КБ-65 у рельсового стыка: вид сбоку и план. Разрез А-А — по средней шпале.
-        </figcaption>
-      </figure>
+        <figure className="min-w-0 rounded-lg border border-border bg-card p-4">
+          <img
+            src={PLAN.src}
+            width={PLAN.w}
+            height={PLAN.h}
+            loading="lazy"
+            alt="Скрепление КБ-65 на трёх железобетонных шпалах у рельсового стыка: вид сбоку и план, расстояние между стыковыми шпалами 420 мм"
+            className="block h-auto w-full"
+          />
+          <figcaption className="mt-2 text-sm text-muted-foreground">
+            Узлы КБ-65 у рельсового стыка: вид сбоку и план. Разрез А-А — по средней шпале.
+          </figcaption>
+        </figure>
+      </div>
 
       <div className="max-w-4xl overflow-x-auto rounded-lg border border-border bg-card">
         <table className="w-full text-left text-sm">
