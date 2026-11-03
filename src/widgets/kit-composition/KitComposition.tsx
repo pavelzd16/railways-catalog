@@ -5,25 +5,25 @@ import { kitMassKg, type Kit, type KitPart } from '@/shared/lib/kit-composition'
 
 const decimal = (value: number) => (Number.isInteger(value) ? value.toFixed(1) : String(value)).replace('.', ',')
 
-/** Разрез А-А узла КБ-65 (895×783 px); в копии исправлен размер между закладными болтами: 310 мм, а не 620. */
-const SCHEME = { src: '/schemes/kb-65-uzel-razrez-a-a.webp', w: 895, h: 783 }
+/** Разрез А–А узла КБ-65: своя обводка черт. 77 (МПС, 1995). */
+const SCHEME = { src: '/schemes/kb-65-uzel-razrez-a-a.svg', w: 1160, h: 980 }
 
-/** Те же узлы на трёх шпалах у стыка: вид сбоку и план (800×676 px). */
-const PLAN = { src: '/schemes/kb-65-uzel-vid-plan.webp', w: 800, h: 676 }
+/** Те же узлы на трёх шпалах у стыка: вид сбоку и план (1450×1115 единиц viewBox). */
+const PLAN = { src: '/schemes/kb-65-uzel-vid-plan.svg', w: 1450, h: 1115 }
 
-/** Номера позиций, напечатанные на разрезе, в пикселях картинки; 11 — рельс, на картинке без номера. */
+/** Центры позиций в единицах viewBox: 1–10 — у выносок, 11 — на головке рельса. */
 const CALLOUTS = [
-  { n: 1, x: 87, y: 350 },
-  { n: 2, x: 200, y: 285 },
-  { n: 3, x: 234, y: 207 },
-  { n: 4, x: 656, y: 188 },
-  { n: 5, x: 679, y: 237 },
-  { n: 6, x: 693, y: 285 },
-  { n: 7, x: 727, y: 299 },
-  { n: 8, x: 760, y: 315 },
-  { n: 9, x: 793, y: 327 },
-  { n: 10, x: 305, y: 516 },
-  { n: 11, x: 445, y: 150 },
+  { n: 1, x: 94, y: 210 },
+  { n: 2, x: 237, y: 213 },
+  { n: 3, x: 308, y: 215 },
+  { n: 4, x: 846, y: 233 },
+  { n: 5, x: 921, y: 233 },
+  { n: 6, x: 971, y: 233 },
+  { n: 7, x: 1035, y: 288 },
+  { n: 8, x: 1075, y: 290 },
+  { n: 9, x: 1110, y: 291 },
+  { n: 10, x: 393, y: 594 },
+  { n: 11, x: 604, y: 120 },
 ]
 
 type CalloutPos = (typeof CALLOUTS)[number]
@@ -33,13 +33,13 @@ const left = (callout: CalloutPos) => `${(callout.x / SCHEME.w) * 100}%`
 const top = (callout: CalloutPos) => `${(callout.y / SCHEME.h) * 100}%`
 
 /** У верхнего края подсказка — под номером, иначе над ним; у боковых краёв прижата к краю, чтобы не вылезать за схему. */
-const tipBelow = (callout: CalloutPos) => callout.y < 230
+const tipBelow = (callout: CalloutPos) => callout.y / SCHEME.h < 0.26
 const tipShift = (callout: CalloutPos) =>
-  `${callout.x > 650 ? '-translate-x-[85%]' : callout.x < 200 ? '-translate-x-[15%]' : '-translate-x-1/2'} ${tipBelow(callout) ? '' : '-translate-y-full'}`
+  `${callout.x / SCHEME.w > 0.72 ? '-translate-x-[85%]' : callout.x / SCHEME.w < 0.23 ? '-translate-x-[15%]' : '-translate-x-1/2'} ${tipBelow(callout) ? '' : '-translate-y-full'}`
 
 /**
- * Разрез узла с номерами поверх напечатанных: наведение показывает название детали, нажатие — строку таблицы.
- * Размер кружков и цифр — в долях ширины картинки (cqw), чтобы на любой ширине они закрывали напечатанные номера.
+ * Разрез узла с интерактивными номерами у выносок: наведение показывает название детали, нажатие — строку таблицы.
+ * Размер кружков и цифр — в долях ширины картинки (cqw), чтобы сохранять пропорции при масштабировании.
  */
 function Kb65Scheme({ names, active, hovered, onHover, onPick }: {
   names: Map<number, string>; active: number | null; hovered: number | null
@@ -70,7 +70,7 @@ function Kb65Scheme({ names, active, hovered, onHover, onPick }: {
             event.preventDefault()
             onPick(callout.n)
           }}
-          className={`absolute flex aspect-square w-[3.6cqw] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary text-[2cqw] font-bold leading-none shadow-sm transition-colors ${
+          className={`absolute flex aspect-square w-[3cqw] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary text-[1.8cqw] font-bold leading-none shadow-sm transition-colors ${
             active === callout.n ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-primary hover:text-white'
           }`}
           style={{ left: left(callout), top: top(callout) }}
