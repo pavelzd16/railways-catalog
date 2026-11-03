@@ -5,238 +5,90 @@ import { kitMassKg, type Kit, type KitPart } from '@/shared/lib/kit-composition'
 
 const decimal = (value: number) => (Number.isInteger(value) ? value.toFixed(1) : String(value)).replace('.', ',')
 
-const LINE = '#1f2937'
-const THIN = 0.6
-const MAIN = 1.3
+/** Разрез А-А узла КБ-65 (895×783 px); в копии исправлен размер между закладными болтами: 310 мм, а не 620. */
+const SCHEME = { src: '/schemes/kb-65-uzel-razrez-a-a.webp', w: 895, h: 783 }
 
-/** Рамка схемы в мм — по ней подсказка над номером ставится в процентах ширины и высоты. */
-const VIEW = { x: -282, y: -238, w: 564, h: 425 }
+/** Те же узлы на трёх шпалах у стыка: вид сбоку и план (800×676 px). */
+const PLAN = { src: '/schemes/kb-65-uzel-vid-plan.webp', w: 800, h: 676 }
 
-/** Номера позиций: кружок (x, y) и точка выноски на детали (toX, toY). */
+/** Номера позиций, напечатанные на разрезе, в пикселях картинки; 11 — рельс, на картинке без номера. */
 const CALLOUTS = [
-  { n: 1, x: -258, y: -60, toX: -211, toY: 8 },
-  { n: 2, x: -205, y: -160, toX: -122, toY: -20 },
-  { n: 3, x: -150, y: -150, toX: -110, toY: -86 },
-  { n: 4, x: 101, y: -150, toX: 101, toY: -104 },
-  { n: 5, x: 140, y: -150, toX: 117, toY: -70 },
-  { n: 6, x: 178, y: -150, toX: 124, toY: -54 },
-  { n: 7, x: 205, y: -105, toX: 157, toY: -52 },
-  { n: 8, x: 238, y: -95, toX: 178, toY: -12 },
-  { n: 9, x: 262, y: -55, toX: 168, toY: 8 },
-  { n: 10, x: 62, y: 100, toX: 45, toY: -8 },
-  { n: 11, x: -80, y: -200, toX: -24, toY: -172 },
+  { n: 1, x: 87, y: 350 },
+  { n: 2, x: 200, y: 285 },
+  { n: 3, x: 234, y: 207 },
+  { n: 4, x: 656, y: 188 },
+  { n: 5, x: 679, y: 237 },
+  { n: 6, x: 693, y: 285 },
+  { n: 7, x: 727, y: 299 },
+  { n: 8, x: 760, y: 315 },
+  { n: 9, x: 793, y: 327 },
+  { n: 10, x: 305, y: 516 },
+  { n: 11, x: 445, y: 150 },
 ]
-
-const rowId = (pos: number) => `kit-pos-${pos}`
 
 type CalloutPos = (typeof CALLOUTS)[number]
 
+const rowId = (pos: number) => `kit-pos-${pos}`
+const left = (callout: CalloutPos) => `${(callout.x / SCHEME.w) * 100}%`
+const top = (callout: CalloutPos) => `${(callout.y / SCHEME.h) * 100}%`
+
 /** У верхнего края подсказка — под номером, иначе над ним; у боковых краёв прижата к краю, чтобы не вылезать за схему. */
-const tipBelow = (callout: CalloutPos) => callout.y < -170
+const tipBelow = (callout: CalloutPos) => callout.y < 230
 const tipShift = (callout: CalloutPos) =>
-  `${callout.x > 150 ? '-translate-x-[85%]' : callout.x < -150 ? '-translate-x-[15%]' : '-translate-x-1/2'} ${tipBelow(callout) ? '' : '-translate-y-full'}`
-
-/** Номер позиции: кружок и выноска с точкой на детали; ссылка на строку таблицы, подсвечен — залит цветом. */
-function Callout({ n, x, y, toX, toY, name, active, onHover, onPick }: {
-  n: number; x: number; y: number; toX: number; toY: number; name: string; active: boolean
-  onHover: (pos: number | null) => void; onPick: (pos: number) => void
-}) {
-  return (
-    <a
-      href={`#${rowId(n)}`}
-      aria-label={`${n} — ${name}`}
-      className="cursor-pointer outline-none"
-      onMouseEnter={() => onHover(n)}
-      onMouseLeave={() => onHover(null)}
-      onFocus={() => onHover(n)}
-      onBlur={() => onHover(null)}
-      onClick={(event) => {
-        event.preventDefault()
-        onPick(n)
-      }}
-    >
-      <line x1={toX} y1={toY} x2={x} y2={y} stroke={active ? 'hsl(var(--primary))' : LINE} strokeWidth={active ? 1.4 : THIN} />
-      <circle cx={toX} cy={toY} r={active ? 3 : 1.8} fill={active ? 'hsl(var(--primary))' : LINE} />
-      <circle cx={x} cy={y} r={active ? 14 : 12.5} fill={active ? 'hsl(var(--primary))' : '#fff'} stroke="hsl(var(--primary))" strokeWidth={1.5} />
-      <text x={x} y={y + 5.2} textAnchor="middle" fontSize={15} fontWeight={700} fill={active ? '#fff' : 'hsl(var(--primary))'}>{n}</text>
-    </a>
-  )
-}
-
-/** Гайка сбоку: три видимые грани (x — ось, y — верх). */
-function Nut({ x, y, w = 34, h = 22 }: { x: number; y: number; w?: number; h?: number }) {
-  const l = x - w / 2
-  const r = x + w / 2
-  return (
-    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
-      <path d={`M${l} ${y + 3} Q${l} ${y} ${l + 3} ${y} H${r - 3} Q${r} ${y} ${r} ${y + 3} V${y + h - 3} Q${r} ${y + h} ${r - 3} ${y + h} H${l + 3} Q${l} ${y + h} ${l} ${y + h - 3} Z`} />
-      <line x1={x - w / 4} y1={y} x2={x - w / 4} y2={y + h} strokeWidth={THIN} />
-      <line x1={x + w / 4} y1={y} x2={x + w / 4} y2={y + h} strokeWidth={THIN} />
-    </g>
-  )
-}
-
-/** Двухвитковая шайба: два витка и косой разрез (x — ось, y — верх). */
-function SpringWasher({ x, y, w = 38, h = 8 }: { x: number; y: number; w?: number; h?: number }) {
-  return (
-    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
-      <rect x={x - w / 2} y={y} width={w} height={h} />
-      <line x1={x - w / 2} y1={y + h / 2} x2={x + w / 2} y2={y + h / 2} strokeWidth={THIN} />
-      <line x1={x - 5} y1={y + h} x2={x + 5} y2={y} strokeWidth={THIN} />
-    </g>
-  )
-}
-
-/** Стержень болта М22 с фаской и резьбой сверху (x — ось). */
-function Shank({ x, top, bottom }: { x: number; top: number; bottom: number }) {
-  return (
-    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
-      <path d={`M${x - 11} ${bottom} V${top + 3} L${x - 8} ${top} H${x + 8} L${x + 11} ${top + 3} V${bottom}`} />
-      <line x1={x - 9} y1={top + 3} x2={x - 9} y2={top + 26} strokeWidth={THIN} />
-      <line x1={x + 9} y1={top + 3} x2={x + 9} y2={top + 26} strokeWidth={THIN} />
-    </g>
-  )
-}
-
-/** Профиль рельса Р65: ось x = 0, подошва на y = -11; высота 180, подошва 150, головка 75, шейка 18 мм. */
-const RAIL_P65 =
-  'M75 -11 V-22 L24 -37 Q9 -41 9 -55 V-128 Q9 -142 24 -146 L37.5 -150 V-180 Q37.5 -191 26 -191 H-26 Q-37.5 -191 -37.5 -180 V-150 L-24 -146 Q-9 -142 -9 -128 V-55 Q-9 -41 -24 -37 L-75 -22 V-11 Z'
-
-/** Подкладка КБ-65 с двумя ребордами. */
-const PLATE = 'M-185 17 H185 V-5 H128 L118 -44 H77 V-5 H-77 V-44 H-118 L-128 -5 H-185 Z'
-
-/** Клемма ПК правой стороны: пятой на реборде, носком на подошве рельса. */
-const CLAMP = [[128, -44], [128, -56], [118, -66], [70, -66], [60, -56], [60, -30], [66, -25], [76, -25], [76, -44]]
-
-/** Заливка детали: в разрезе — штриховка материала, на виде — белая. */
-const fill = (view: boolean, material: 'steel' | 'rubber' | 'concrete') => (view ? '#fff' : `url(#kb65-${material})`)
-
-/** Шпала, прокладки, подкладка и рельс — общие для обеих половин; половину отрезает clipPath. */
-function Core({ view }: { view: boolean }) {
-  return (
-    <g>
-      <path d="M-270 0 H-216 L-208 25 H208 L216 0 H270 V175 H-270 Z" fill={fill(view, 'concrete')} />
-
-      {/* 1 — прокладка под подкладку корытом по площадке, 2 — подкладка */}
-      <path d="M-216 -1 L-208 25 H208 L216 -1 H208 L201 17 H-201 L-208 -1 Z" fill={fill(view, 'rubber')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-      <path d={PLATE} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-
-      {/* 10 — подрельсовая прокладка, 11 — рельс Р65 */}
-      <rect x={-75} y={-11} width={150} height={6} fill={fill(view, 'rubber')} stroke={LINE} strokeWidth={MAIN} />
-      <path d={RAIL_P65} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-    </g>
-  )
-}
+  `${callout.x > 650 ? '-translate-x-[85%]' : callout.x < 200 ? '-translate-x-[15%]' : '-translate-x-1/2'} ${tipBelow(callout) ? '' : '-translate-y-full'}`
 
 /**
- * Половина узла: клеммный болт с клеммой и закладной болт; s = 1 справа, -1 слева.
- * view — вид снаружи: детали внутри подкладки, клеммы и шпалы не видны.
+ * Разрез узла с номерами поверх напечатанных: наведение показывает название детали, нажатие — строку таблицы.
+ * Размер кружков и цифр — в долях ширины картинки (cqw), чтобы на любой ширине они закрывали напечатанные номера.
  */
-function NodeSide({ s, view }: { s: 1 | -1; view: boolean }) {
-  const bx = 101 * s // ось клеммного болта — середина реборды
-  const ax = 155 * s // ось закладного болта: между закладными 310 мм
-  return (
-    <g>
-      {!view && (
-        <>
-          {/* паз в реборде и головка клеммного болта в нём */}
-          <rect x={bx - 14} y={-32} width={28} height={30} fill="#fff" stroke={LINE} strokeWidth={THIN} />
-          <rect x={bx - 13} y={-32} width={26} height={12} rx={2} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
-        </>
-      )}
-
-      {/* 6 — клемма */}
-      <polygon points={CLAMP.map(([x, y]) => `${x * s},${y}`).join(' ')} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-
-      {/* 4 — клеммный болт, 5 — шайба, 3 — гайка */}
-      <Shank x={bx} top={-107} bottom={view ? -74 : -20} />
-      <SpringWasher x={bx} y={-74} />
-      <Nut x={bx} y={-96} />
-
-      {!view && (
-        <>
-          {/* отверстие в шпале и закладная шайба с головкой болта */}
-          <rect x={ax - 14} y={25} width={28} height={150} fill="#fff" stroke="none" />
-          <path d={`M${ax - 14} 25 V108 M${ax + 14} 25 V108 M${ax - 20} 120 L${ax - 14} 138 V175 M${ax + 20} 120 L${ax + 14} 138 V175`} fill="none" stroke={LINE} strokeWidth={THIN} />
-          <path d={`M${ax - 32} 106 H${ax + 32} L${ax + 26} 113 H${ax - 26} Z`} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
-          <path d={`M${ax - 20} 113 H${ax + 20} L${ax + 16} 126 H${ax - 16} Z`} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
-          {/* 9 — изолирующая втулка в отверстии подкладки */}
-          <rect x={ax - 17} y={-9} width={34} height={26} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
-        </>
-      )}
-
-      {/* 8 — скоба, 7 — закладной болт с шайбой 5 и гайкой 3 */}
-      <rect x={ax - 26} y={-15} width={52} height={6} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} />
-      <Shank x={ax} top={-55} bottom={view ? -23 : 113} />
-      <SpringWasher x={ax} y={-23} />
-      <Nut x={ax} y={-45} />
-      <line x1={ax} y1={-62} x2={ax} y2={view ? 30 : 182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
-    </g>
-  )
-}
-
-/**
- * Узел КБ-65 в поперечном разрезе. Геометрия — по черт. 77 Альбома чертежей ВСП (МПС, 1995), перерисовано
- * в миллиметрах (1 единица = 1 мм); номера — позиции таблицы. Промежуточный узел, без стыковых накладок.
- */
-function Kb65Scheme({ names, active, onHover, onPick }: {
-  names: Map<number, string>; active: number | null
+function Kb65Scheme({ names, active, hovered, onHover, onPick }: {
+  names: Map<number, string>; active: number | null; hovered: number | null
   onHover: (pos: number | null) => void; onPick: (pos: number) => void
 }) {
+  const tip = CALLOUTS.find((callout) => callout.n === hovered)
   return (
-    <svg viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`} aria-labelledby="kit-scheme-title" className="block h-auto w-full">
-      <title id="kit-scheme-title">Узел скрепления КБ-65 в поперечном разрезе с номерами деталей</title>
-      <defs>
-        <pattern id="kb65-steel" width={5} height={5} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width={5} height={5} fill="#fff" />
-          <line x1={0} y1={0} x2={0} y2={5} stroke={LINE} strokeWidth={0.55} />
-        </pattern>
-        <pattern id="kb65-rubber" width={4} height={4} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect width={4} height={4} fill="#fff" />
-          <line x1={0} y1={0} x2={0} y2={4} stroke={LINE} strokeWidth={0.6} />
-          <line x1={0} y1={0} x2={4} y2={0} stroke={LINE} strokeWidth={0.6} />
-        </pattern>
-        <pattern id="kb65-concrete" width={12} height={12} patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
-          <rect width={12} height={12} fill="#fff" />
-          <line x1={0} y1={0} x2={0} y2={7} stroke="#9ca3af" strokeWidth={0.6} />
-        </pattern>
-        <clipPath id="kb65-left">
-          <rect x={-300} y={-260} width={300} height={460} />
-        </clipPath>
-        <clipPath id="kb65-right">
-          <rect x={0} y={-260} width={300} height={460} />
-        </clipPath>
-      </defs>
-
-      {/* как на черт. 77: слева — вид снаружи, справа — разрез */}
-      <g clipPath="url(#kb65-left)">
-        <Core view />
-      </g>
-      <g clipPath="url(#kb65-right)">
-        <Core view={false} />
-      </g>
-
-      {/* контур шпалы с подрельсовой площадкой глубиной 25 мм, снизу — линия обрыва */}
-      <path d="M-270 175 V0 H-216 L-208 25 H208 L216 0 H270 V175" fill="none" stroke={LINE} strokeWidth={MAIN} />
-      <path d="M-276 175 H-40 L-32 166 L-24 184 L-16 175 H276" fill="none" stroke={LINE} strokeWidth={THIN} />
-      <text x={-135} y={120} textAnchor="middle" fontSize={13} fill="#4b5563">Железобетонная шпала</text>
-      <text x={46} y={-176} fontSize={13} fill="#4b5563">Рельс Р65</text>
-
-      <NodeSide s={-1} view />
-      <NodeSide s={1} view={false} />
-
-      {/* ось рельса и размер между закладными болтами */}
-      <line x1={0} y1={-205} x2={0} y2={182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
-      <g stroke={LINE} strokeWidth={THIN} fill={LINE}>
-        <line x1={-155} y1={60} x2={155} y2={60} />
-        <path d="M-155 60 l9 -3 v6 Z M155 60 l-9 -3 v6 Z" />
-      </g>
-      <text x={-70} y={54} textAnchor="middle" fontSize={13} fill={LINE} paintOrder="stroke" stroke="#fff" strokeWidth={4}>310</text>
+    <div className="relative min-w-[520px] [container-type:inline-size]">
+      <img
+        src={SCHEME.src}
+        width={SCHEME.w}
+        height={SCHEME.h}
+        loading="lazy"
+        alt="Узел скрепления КБ-65 на железобетонной шпале, разрез А-А: подкладка, клеммы, клеммные и закладные болты, прокладки"
+        className="block h-auto w-full"
+      />
 
       {CALLOUTS.map((callout) => (
-        <Callout key={callout.n} {...callout} name={names.get(callout.n) ?? ''} active={active === callout.n} onHover={onHover} onPick={onPick} />
+        <a
+          key={callout.n}
+          href={`#${rowId(callout.n)}`}
+          aria-label={`${callout.n} — ${names.get(callout.n) ?? ''}`}
+          onMouseEnter={() => onHover(callout.n)}
+          onMouseLeave={() => onHover(null)}
+          onFocus={() => onHover(callout.n)}
+          onBlur={() => onHover(null)}
+          onClick={(event) => {
+            event.preventDefault()
+            onPick(callout.n)
+          }}
+          className={`absolute flex aspect-square w-[3.6cqw] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary text-[2cqw] font-bold leading-none shadow-sm transition-colors ${
+            active === callout.n ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-primary hover:text-white'
+          }`}
+          style={{ left: left(callout), top: top(callout) }}
+        >
+          {callout.n}
+        </a>
       ))}
-    </svg>
+
+      {tip && (
+        <div
+          role="tooltip"
+          className={`pointer-events-none absolute z-10 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg ${tipShift(tip)}`}
+          style={{ left: left(tip), top: `calc(${top(tip)} ${tipBelow(tip) ? '+' : '-'} 2.6cqw)` }}
+        >
+          {names.get(tip.n)}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -261,7 +113,6 @@ export function KitComposition({ kit }: { kit: Kit }) {
   const [hovered, setHovered] = useState<number | null>(null)
   const [picked, setPicked] = useState<number | null>(null)
   const active = hovered ?? picked
-  const tip = CALLOUTS.find((callout) => callout.n === hovered)
 
   const pick = (pos: number) => {
     setPicked(pos)
@@ -285,24 +136,27 @@ export function KitComposition({ kit }: { kit: Kit }) {
         Каждая деталь есть в каталоге и отдельно — по ссылке в таблице, если нужно доукомплектовать узлы.
       </p>
 
-      {/* На телефоне схема шире экрана и прокручивается: целиком в 360 px номера деталей не прочесть. */}
-      <figure className="mb-8 max-w-3xl rounded-lg border border-border bg-card p-4">
+      {/* На телефоне разрез шире экрана и прокручивается: целиком в 360 px номера деталей не прочесть. */}
+      <figure className="mb-6 max-w-3xl rounded-lg border border-border bg-card p-4">
         <div className="overflow-x-auto">
-          <div className="relative min-w-[440px]">
-            <Kb65Scheme names={names} active={active} onHover={setHovered} onPick={pick} />
-            {tip && (
-              <div
-                role="tooltip"
-                className={`pointer-events-none absolute z-10 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg ${tipShift(tip)}`}
-                style={{ left: `${((tip.x - VIEW.x) / VIEW.w) * 100}%`, top: `${((tip.y + (tipBelow(tip) ? 18 : -18) - VIEW.y) / VIEW.h) * 100}%` }}
-              >
-                {names.get(tip.n)}
-              </div>
-            )}
-          </div>
+          <Kb65Scheme names={names} active={active} hovered={hovered} onHover={setHovered} onPick={pick} />
         </div>
         <figcaption className="mt-2 text-sm text-muted-foreground">
-          Узел КБ-65: слева — вид, справа — разрез. Наведите на номер — появится название детали, нажмите — покажем её в таблице.
+          Узел КБ-65, разрез А-А. Наведите на номер — появится название детали, нажмите — покажем её в таблице.
+        </figcaption>
+      </figure>
+
+      <figure className="mb-8 max-w-3xl rounded-lg border border-border bg-card p-4">
+        <img
+          src={PLAN.src}
+          width={PLAN.w}
+          height={PLAN.h}
+          loading="lazy"
+          alt="Скрепление КБ-65 на трёх железобетонных шпалах у рельсового стыка: вид сбоку и план, расстояние между стыковыми шпалами 420 мм"
+          className="block h-auto w-full"
+        />
+        <figcaption className="mt-2 text-sm text-muted-foreground">
+          Узлы КБ-65 у рельсового стыка: вид сбоку и план. Разрез А-А — по средней шпале.
         </figcaption>
       </figure>
 
