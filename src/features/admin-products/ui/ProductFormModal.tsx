@@ -1,15 +1,17 @@
 // src/features/admin-products/ui/ProductFormModal.tsx
 import { useId, useMemo, useState } from 'react'
-import { FiPlus, FiTrash2, FiX } from 'react-icons/fi'
+import { FiPlus, FiTrash2 } from 'react-icons/fi'
 import type { Category } from '@/entities/category'
 import type { Subcategory } from '@/entities/subcategory'
 import type { CreateProductDto, Product, UpdateProductDto } from '@/entities/product'
-import { getImageUrl, sanitizeSlug, slugify } from '@/shared/lib'
+import { sanitizeSlug, slugify } from '@/shared/lib'
 import { Button } from '@/shared/ui/Button'
 import { Dialog } from '@/shared/ui/Dialog'
 import { Input } from '@/shared/ui/Input'
-import { MultipleImageUpload } from '@/shared/ui/MultipleImageUploads'
 import { Select } from '@/shared/ui/Select'
+import { finalImageOrder, needsUpload, retainedImages, type ImageDraft } from '../imageFrame'
+import { renderFramedImage } from '../renderFramedImage'
+import { ProductImagesField } from './ProductImagesField'
 
 interface SpecDraft {
   id: string
@@ -23,7 +25,7 @@ interface ProductFormModalProps {
   onOpenChange: (open: boolean) => void
   product?: Product | null
   onCreate: (dto: CreateProductDto, images: File[]) => Promise<Product | null>
-  onUpdate?: (id: string, dto: UpdateProductDto, images: File[]) => Promise<boolean>
+  onUpdate?: (id: string, dto: UpdateProductDto, images: File[]) => Promise<Product | null>
   categories: Category[]
 }
 
@@ -67,8 +69,7 @@ function ProductFormModalContent({
   const formId = useId()
   const descriptionId = `${formId}-description`
   const descriptionTagsId = `${formId}-description-tags`
-  const [existingImages, setExistingImages] = useState<string[]>(product?.images ?? [])
-  const [newImages, setNewImages] = useState<File[]>([])
+  const [images, setImages] = useState<ImageDraft[]>(() => (product?.images ?? []).map((url) => ({ id: crypto.randomUUID(), url })))
   const [specs, setSpecs] = useState<SpecDraft[]>(() => (product?.specs ?? []).map(spec => ({ id: crypto.randomUUID(), label: spec.label, value: String(spec.value), unit: spec.unit ?? '' })))
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -127,10 +128,6 @@ function ProductFormModalContent({
     )
   }
 
-  const handleRemoveExistingImage = (index: number) => {
-    setExistingImages((prev) => prev.filter((_, i) => i !== index))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!sku.trim() || !title.trim() || !slug.trim() || !categorySlug) {
@@ -179,11 +176,23 @@ function ProductFormModalContent({
         specs: productSpecs,
       }
 
+      const files = await Promise.all(images.filter(needsUpload).map(renderFramedImage))
+
       if (isEditMode && product && onUpdate) {
-        const saved = await onUpdate(product.id, { ...baseDto, retainedImages: existingImages }, newImages)
+        const retained = retainedImages(images)
+        const saved = await onUpdate(product.id, { ...baseDto, retainedImages: retained }, files)
         if (!saved) throw new Error('Не удалось сохранить товар. Изменения оставлены в форме. Проверьте данные и повторите попытку.')
+        // Новые файлы сервер ставит в конец — если в форме они стоят раньше, дописываем порядок вторым запросом.
+        const order = finalImageOrder(images, saved.images, retained.length)
+        if (order.some((url, index) => url !== saved.images[index])) {
+          const reordered = await onUpdate(product.id, { retainedImages: order }, [])
+          if (!reordered) {
+            setImages(order.map((url) => ({ id: crypto.randomUUID(), url })))
+            throw new Error('Товар сохранён, но порядок фото не записался. Нажмите «Сохранить» ещё раз.')
+          }
+        }
       } else {
-        const saved = await onCreate(baseDto, newImages)
+        const saved = await onCreate(baseDto, files)
         if (!saved) throw new Error('Не удалось создать товар. Проверьте данные и повторите попытку.')
       }
 
@@ -216,8 +225,7 @@ function ProductFormModalContent({
     setSubcategorySlug('')
     setDescription('')
     setDescriptionTags('')
-    setExistingImages([])
-    setNewImages([])
+    setImages([])
     setSpecs([])
     setError(null)
   }
@@ -423,44 +431,7 @@ function ProductFormModalContent({
           </div>
         </div>
 
-        {isEditMode && existingImages.length > 0 && (
-          <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
-              Текущие изображения
-            </label>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {existingImages.map((image, index) => (
-                <div
-                  key={`${image}-${index}`}
-                  className="group relative aspect-square overflow-hidden rounded-lg border border-border"
-                >
-                  <img
-                    src={getImageUrl(image)}
-                    alt={`Изображение ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    aria-label={`Удалить изображение ${index + 1}`}
-                    onClick={() => handleRemoveExistingImage(index)}
-                    disabled={isSubmitting}
-                    className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-red-500 disabled:cursor-not-allowed"
-                  >
-                    <FiX className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <MultipleImageUpload
-          value={newImages}
-          onChange={setNewImages}
-          disabled={isSubmitting}
-          label={isEditMode ? 'Добавить новые изображения' : 'Изображения'}
-          maxFiles={Math.max(0, 10 - existingImages.length)}
-        />
+        <ProductImagesField value={images} onChange={setImages} disabled={isSubmitting} />
 
         <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-3 sm:p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
