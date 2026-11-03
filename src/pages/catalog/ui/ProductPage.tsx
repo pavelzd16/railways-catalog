@@ -10,6 +10,7 @@ import {
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { priceUnitLabel } from '@/shared/lib/price-unit'
+import { kitForSku } from '@/shared/lib/kit-composition'
 import { buildProductFaq } from '@/shared/lib/product-faq'
 import { splitSpecs } from '@/shared/lib/product-specs'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
@@ -19,6 +20,7 @@ import { PriceNote } from '@/shared/ui/PriceNote'
 import { ProductImage } from '@/shared/ui/ProductImage'
 import { RequestFormModal } from '@/shared/ui/RequestFormModal'
 import { Layout } from '@/widgets/Layout'
+import { KitComposition } from '@/widgets/kit-composition/KitComposition'
 import { ProductActionBar } from '@/widgets/product-action-bar/ProductActionBar'
 import { ProductFaq } from '@/widgets/product-faq/ProductFaq'
 import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
@@ -133,6 +135,7 @@ export function ProductPage() {
     restSpecs.push({ key: '__subcategory', label: 'Подкатегория', value: product.subcategory.name })
   }
   const specRows = [...mainSpecs, ...restSpecs]
+  const kit = kitForSku(product.sku)
   // Прячем хвост, только когда под кнопкой хотя бы три строки: ради одной-двух кнопка лишняя.
   // Скрытые строки остаются в HTML — поисковики видят все характеристики.
   const specsCollapsible = restSpecs.length >= 3
@@ -366,6 +369,8 @@ export function ProductPage() {
             ))}
           </div>
         </section>
+
+        {kit && <KitComposition kit={kit} />}
 
         <section className="mb-12 border-t border-border pt-10">
           <div className="mb-5 flex items-center gap-2">
