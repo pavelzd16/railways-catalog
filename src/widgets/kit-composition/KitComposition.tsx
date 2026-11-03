@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { FiLayers } from 'react-icons/fi'
 import { Link } from 'react-router'
 import { kitMassKg, type Kit, type KitPart } from '@/shared/lib/kit-composition'
@@ -8,15 +9,57 @@ const LINE = '#1f2937'
 const THIN = 0.6
 const MAIN = 1.3
 
-/** Номер позиции: кружок и выноска с точкой на детали. */
-function Callout({ n, x, y, toX, toY }: { n: number; x: number; y: number; toX: number; toY: number }) {
+/** Рамка схемы в мм — по ней подсказка над номером ставится в процентах ширины и высоты. */
+const VIEW = { x: -282, y: -238, w: 564, h: 425 }
+
+/** Номера позиций: кружок (x, y) и точка выноски на детали (toX, toY). */
+const CALLOUTS = [
+  { n: 1, x: -258, y: -60, toX: -211, toY: 8 },
+  { n: 2, x: -205, y: -160, toX: -122, toY: -20 },
+  { n: 3, x: -150, y: -150, toX: -110, toY: -86 },
+  { n: 4, x: 101, y: -150, toX: 101, toY: -104 },
+  { n: 5, x: 140, y: -150, toX: 117, toY: -70 },
+  { n: 6, x: 178, y: -150, toX: 124, toY: -54 },
+  { n: 7, x: 205, y: -105, toX: 157, toY: -52 },
+  { n: 8, x: 238, y: -95, toX: 178, toY: -12 },
+  { n: 9, x: 262, y: -55, toX: 168, toY: 8 },
+  { n: 10, x: 62, y: 100, toX: 45, toY: -8 },
+  { n: 11, x: -80, y: -200, toX: -24, toY: -172 },
+]
+
+const rowId = (pos: number) => `kit-pos-${pos}`
+
+type CalloutPos = (typeof CALLOUTS)[number]
+
+/** У верхнего края подсказка — под номером, иначе над ним; у боковых краёв прижата к краю, чтобы не вылезать за схему. */
+const tipBelow = (callout: CalloutPos) => callout.y < -170
+const tipShift = (callout: CalloutPos) =>
+  `${callout.x > 150 ? '-translate-x-[85%]' : callout.x < -150 ? '-translate-x-[15%]' : '-translate-x-1/2'} ${tipBelow(callout) ? '' : '-translate-y-full'}`
+
+/** Номер позиции: кружок и выноска с точкой на детали; ссылка на строку таблицы, подсвечен — залит цветом. */
+function Callout({ n, x, y, toX, toY, name, active, onHover, onPick }: {
+  n: number; x: number; y: number; toX: number; toY: number; name: string; active: boolean
+  onHover: (pos: number | null) => void; onPick: (pos: number) => void
+}) {
   return (
-    <g>
-      <line x1={toX} y1={toY} x2={x} y2={y} stroke={LINE} strokeWidth={THIN} />
-      <circle cx={toX} cy={toY} r={1.8} fill={LINE} />
-      <circle cx={x} cy={y} r={12.5} fill="#fff" stroke="hsl(var(--primary))" strokeWidth={1.5} />
-      <text x={x} y={y + 5.2} textAnchor="middle" fontSize={15} fontWeight={700} fill="hsl(var(--primary))">{n}</text>
-    </g>
+    <a
+      href={`#${rowId(n)}`}
+      aria-label={`${n} — ${name}`}
+      className="cursor-pointer outline-none"
+      onMouseEnter={() => onHover(n)}
+      onMouseLeave={() => onHover(null)}
+      onFocus={() => onHover(n)}
+      onBlur={() => onHover(null)}
+      onClick={(event) => {
+        event.preventDefault()
+        onPick(n)
+      }}
+    >
+      <line x1={toX} y1={toY} x2={x} y2={y} stroke={active ? 'hsl(var(--primary))' : LINE} strokeWidth={active ? 1.4 : THIN} />
+      <circle cx={toX} cy={toY} r={active ? 3 : 1.8} fill={active ? 'hsl(var(--primary))' : LINE} />
+      <circle cx={x} cy={y} r={active ? 14 : 12.5} fill={active ? 'hsl(var(--primary))' : '#fff'} stroke="hsl(var(--primary))" strokeWidth={1.5} />
+      <text x={x} y={y + 5.2} textAnchor="middle" fontSize={15} fontWeight={700} fill={active ? '#fff' : 'hsl(var(--primary))'}>{n}</text>
+    </a>
   )
 }
 
@@ -136,9 +179,12 @@ function NodeSide({ s, view }: { s: 1 | -1; view: boolean }) {
  * Узел КБ-65 в поперечном разрезе. Геометрия — по черт. 77 Альбома чертежей ВСП (МПС, 1995), перерисовано
  * в миллиметрах (1 единица = 1 мм); номера — позиции таблицы. Промежуточный узел, без стыковых накладок.
  */
-function Kb65Scheme() {
+function Kb65Scheme({ names, active, onHover, onPick }: {
+  names: Map<number, string>; active: number | null
+  onHover: (pos: number | null) => void; onPick: (pos: number) => void
+}) {
   return (
-    <svg viewBox="-282 -238 564 425" role="img" aria-labelledby="kit-scheme-title" className="h-auto w-full min-w-[440px]">
+    <svg viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.w} ${VIEW.h}`} aria-labelledby="kit-scheme-title" className="block h-auto w-full">
       <title id="kit-scheme-title">Узел скрепления КБ-65 в поперечном разрезе с номерами деталей</title>
       <defs>
         <pattern id="kb65-steel" width={5} height={5} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
@@ -187,17 +233,9 @@ function Kb65Scheme() {
       </g>
       <text x={-70} y={54} textAnchor="middle" fontSize={13} fill={LINE} paintOrder="stroke" stroke="#fff" strokeWidth={4}>310</text>
 
-      <Callout n={1} x={-258} y={-60} toX={-211} toY={8} />
-      <Callout n={2} x={-205} y={-160} toX={-122} toY={-20} />
-      <Callout n={3} x={-150} y={-150} toX={-110} toY={-86} />
-      <Callout n={4} x={101} y={-150} toX={101} toY={-104} />
-      <Callout n={5} x={140} y={-150} toX={117} toY={-70} />
-      <Callout n={6} x={178} y={-150} toX={124} toY={-54} />
-      <Callout n={7} x={205} y={-105} toX={157} toY={-52} />
-      <Callout n={8} x={238} y={-95} toX={178} toY={-12} />
-      <Callout n={9} x={262} y={-55} toX={168} toY={8} />
-      <Callout n={10} x={62} y={100} toX={45} toY={-8} />
-      <Callout n={11} x={-80} y={-200} toX={-24} toY={-172} />
+      {CALLOUTS.map((callout) => (
+        <Callout key={callout.n} {...callout} name={names.get(callout.n) ?? ''} active={active === callout.n} onHover={onHover} onPick={onPick} />
+      ))}
     </svg>
   )
 }
@@ -218,6 +256,18 @@ function PartStandard({ part }: { part: KitPart }) {
 
 /** «Состав комплекта» в карточке комплекта скрепления: схема узла и таблица деталей со ссылками на детали и ГОСТы. */
 export function KitComposition({ kit }: { kit: Kit }) {
+  const names = new Map(kit.parts.map((part) => [part.pos, part.name]))
+  /** Номер под мышью (подсказка с названием) и выбранная нажатием позиция (подсвечена в таблице). */
+  const [hovered, setHovered] = useState<number | null>(null)
+  const [picked, setPicked] = useState<number | null>(null)
+  const active = hovered ?? picked
+  const tip = CALLOUTS.find((callout) => callout.n === hovered)
+
+  const pick = (pos: number) => {
+    setPicked(pos)
+    document.getElementById(rowId(pos))?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   return (
     <section aria-labelledby="kit-composition-title" className="mb-12 border-t border-border pt-10">
       <div className="mb-5 flex items-center gap-2">
@@ -238,10 +288,21 @@ export function KitComposition({ kit }: { kit: Kit }) {
       {/* На телефоне схема шире экрана и прокручивается: целиком в 360 px номера деталей не прочесть. */}
       <figure className="mb-8 max-w-3xl rounded-lg border border-border bg-card p-4">
         <div className="overflow-x-auto">
-          <Kb65Scheme />
+          <div className="relative min-w-[440px]">
+            <Kb65Scheme names={names} active={active} onHover={setHovered} onPick={pick} />
+            {tip && (
+              <div
+                role="tooltip"
+                className={`pointer-events-none absolute z-10 whitespace-nowrap rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg ${tipShift(tip)}`}
+                style={{ left: `${((tip.x - VIEW.x) / VIEW.w) * 100}%`, top: `${((tip.y + (tipBelow(tip) ? 18 : -18) - VIEW.y) / VIEW.h) * 100}%` }}
+              >
+                {names.get(tip.n)}
+              </div>
+            )}
+          </div>
         </div>
         <figcaption className="mt-2 text-sm text-muted-foreground">
-          Узел КБ-65: слева — вид, справа — разрез; по черт. 77 Альбома чертежей ВСП (МПС, 1995). Номера — позиции в таблице.
+          Узел КБ-65: слева — вид, справа — разрез. Наведите на номер — появится название детали, нажмите — покажем её в таблице.
         </figcaption>
       </figure>
 
@@ -259,7 +320,13 @@ export function KitComposition({ kit }: { kit: Kit }) {
 
           <tbody className="divide-y divide-border">
             {kit.parts.map((part) => (
-              <tr key={part.pos}>
+              <tr
+                key={part.pos}
+                id={rowId(part.pos)}
+                onMouseEnter={() => setHovered(part.pos)}
+                onMouseLeave={() => setHovered(null)}
+                className={`scroll-mt-24 transition-colors ${picked === part.pos ? 'bg-primary/10' : hovered === part.pos ? 'bg-muted/60' : ''}`}
+              >
                 <td className="px-3 py-3 align-top font-bold text-primary">{part.pos}</td>
                 <td className="px-3 py-3 text-foreground">
                   {part.product ? (
@@ -296,8 +363,6 @@ export function KitComposition({ kit }: { kit: Kit }) {
           </tfoot>
         </table>
       </div>
-
-      <p className="mt-3 max-w-4xl text-xs text-muted-foreground">{kit.source}</p>
     </section>
   )
 }

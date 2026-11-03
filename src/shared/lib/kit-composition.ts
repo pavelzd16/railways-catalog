@@ -29,7 +29,6 @@ export type Kit = {
   /** «на шпалу» / «на узел» — подпись к столбцу количества. */
   unitLabel: string
   parts: KitPart[]
-  source: string
 }
 
 const KB65_PARTS: KitPart[] = [
@@ -46,11 +45,9 @@ const KB65_PARTS: KitPart[] = [
   { pos: 11, name: 'Рельс Р65', perNode: 0, massKg: 0, massLabel: '64,88 на 1 м', standard: { code: 'ГОСТ Р 51685-2022', slug: 'gost-r-51685-2022' }, product: { sku: 'TM-0039', href: '/catalog/zheleznodorozhnye-relsy/magistralnye-relsy/product/relsy-zheleznodorozhnye-r-65' } },
 ]
 
-const KB65_SOURCE = 'Состав и масса деталей — по Альбому чертежей верхнего строения железнодорожного пути (МПС, 1995), табл. 20, номера позиций — по черт. 77.'
-
 const KITS: Record<string, Kit> = {
-  'TM-0890': { name: 'Состав комплекта КБ-65 на одну шпалу', nodes: 2, unitLabel: 'на шпалу', parts: KB65_PARTS, source: KB65_SOURCE },
-  'TM-0756': { name: 'Состав комплекта КБ-65 на один узел', nodes: 1, unitLabel: 'на узел', parts: KB65_PARTS, source: KB65_SOURCE },
+  'TM-0890': { name: 'Состав комплекта КБ-65 на одну шпалу', nodes: 2, unitLabel: 'на шпалу', parts: KB65_PARTS },
+  'TM-0756': { name: 'Состав комплекта КБ-65 на один узел', nodes: 1, unitLabel: 'на узел', parts: KB65_PARTS },
 }
 
 export function kitForSku(sku: string | null | undefined): Kit | undefined {
