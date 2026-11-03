@@ -4,87 +4,162 @@ import { kitMassKg, type Kit, type KitPart } from '@/shared/lib/kit-composition'
 
 const decimal = (value: number) => (Number.isInteger(value) ? value.toFixed(1) : String(value)).replace('.', ',')
 
-const STEEL = { fill: '#c3c9d0', stroke: '#4b5563' }
-const RUBBER = { fill: '#2f3437', stroke: '#1f2326' }
-const INSULATOR = { fill: '#f1dfa8', stroke: '#8a6d1c' }
+const LINE = '#1f2937'
+const THIN = 0.6
+const MAIN = 1.3
 
-/** Номер позиции на схеме: кружок и выноска от точки на детали. */
+/** Номер позиции: кружок и выноска с точкой на детали. */
 function Callout({ n, x, y, toX, toY }: { n: number; x: number; y: number; toX: number; toY: number }) {
   return (
     <g>
-      <line x1={toX} y1={toY} x2={x} y2={y} stroke="hsl(var(--primary))" strokeWidth={1.5} />
-      <circle cx={toX} cy={toY} r={2.5} fill="hsl(var(--primary))" />
-      <circle cx={x} cy={y} r={13} fill="#fff" stroke="hsl(var(--primary))" strokeWidth={2} />
-      <text x={x} y={y + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill="hsl(var(--primary))">{n}</text>
+      <line x1={toX} y1={toY} x2={x} y2={y} stroke={LINE} strokeWidth={THIN} />
+      <circle cx={toX} cy={toY} r={1.8} fill={LINE} />
+      <circle cx={x} cy={y} r={12.5} fill="#fff" stroke="hsl(var(--primary))" strokeWidth={1.5} />
+      <text x={x} y={y + 5.2} textAnchor="middle" fontSize={15} fontWeight={700} fill="hsl(var(--primary))">{n}</text>
     </g>
   )
 }
 
-/** Затяжка: гайка, шайба под ней (центр x, низ шайбы y). */
-function NutWasher({ x, y }: { x: number; y: number }) {
+/** Гайка сбоку: три видимые грани (x — ось, y — верх). */
+function Nut({ x, y, w = 34, h = 22 }: { x: number; y: number; w?: number; h?: number }) {
+  const l = x - w / 2
+  const r = x + w / 2
   return (
-    <>
-      <rect x={x - 10} y={y - 8} width={20} height={8} {...STEEL} />
-      <rect x={x - 12} y={y - 24} width={24} height={16} {...STEEL} />
-    </>
+    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
+      <path d={`M${l} ${y + 3} Q${l} ${y} ${l + 3} ${y} H${r - 3} Q${r} ${y} ${r} ${y + 3} V${y + h - 3} Q${r} ${y + h} ${r - 3} ${y + h} H${l + 3} Q${l} ${y + h} ${l} ${y + h - 3} Z`} />
+      <line x1={x - w / 4} y1={y} x2={x - w / 4} y2={y + h} strokeWidth={THIN} />
+      <line x1={x + w / 4} y1={y} x2={x + w / 4} y2={y + h} strokeWidth={THIN} />
+    </g>
   )
 }
 
-/** Узел КБ-65 в поперечном разрезе, упрощённо; номера — позиции таблицы (черт. 77 альбома). Рисунок свой. */
+/** Двухвитковая шайба: два витка и косой разрез (x — ось, y — верх). */
+function SpringWasher({ x, y, w = 38, h = 8 }: { x: number; y: number; w?: number; h?: number }) {
+  return (
+    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
+      <rect x={x - w / 2} y={y} width={w} height={h} />
+      <line x1={x - w / 2} y1={y + h / 2} x2={x + w / 2} y2={y + h / 2} strokeWidth={THIN} />
+      <line x1={x - 5} y1={y + h} x2={x + 5} y2={y} strokeWidth={THIN} />
+    </g>
+  )
+}
+
+/** Стержень болта М22 с фаской и резьбой сверху (x — ось). */
+function Shank({ x, top, bottom }: { x: number; top: number; bottom: number }) {
+  return (
+    <g fill="#fff" stroke={LINE} strokeWidth={MAIN}>
+      <path d={`M${x - 11} ${bottom} V${top + 3} L${x - 8} ${top} H${x + 8} L${x + 11} ${top + 3} V${bottom}`} />
+      <line x1={x - 9} y1={top + 3} x2={x - 9} y2={top + 26} strokeWidth={THIN} />
+      <line x1={x + 9} y1={top + 3} x2={x + 9} y2={top + 26} strokeWidth={THIN} />
+    </g>
+  )
+}
+
+/** Профиль рельса Р65: ось x = 0, подошва на y = -11; высота 180, подошва 150, головка 75, шейка 18 мм. */
+const RAIL_P65 =
+  'M75 -11 V-22 L24 -37 Q9 -41 9 -55 V-128 Q9 -142 24 -146 L37.5 -150 V-180 Q37.5 -191 26 -191 H-26 Q-37.5 -191 -37.5 -180 V-150 L-24 -146 Q-9 -142 -9 -128 V-55 Q-9 -41 -24 -37 L-75 -22 V-11 Z'
+
+/** Подкладка КБ-65 с двумя ребордами. */
+const PLATE = 'M-185 17 H185 V-5 H128 L118 -44 H77 V-5 H-77 V-44 H-118 L-128 -5 H-185 Z'
+
+/** Клемма ПК правой стороны: пятой на реборде, носком на подошве рельса. */
+const CLAMP = [[128, -44], [128, -56], [118, -66], [70, -66], [60, -56], [60, -30], [66, -25], [76, -25], [76, -44]]
+
+/** Половина узла: клеммный болт с клеммой и закладной болт со втулкой; s = 1 справа, -1 слева. */
+function NodeSide({ s }: { s: 1 | -1 }) {
+  const bx = 101 * s // ось клеммного болта — середина реборды
+  const ax = 155 * s // ось закладного болта: между закладными 310 мм
+  return (
+    <g>
+      {/* паз в реборде и головка клеммного болта в нём */}
+      <rect x={bx - 14} y={-32} width={28} height={30} fill="#fff" stroke={LINE} strokeWidth={THIN} />
+      <rect x={bx - 13} y={-32} width={26} height={12} rx={2} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+
+      {/* 6 — клемма */}
+      <polygon points={CLAMP.map(([x, y]) => `${x * s},${y}`).join(' ')} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+
+      {/* 4 — клеммный болт, 5 — шайба, 3 — гайка */}
+      <Shank x={bx} top={-107} bottom={-20} />
+      <SpringWasher x={bx} y={-74} />
+      <Nut x={bx} y={-96} />
+
+      {/* отверстие в шпале и закладная шайба с головкой болта */}
+      <rect x={ax - 14} y={25} width={28} height={150} fill="#fff" stroke="none" />
+      <path d={`M${ax - 14} 25 V108 M${ax + 14} 25 V108 M${ax - 20} 120 L${ax - 14} 138 V175 M${ax + 20} 120 L${ax + 14} 138 V175`} fill="none" stroke={LINE} strokeWidth={THIN} />
+      <path d={`M${ax - 32} 106 H${ax + 32} L${ax + 26} 113 H${ax - 26} Z`} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
+      <path d={`M${ax - 20} 113 H${ax + 20} L${ax + 16} 126 H${ax - 16} Z`} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+
+      {/* 9 — изолирующая втулка, 8 — скоба, 7 — закладной болт с шайбой 5 и гайкой 3 */}
+      <rect x={ax - 17} y={-9} width={34} height={26} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
+      <rect x={ax - 26} y={-15} width={52} height={6} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
+      <Shank x={ax} top={-55} bottom={113} />
+      <SpringWasher x={ax} y={-23} />
+      <Nut x={ax} y={-45} />
+      <line x1={ax} y1={-62} x2={ax} y2={182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
+    </g>
+  )
+}
+
+/**
+ * Узел КБ-65 в поперечном разрезе. Геометрия — по черт. 77 Альбома чертежей ВСП (МПС, 1995), перерисовано
+ * в миллиметрах (1 единица = 1 мм); номера — позиции таблицы. Промежуточный узел, без стыковых накладок.
+ */
 function Kb65Scheme() {
   return (
-    <svg viewBox="0 0 720 320" role="img" aria-labelledby="kit-scheme-title" className="h-auto w-full min-w-[520px]">
-      <title id="kit-scheme-title">Схема узла скрепления КБ-65 в разрезе с номерами деталей</title>
+    <svg viewBox="-282 -238 564 425" role="img" aria-labelledby="kit-scheme-title" className="h-auto w-full min-w-[440px]">
+      <title id="kit-scheme-title">Узел скрепления КБ-65 в поперечном разрезе с номерами деталей</title>
+      <defs>
+        <pattern id="kb65-steel" width={5} height={5} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width={5} height={5} fill="#fff" />
+          <line x1={0} y1={0} x2={0} y2={5} stroke={LINE} strokeWidth={0.55} />
+        </pattern>
+        <pattern id="kb65-rubber" width={4} height={4} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width={4} height={4} fill="#fff" />
+          <line x1={0} y1={0} x2={0} y2={4} stroke={LINE} strokeWidth={0.6} />
+          <line x1={0} y1={0} x2={4} y2={0} stroke={LINE} strokeWidth={0.6} />
+        </pattern>
+        <pattern id="kb65-concrete" width={12} height={12} patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+          <rect width={12} height={12} fill="#fff" />
+          <line x1={0} y1={0} x2={0} y2={7} stroke="#9ca3af" strokeWidth={0.6} />
+        </pattern>
+      </defs>
 
-      {/* шпала */}
-      <rect x={40} y={230} width={640} height={70} rx={4} fill="hsl(var(--muted))" stroke="#9ca3af" />
-      <text x={360} y={276} textAnchor="middle" fontSize={14} fill="#6b7280">Железобетонная шпала</text>
+      {/* шпала с подрельсовой площадкой глубиной 25 мм, снизу — линия обрыва */}
+      <path d="M-270 0 H-216 L-208 25 H208 L216 0 H270 V175 H-270 Z" fill="url(#kb65-concrete)" />
+      <path d="M-270 175 V0 H-216 L-208 25 H208 L216 0 H270 V175" fill="none" stroke={LINE} strokeWidth={MAIN} />
+      <path d="M-276 175 H-40 L-32 166 L-24 184 L-16 175 H276" fill="none" stroke={LINE} strokeWidth={THIN} />
+      <text x={-73} y={152} textAnchor="middle" fontSize={12} fill="#4b5563" paintOrder="stroke" stroke="#fff" strokeWidth={4}>Железобетонная шпала</text>
 
-      {/* закладные болты уходят в шпалу */}
-      <rect x={136} y={160} width={8} height={120} {...STEEL} />
-      <rect x={576} y={160} width={8} height={120} {...STEEL} />
-      <rect x={126} y={276} width={28} height={10} {...STEEL} strokeDasharray="3 2" />
-      <rect x={566} y={276} width={28} height={10} {...STEEL} strokeDasharray="3 2" />
+      {/* 1 — прокладка под подкладку корытом по площадке, 2 — подкладка */}
+      <path d="M-216 -1 L-208 25 H208 L216 -1 H208 L201 17 H-201 L-208 -1 Z" fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+      <path d={PLATE} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
 
-      {/* 1 — прокладка под подкладку, 2 — подкладка с ребордами */}
-      <rect x={110} y={218} width={500} height={12} {...RUBBER} />
-      <path d="M110 198 H226 V168 H256 V198 H464 V168 H494 V198 H610 V218 H110 Z" {...STEEL} />
+      {/* 10 — подрельсовая прокладка, рельс Р65 */}
+      <rect x={-75} y={-11} width={150} height={6} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
+      <path d={RAIL_P65} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+      <text x={46} y={-176} fontSize={13} fill="#4b5563">Рельс Р65</text>
 
-      {/* 9 — изолирующие втулки в отверстиях подкладки, закладные болты сквозь них */}
-      <rect x={130} y={198} width={20} height={20} {...INSULATOR} />
-      <rect x={570} y={198} width={20} height={20} {...INSULATOR} />
-      <rect x={136} y={196} width={8} height={24} {...STEEL} />
-      <rect x={576} y={196} width={8} height={24} {...STEEL} />
+      <NodeSide s={-1} />
+      <NodeSide s={1} />
 
-      {/* 8 — скобы, 5 — шайбы, 3 — гайки закладных болтов */}
-      <rect x={122} y={192} width={36} height={6} {...STEEL} />
-      <rect x={562} y={192} width={36} height={6} {...STEEL} />
-      <NutWasher x={140} y={192} />
-      <NutWasher x={580} y={192} />
+      {/* ось рельса и размер между закладными болтами */}
+      <line x1={0} y1={-205} x2={0} y2={182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
+      <g stroke={LINE} strokeWidth={THIN} fill={LINE}>
+        <line x1={-155} y1={60} x2={155} y2={60} />
+        <path d="M-155 60 l9 -3 v6 Z M155 60 l-9 -3 v6 Z" />
+      </g>
+      <text x={-70} y={54} textAnchor="middle" fontSize={13} fill={LINE} paintOrder="stroke" stroke="#fff" strokeWidth={4}>310</text>
 
-      {/* 10 — подрельсовая прокладка и рельс */}
-      <rect x={258} y={191} width={204} height={7} {...RUBBER} />
-      <path d="M258 191 H462 V182 L372 172 V62 L410 54 V20 H310 V54 L348 62 V172 L258 182 Z" fill="#d6dade" stroke="#4b5563" />
-      <text x={420} y={42} fontSize={14} fill="#6b7280">Рельс Р65</text>
-
-      {/* 4 — клеммные болты в пазах реборд, 6 — клеммы прижимают подошву рельса */}
-      <rect x={237} y={110} width={8} height={98} {...STEEL} />
-      <rect x={475} y={110} width={8} height={98} {...STEEL} />
-      <path d="M222 168 V150 H272 V181 H262 V160 H232 V168 Z" {...STEEL} />
-      <path d="M498 168 V150 H448 V181 H458 V160 H488 V168 Z" {...STEEL} />
-      <NutWasher x={241} y={150} />
-      <NutWasher x={479} y={150} />
-
-      <Callout n={1} x={655} y={205} toX={604} toY={224} />
-      <Callout n={2} x={540} y={136} toX={530} toY={204} />
-      <Callout n={3} x={74} y={150} toX={128} toY={176} />
-      <Callout n={4} x={241} y={82} toX={241} toY={112} />
-      <Callout n={5} x={74} y={184} toX={130} toY={188} />
-      <Callout n={6} x={515} y={104} toX={494} toY={156} />
-      <Callout n={7} x={140} y={82} toX={140} toY={162} />
-      <Callout n={8} x={74} y={218} toX={122} toY={195} />
-      <Callout n={9} x={100} y={262} toX={134} toY={214} />
-      <Callout n={10} x={432} y={118} toX={426} toY={194} />
+      <Callout n={1} x={-258} y={-60} toX={-211} toY={8} />
+      <Callout n={2} x={-205} y={-160} toX={-122} toY={-20} />
+      <Callout n={3} x={-150} y={-150} toX={-110} toY={-86} />
+      <Callout n={4} x={101} y={-150} toX={101} toY={-104} />
+      <Callout n={5} x={140} y={-150} toX={117} toY={-70} />
+      <Callout n={6} x={178} y={-150} toX={124} toY={-54} />
+      <Callout n={7} x={205} y={-105} toX={157} toY={-52} />
+      <Callout n={8} x={238} y={-95} toX={178} toY={-12} />
+      <Callout n={9} x={262} y={-55} toX={168} toY={8} />
+      <Callout n={10} x={-55} y={95} toX={-45} toY={-8} />
     </svg>
   )
 }
@@ -128,7 +203,7 @@ export function KitComposition({ kit }: { kit: Kit }) {
           <Kb65Scheme />
         </div>
         <figcaption className="mt-2 text-sm text-muted-foreground">
-          Узел КБ-65 в разрезе, упрощённо. Номера — позиции в таблице.
+          Поперечный разрез узла КБ-65 по черт. 77 Альбома чертежей ВСП (МПС, 1995). Номера — позиции в таблице.
         </figcaption>
       </figure>
 
