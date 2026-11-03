@@ -14,7 +14,7 @@ test('на шпалу — два узла: детали узла по табл. 
   const node = kitForSku('TM-0756')
   assert.equal(sleeper.nodes, 2)
   assert.equal(node.nodes, 1)
-  const perSleeper = Object.fromEntries(sleeper.parts.map((part) => [part.name, part.perNode * sleeper.nodes]))
+  const perSleeper = Object.fromEntries(sleeper.parts.filter((part) => part.perNode).map((part) => [part.name, part.perNode * sleeper.nodes]))
   assert.deepEqual(perSleeper, {
     'Прокладка под подкладку ЦП-328': 2,
     'Подкладка КБ-65': 2,
@@ -34,9 +34,17 @@ test('масса: узел около 12,3 кг, шпала около 24,6 кг
   assert.equal(kitMassKg(kitForSku('TM-0890')), 24.6)
 })
 
-test('позиции 1–10 по порядку, ссылки — на карточки каталога и страницы нормативов', () => {
+test('рельс Р65 — позиция 11 со ссылкой, в комплект и его массу не входит', () => {
+  const rail = kitForSku('TM-0890').parts.find((part) => part.pos === 11)
+  assert.equal(rail.name, 'Рельс Р65')
+  assert.equal(rail.perNode, 0)
+  assert.equal(rail.product.sku, 'TM-0039')
+  assert.equal(rail.standard.slug, 'gost-r-51685-2022')
+})
+
+test('позиции 1–11 по порядку, ссылки — на карточки каталога и страницы нормативов', () => {
   const kit = kitForSku('TM-0890')
-  assert.deepEqual(kit.parts.map((part) => part.pos), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  assert.deepEqual(kit.parts.map((part) => part.pos), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
   for (const part of kit.parts) {
     assert.match(part.product.sku, /^TM-\d{4}$/)
     assert.match(part.product.href, /^\/catalog\/[a-z0-9-]+(\/[a-z0-9-]+)?\/product\/[a-z0-9-]+$/)

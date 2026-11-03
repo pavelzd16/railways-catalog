@@ -9,10 +9,12 @@ export type KitPart = {
   /** Номер позиции на схеме. */
   pos: number
   name: string
-  /** Штук в одном узле. */
+  /** Штук в одном узле; 0 — показана на схеме, но в комплект не входит (рельс). */
   perNode: number
   /** Масса одной детали, кг. */
   massKg: number
+  /** Подпись массы вместо числа (у рельса — масса метра). */
+  massLabel?: string
   /** Номер стандарта текстом и адрес его страницы в /normativ, если она есть. */
   standard?: { code: string; slug?: string }
   /** Наша карточка этой детали. */
@@ -41,6 +43,7 @@ const KB65_PARTS: KitPart[] = [
   { pos: 8, name: 'Скоба ЦП-138 для изолирующей втулки', perNode: 2, massKg: 0.09, standard: { code: 'чертёж ЦП-138' }, product: { sku: 'TM-0812', href: '/catalog/zhd-krepezh/zheleznodorozhnye-shajby/product/shajba-skoba-ploskaya-cp-138' } },
   { pos: 9, name: 'Втулка изолирующая ЦП-142', perNode: 2, massKg: 0.04, standard: { code: 'ТУ 3185-024-55239716-2006', slug: 'tu-3185-024-55239716-2006' }, product: { sku: 'TM-0023', href: '/catalog/izolyatsiya-rels/vtulka-izoliruyushchaya-tsp-142/product/vtulka-izoliruyushhaya-tsp-142' } },
   { pos: 10, name: 'Прокладка подрельсовая ЦП-143', perNode: 1, massKg: 0.23, standard: { code: 'ГОСТ 34078-2017', slug: 'gost-34078-2017' }, product: { sku: 'TM-0046', href: '/catalog/prokladki-amortizatsionnye-zhd-rels/rezinovye-prokladki-dlya-zhd-rels/product/prokladka-podrelsovaya-tsp-143' } },
+  { pos: 11, name: 'Рельс Р65', perNode: 0, massKg: 0, massLabel: '64,88 на 1 м', standard: { code: 'ГОСТ Р 51685-2022', slug: 'gost-r-51685-2022' }, product: { sku: 'TM-0039', href: '/catalog/zheleznodorozhnye-relsy/magistralnye-relsy/product/relsy-zheleznodorozhnye-r-65' } },
 ]
 
 const KB65_SOURCE = 'Состав и масса деталей — по Альбому чертежей верхнего строения железнодорожного пути (МПС, 1995), табл. 20, номера позиций — по черт. 77.'

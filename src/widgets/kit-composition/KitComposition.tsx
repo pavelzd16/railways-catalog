@@ -65,37 +65,69 @@ const PLATE = 'M-185 17 H185 V-5 H128 L118 -44 H77 V-5 H-77 V-44 H-118 L-128 -5 
 /** Клемма ПК правой стороны: пятой на реборде, носком на подошве рельса. */
 const CLAMP = [[128, -44], [128, -56], [118, -66], [70, -66], [60, -56], [60, -30], [66, -25], [76, -25], [76, -44]]
 
-/** Половина узла: клеммный болт с клеммой и закладной болт со втулкой; s = 1 справа, -1 слева. */
-function NodeSide({ s }: { s: 1 | -1 }) {
+/** Заливка детали: в разрезе — штриховка материала, на виде — белая. */
+const fill = (view: boolean, material: 'steel' | 'rubber' | 'concrete') => (view ? '#fff' : `url(#kb65-${material})`)
+
+/** Шпала, прокладки, подкладка и рельс — общие для обеих половин; половину отрезает clipPath. */
+function Core({ view }: { view: boolean }) {
+  return (
+    <g>
+      <path d="M-270 0 H-216 L-208 25 H208 L216 0 H270 V175 H-270 Z" fill={fill(view, 'concrete')} />
+
+      {/* 1 — прокладка под подкладку корытом по площадке, 2 — подкладка */}
+      <path d="M-216 -1 L-208 25 H208 L216 -1 H208 L201 17 H-201 L-208 -1 Z" fill={fill(view, 'rubber')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+      <path d={PLATE} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+
+      {/* 10 — подрельсовая прокладка, 11 — рельс Р65 */}
+      <rect x={-75} y={-11} width={150} height={6} fill={fill(view, 'rubber')} stroke={LINE} strokeWidth={MAIN} />
+      <path d={RAIL_P65} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+    </g>
+  )
+}
+
+/**
+ * Половина узла: клеммный болт с клеммой и закладной болт; s = 1 справа, -1 слева.
+ * view — вид снаружи: детали внутри подкладки, клеммы и шпалы не видны.
+ */
+function NodeSide({ s, view }: { s: 1 | -1; view: boolean }) {
   const bx = 101 * s // ось клеммного болта — середина реборды
   const ax = 155 * s // ось закладного болта: между закладными 310 мм
   return (
     <g>
-      {/* паз в реборде и головка клеммного болта в нём */}
-      <rect x={bx - 14} y={-32} width={28} height={30} fill="#fff" stroke={LINE} strokeWidth={THIN} />
-      <rect x={bx - 13} y={-32} width={26} height={12} rx={2} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+      {!view && (
+        <>
+          {/* паз в реборде и головка клеммного болта в нём */}
+          <rect x={bx - 14} y={-32} width={28} height={30} fill="#fff" stroke={LINE} strokeWidth={THIN} />
+          <rect x={bx - 13} y={-32} width={26} height={12} rx={2} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+        </>
+      )}
 
       {/* 6 — клемма */}
-      <polygon points={CLAMP.map(([x, y]) => `${x * s},${y}`).join(' ')} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+      <polygon points={CLAMP.map(([x, y]) => `${x * s},${y}`).join(' ')} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
 
       {/* 4 — клеммный болт, 5 — шайба, 3 — гайка */}
-      <Shank x={bx} top={-107} bottom={-20} />
+      <Shank x={bx} top={-107} bottom={view ? -74 : -20} />
       <SpringWasher x={bx} y={-74} />
       <Nut x={bx} y={-96} />
 
-      {/* отверстие в шпале и закладная шайба с головкой болта */}
-      <rect x={ax - 14} y={25} width={28} height={150} fill="#fff" stroke="none" />
-      <path d={`M${ax - 14} 25 V108 M${ax + 14} 25 V108 M${ax - 20} 120 L${ax - 14} 138 V175 M${ax + 20} 120 L${ax + 14} 138 V175`} fill="none" stroke={LINE} strokeWidth={THIN} />
-      <path d={`M${ax - 32} 106 H${ax + 32} L${ax + 26} 113 H${ax - 26} Z`} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
-      <path d={`M${ax - 20} 113 H${ax + 20} L${ax + 16} 126 H${ax - 16} Z`} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+      {!view && (
+        <>
+          {/* отверстие в шпале и закладная шайба с головкой болта */}
+          <rect x={ax - 14} y={25} width={28} height={150} fill="#fff" stroke="none" />
+          <path d={`M${ax - 14} 25 V108 M${ax + 14} 25 V108 M${ax - 20} 120 L${ax - 14} 138 V175 M${ax + 20} 120 L${ax + 14} 138 V175`} fill="none" stroke={LINE} strokeWidth={THIN} />
+          <path d={`M${ax - 32} 106 H${ax + 32} L${ax + 26} 113 H${ax - 26} Z`} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
+          <path d={`M${ax - 20} 113 H${ax + 20} L${ax + 16} 126 H${ax - 16} Z`} fill="#fff" stroke={LINE} strokeWidth={MAIN} />
+          {/* 9 — изолирующая втулка в отверстии подкладки */}
+          <rect x={ax - 17} y={-9} width={34} height={26} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
+        </>
+      )}
 
-      {/* 9 — изолирующая втулка, 8 — скоба, 7 — закладной болт с шайбой 5 и гайкой 3 */}
-      <rect x={ax - 17} y={-9} width={34} height={26} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
-      <rect x={ax - 26} y={-15} width={52} height={6} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} />
-      <Shank x={ax} top={-55} bottom={113} />
+      {/* 8 — скоба, 7 — закладной болт с шайбой 5 и гайкой 3 */}
+      <rect x={ax - 26} y={-15} width={52} height={6} fill={fill(view, 'steel')} stroke={LINE} strokeWidth={MAIN} />
+      <Shank x={ax} top={-55} bottom={view ? -23 : 113} />
       <SpringWasher x={ax} y={-23} />
       <Nut x={ax} y={-45} />
-      <line x1={ax} y1={-62} x2={ax} y2={182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
+      <line x1={ax} y1={-62} x2={ax} y2={view ? 30 : 182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
     </g>
   )
 }
@@ -122,25 +154,30 @@ function Kb65Scheme() {
           <rect width={12} height={12} fill="#fff" />
           <line x1={0} y1={0} x2={0} y2={7} stroke="#9ca3af" strokeWidth={0.6} />
         </pattern>
+        <clipPath id="kb65-left">
+          <rect x={-300} y={-260} width={300} height={460} />
+        </clipPath>
+        <clipPath id="kb65-right">
+          <rect x={0} y={-260} width={300} height={460} />
+        </clipPath>
       </defs>
 
-      {/* шпала с подрельсовой площадкой глубиной 25 мм, снизу — линия обрыва */}
-      <path d="M-270 0 H-216 L-208 25 H208 L216 0 H270 V175 H-270 Z" fill="url(#kb65-concrete)" />
+      {/* как на черт. 77: слева — вид снаружи, справа — разрез */}
+      <g clipPath="url(#kb65-left)">
+        <Core view />
+      </g>
+      <g clipPath="url(#kb65-right)">
+        <Core view={false} />
+      </g>
+
+      {/* контур шпалы с подрельсовой площадкой глубиной 25 мм, снизу — линия обрыва */}
       <path d="M-270 175 V0 H-216 L-208 25 H208 L216 0 H270 V175" fill="none" stroke={LINE} strokeWidth={MAIN} />
       <path d="M-276 175 H-40 L-32 166 L-24 184 L-16 175 H276" fill="none" stroke={LINE} strokeWidth={THIN} />
-      <text x={-73} y={152} textAnchor="middle" fontSize={12} fill="#4b5563" paintOrder="stroke" stroke="#fff" strokeWidth={4}>Железобетонная шпала</text>
-
-      {/* 1 — прокладка под подкладку корытом по площадке, 2 — подкладка */}
-      <path d="M-216 -1 L-208 25 H208 L216 -1 H208 L201 17 H-201 L-208 -1 Z" fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-      <path d={PLATE} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
-
-      {/* 10 — подрельсовая прокладка, рельс Р65 */}
-      <rect x={-75} y={-11} width={150} height={6} fill="url(#kb65-rubber)" stroke={LINE} strokeWidth={MAIN} />
-      <path d={RAIL_P65} fill="url(#kb65-steel)" stroke={LINE} strokeWidth={MAIN} strokeLinejoin="round" />
+      <text x={-135} y={120} textAnchor="middle" fontSize={13} fill="#4b5563">Железобетонная шпала</text>
       <text x={46} y={-176} fontSize={13} fill="#4b5563">Рельс Р65</text>
 
-      <NodeSide s={-1} />
-      <NodeSide s={1} />
+      <NodeSide s={-1} view />
+      <NodeSide s={1} view={false} />
 
       {/* ось рельса и размер между закладными болтами */}
       <line x1={0} y1={-205} x2={0} y2={182} stroke={LINE} strokeWidth={THIN} strokeDasharray="14 3 2 3" />
@@ -159,7 +196,8 @@ function Kb65Scheme() {
       <Callout n={7} x={205} y={-105} toX={157} toY={-52} />
       <Callout n={8} x={238} y={-95} toX={178} toY={-12} />
       <Callout n={9} x={262} y={-55} toX={168} toY={8} />
-      <Callout n={10} x={-55} y={95} toX={-45} toY={-8} />
+      <Callout n={10} x={62} y={100} toX={45} toY={-8} />
+      <Callout n={11} x={-80} y={-200} toX={-24} toY={-172} />
     </svg>
   )
 }
@@ -203,7 +241,7 @@ export function KitComposition({ kit }: { kit: Kit }) {
           <Kb65Scheme />
         </div>
         <figcaption className="mt-2 text-sm text-muted-foreground">
-          Поперечный разрез узла КБ-65 по черт. 77 Альбома чертежей ВСП (МПС, 1995). Номера — позиции в таблице.
+          Узел КБ-65: слева — вид, справа — разрез; по черт. 77 Альбома чертежей ВСП (МПС, 1995). Номера — позиции в таблице.
         </figcaption>
       </figure>
 
@@ -234,13 +272,14 @@ export function KitComposition({ kit }: { kit: Kit }) {
                   ) : (
                     part.name
                   )}
+                  {!part.perNode && <div className="mt-1 text-xs text-muted-foreground">в комплект не входит</div>}
                   {/* На узком экране стандарт — строкой под названием, отдельный столбец не помещается. */}
                   <div className="mt-1 text-xs text-muted-foreground sm:hidden">
                     <PartStandard part={part} />
                   </div>
                 </td>
-                <td className="px-3 py-3 text-right align-top font-medium text-foreground">{part.perNode * kit.nodes}</td>
-                <td className="px-3 py-3 text-right align-top text-muted-foreground">{decimal(part.massKg)}</td>
+                <td className="px-3 py-3 text-right align-top font-medium text-foreground">{part.perNode ? part.perNode * kit.nodes : '—'}</td>
+                <td className="px-3 py-3 text-right align-top text-muted-foreground">{part.massLabel ?? decimal(part.massKg)}</td>
                 <td className="hidden px-3 py-3 align-top text-muted-foreground sm:table-cell">
                   <PartStandard part={part} />
                 </td>
