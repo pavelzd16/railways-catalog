@@ -67,16 +67,16 @@ export function useAdminProducts(filters: AdminProductsFilters = {}) {
     id: string,
     dto: UpdateProductDto,
     newImages: File[] = [],
-  ): Promise<boolean> => {
+  ): Promise<Product | null> => {
     setIsLoading(true)
     setError(null)
     try {
       const updatedProduct = await productApi.update(id, dto, newImages)
       setProducts((prev) => prev.map((p) => (p.id === id ? updatedProduct : p)))
-      return true
+      return updatedProduct
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update product')
-      return false
+      return null
     } finally {
       setIsLoading(false)
     }
