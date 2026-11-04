@@ -9,7 +9,7 @@ import type { PriceConversion } from '@/shared/lib/price-convert'
  * по ней страница находится на запросы «цена за метр», «цена за штуку».
  */
 export function PriceSwitch({ conversion }: { conversion: PriceConversion }) {
-  const { options, massPerMeter } = conversion
+  const { options, note } = conversion
   const [selectedKey, setSelectedKey] = useState(options[0].key)
   const selected = options.find((option) => option.key === selectedKey) ?? options[0]
   const others = options.filter((option) => option.key !== selected.key)
@@ -56,9 +56,7 @@ export function PriceSwitch({ conversion }: { conversion: PriceConversion }) {
           </span>
         ))}
       </p>
-      <p className="mt-1 text-xs text-muted-foreground/80">
-        Ориентировочно, по массе 1 м — {String(massPerMeter).replace('.', ',')} кг.
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground/80">{note}</p>
     </div>
   )
 }
