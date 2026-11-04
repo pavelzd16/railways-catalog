@@ -1,12 +1,35 @@
+import { useCallback, useSyncExternalStore } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { useServices } from '@/entities/service/model/hooks/useServices'
 import { getImageUrl } from '@/shared/lib'
 import { UploadImg } from '@/shared/ui/UploadImg'
+import { CarouselArrows } from '@/shared/ui/CarouselArrows'
+
+// Карточки прежнего размера — две в ряд в колонке max-w-5xl; на телефоне одна и край следующей,
+// чтобы было видно, что блок листается (решение пользователя 04.11.2026: «оставь такими же большими,
+// сделай чтобы можно было листать»). Показываем все услуги, а не первые две.
+const slideClassName = 'min-w-0 flex-[0_0_88%] pl-8 md:flex-[0_0_50%]'
 
 export function MaterialsServices() {
-  const { services, isLoading } = useServices()
-  const visibleServices = services.slice(0, 2)
+  const { services: visibleServices, isLoading } = useServices()
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', containScroll: 'trimSnaps' })
+  const subscribeToScroll = useCallback(
+    (onChange: () => void) => {
+      emblaApi?.on('select', onChange)
+      emblaApi?.on('reInit', onChange)
+      return () => {
+        emblaApi?.off('select', onChange)
+        emblaApi?.off('reInit', onChange)
+      }
+    },
+    [emblaApi],
+  )
+  const canScrollPrev = useSyncExternalStore(subscribeToScroll, () => emblaApi?.canScrollPrev() ?? false, () => false)
+  const canScrollNext = useSyncExternalStore(subscribeToScroll, () => emblaApi?.canScrollNext() ?? false, () => false)
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
   if (!isLoading && !visibleServices.length) return null
 
   return (
@@ -49,15 +72,28 @@ export function MaterialsServices() {
         )}
 
         {!isLoading && visibleServices.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {visibleServices.map((service, index) => (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15, duration: 0.5 }}
-              >
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="relative max-w-5xl mx-auto"
+            aria-roledescription="карусель"
+            aria-label="Услуги"
+          >
+            {visibleServices.length > 1 && (
+              <CarouselArrows
+                placement="sides"
+                onPrev={scrollPrev}
+                onNext={scrollNext}
+                canScrollPrev={canScrollPrev}
+                canScrollNext={canScrollNext}
+              />
+            )}
+            <div ref={emblaRef} className="overflow-hidden">
+              <ul className="-ml-8 flex touch-pan-y touch-pinch-zoom">
+            {visibleServices.map((service) => (
+              <li key={service.id} className={slideClassName}>
                 <Link
                   to={`/services/${service.slug}`}
                   className="group block h-full rounded-2xl overflow-hidden border border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--primary))] hover:shadow-2xl hover:shadow-[hsl(var(--primary))/0.1] transition-all duration-500"
@@ -100,9 +136,11 @@ export function MaterialsServices() {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </li>
             ))}
-          </div>
+              </ul>
+            </div>
+          </motion.div>
         )}
 
         {!isLoading && visibleServices.length > 0 && (
