@@ -10,6 +10,7 @@ import {
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { priceUnitLabel } from '@/shared/lib/price-unit'
+import { convertTonPrice } from '@/shared/lib/price-convert'
 import { kitForSku } from '@/shared/lib/kit-composition'
 import { buildProductFaq } from '@/shared/lib/product-faq'
 import { splitSpecs } from '@/shared/lib/product-specs'
@@ -24,6 +25,7 @@ import { KitComposition } from '@/widgets/kit-composition/KitComposition'
 import { ProductActionBar } from '@/widgets/product-action-bar/ProductActionBar'
 import { ProductFaq } from '@/widgets/product-faq/ProductFaq'
 import { VolumeTiers } from '@/widgets/volume-tiers/VolumeTiers'
+import { PriceSwitch } from '@/widgets/price-switch/PriceSwitch'
 import { useState } from 'react'
 import { FiChevronDown, FiFileText, FiSettings, FiShoppingCart, FiTruck } from 'react-icons/fi'
 import { Link, useParams } from 'react-router'
@@ -136,6 +138,7 @@ export function ProductPage() {
   }
   const specRows = [...mainSpecs, ...restSpecs]
   const kit = kitForSku(product.sku)
+  const priceConversion = convertTonPrice(product.price, product.specs, product.title)
   // Прячем хвост, только когда под кнопкой хотя бы три строки: ради одной-двух кнопка лишняя.
   // Скрытые строки остаются в HTML — поисковики видят все характеристики.
   const specsCollapsible = restSpecs.length >= 3
@@ -249,6 +252,8 @@ export function ProductPage() {
                 <span className="text-2xl font-bold text-primary">
                   По запросу
                 </span>
+              ) : priceConversion ? (
+                <PriceSwitch key={product.slug} conversion={priceConversion} />
               ) : (
                 <div className="flex flex-wrap items-baseline gap-2">
                   <span className="text-3xl font-bold text-primary">
