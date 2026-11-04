@@ -55,18 +55,19 @@ export function VolumeTiers({
             <li
               key={tier.volume}
               className={cn(
-                'flex flex-col rounded-md border px-2 pb-2.5 pt-3 text-center',
+                // Компактные квадратики (04.11.2026): ниже и мельче, чем были.
+                'flex flex-col justify-center rounded-md border px-2 py-1.5 text-center',
                 best ? 'border-primary bg-primary/5' : 'border-border',
               )}
             >
-              <span aria-hidden className="mx-auto mb-2 flex h-8 w-8 items-end">
-                <span className={cn('w-full rounded-sm', tier.step)} />
+              <span aria-hidden className="mx-auto mb-1 flex h-4 w-4 items-end">
+                <span className={cn('w-full rounded-[2px]', tier.step)} />
               </span>
-              <span className="text-base font-bold leading-tight text-foreground">
+              <span className="text-sm font-bold leading-tight text-foreground">
                 {tier.volume}
               </span>
               {best && (
-                <span className="mt-0.5 text-xs font-semibold leading-tight text-primary">
+                <span className="mt-0.5 text-[11px] font-semibold leading-tight text-primary">
                   {tier.name}
                 </span>
               )}

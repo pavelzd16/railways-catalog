@@ -248,26 +248,36 @@ export function ProductPage() {
             )}
 
             <div className="mb-5">
+              {/* «Цена зависит от партии» — в строке цены, а не отдельной строкой под ней (04.11.2026). */}
               {!product.price ? (
-                <span className="text-2xl font-bold text-primary">
-                  По запросу
-                </span>
-              ) : priceConversion ? (
-                <PriceSwitch key={product.slug} conversion={priceConversion} />
-              ) : (
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <span className="text-3xl font-bold text-primary">
-                    от {formatPrice(product.price)} ₽
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="text-2xl font-bold text-primary">
+                    По запросу
                   </span>
-
-                  {priceUnitLabel(product.specs) && (
-                    <span className="text-sm text-muted-foreground">
-                      {priceUnitLabel(product.specs)}
+                  <PriceNote variant="chip" />
+                </div>
+              ) : priceConversion ? (
+                <PriceSwitch
+                  key={product.slug}
+                  conversion={priceConversion}
+                  badge={<PriceNote variant="chip" />}
+                />
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-primary">
+                      от {formatPrice(product.price)} ₽
                     </span>
-                  )}
+
+                    {priceUnitLabel(product.specs) && (
+                      <span className="text-sm text-muted-foreground">
+                        {priceUnitLabel(product.specs)}
+                      </span>
+                    )}
+                  </span>
+                  <PriceNote variant="chip" />
                 </div>
               )}
-              <PriceNote variant="chip" className="mt-3" />
             </div>
 
             <VolumeTiers
