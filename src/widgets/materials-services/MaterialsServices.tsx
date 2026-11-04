@@ -14,7 +14,8 @@ const slideClassName = 'min-w-0 flex-[0_0_88%] pl-8 md:flex-[0_0_50%]'
 
 export function MaterialsServices() {
   const { services: visibleServices, isLoading } = useServices()
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', containScroll: 'trimSnaps' })
+  // Закольцовано (04.11.2026): после последней услуги снова первая, листается в обе стороны.
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true })
   const subscribeToScroll = useCallback(
     (onChange: () => void) => {
       emblaApi?.on('select', onChange)
