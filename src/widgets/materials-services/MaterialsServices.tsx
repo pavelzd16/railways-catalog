@@ -21,7 +21,27 @@ const alignCenteredGroup = (viewSize: number, snapSize: number) => {
 
 export function MaterialsServices() {
   const { services: visibleServices, isLoading } = useServices()
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: alignCenteredGroup, loop: true })
+  // inViewThreshold 0.9: «в кадре» — только карточки, видные (почти) целиком; края соседей — нет.
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: alignCenteredGroup, loop: true, inViewThreshold: 0.9 })
+  // Крайние (выглядывающие) карточки — на 50 % прозрачности, чтобы не спорили с центральными (04.11.2026).
+  // До запуска карусели (и на сервере) все карточки яркие.
+  const subscribeToInView = useCallback(
+    (onChange: () => void) => {
+      emblaApi?.on('slidesInView', onChange)
+      emblaApi?.on('reInit', onChange)
+      return () => {
+        emblaApi?.off('slidesInView', onChange)
+        emblaApi?.off('reInit', onChange)
+      }
+    },
+    [emblaApi],
+  )
+  const inViewKey = useSyncExternalStore(
+    subscribeToInView,
+    () => (emblaApi ? `,${emblaApi.slidesInView().join(',')},` : ''),
+    () => '',
+  )
+  const isDimmed = (index: number) => inViewKey !== '' && !inViewKey.includes(`,${index},`)
   const subscribeToScroll = useCallback(
     (onChange: () => void) => {
       emblaApi?.on('select', onChange)
@@ -99,8 +119,11 @@ export function MaterialsServices() {
             )}
             <div ref={emblaRef} className="overflow-hidden">
               <ul className="-ml-8 flex touch-pan-y touch-pinch-zoom">
-            {visibleServices.map((service) => (
-              <li key={service.id} className={slideClassName}>
+            {visibleServices.map((service, index) => (
+              <li
+                key={service.id}
+                className={`${slideClassName} transition-opacity duration-300 ${isDimmed(index) ? 'opacity-50' : ''}`}
+              >
                 <Link
                   to={`/services/${service.slug}`}
                   className="group block h-full rounded-2xl overflow-hidden border border-[hsl(var(--border))] bg-[hsl(var(--card))] hover:border-[hsl(var(--primary))] hover:shadow-2xl hover:shadow-[hsl(var(--primary))/0.1] transition-all duration-500"
