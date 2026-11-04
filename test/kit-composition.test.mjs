@@ -1,26 +1,26 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { kitForSku, kitMassKg } from '../src/shared/lib/kit-composition.ts'
+import { kitForSku, kitMassKg, ZHBR65_ALBUM_1995 } from '../src/shared/lib/kit-composition.ts'
 
-test('состав пяти известных комплектов; поздние ЖБР не подменяются ЖБР-65', () => {
-  for (const sku of ['TM-0890', 'TM-0756', 'TM-0889', 'TM-0230', 'TM-0757']) assert.ok(kitForSku(sku))
-  for (const sku of ['TM-0758', 'TM-0759', 'TM-0760', 'unknown', '', undefined, null]) assert.equal(kitForSku(sku), undefined)
+test('состав четырёх известных комплектов; ЖБР-65 альбома 1995 не подключён к карточке современного ЖБР-65', () => {
+  for (const sku of ['TM-0890', 'TM-0756', 'TM-0889', 'TM-0757']) assert.ok(kitForSku(sku))
+  for (const sku of ['TM-0230', 'TM-0758', 'TM-0759', 'TM-0760', 'unknown', '', undefined, null]) assert.equal(kitForSku(sku), undefined)
 })
 
-test('КБ-50: таблица 21 ×2, обе клеммы, без альтернативной шайбы и втулки', () => {
+test('КБ-50: таблица 21 ×2, на шпалу клеммы ПК, СК — только у стыка, без альтернативной шайбы и втулки', () => {
   const kit = kitForSku('TM-0889')
   assert.equal(kit.nodes, 2)
-  assert.deepEqual(kit.parts.map(p => p.perNode * kit.nodes), [4, 8, 4, 4, 8, 4, 4, 2, 2, 2, 4, 0])
+  assert.deepEqual(kit.parts.map(p => p.perNode * kit.nodes), [4, 8, 0, 4, 8, 4, 4, 2, 2, 2, 4, 0])
   assert.deepEqual(kit.parts.slice(0, 11).map(p => p.massKg), [.345, .126, .58, .635, .12, .09, .04, .6, 6.95, .165, .62])
-  assert.equal(kitMassKg(kit), 26.6)
+  assert.equal(kitMassKg(kit), 24.3)
   assert.equal(kit.parts[11].product.sku, 'TM-0020')
   assert.equal(kit.parts[7].product, undefined, 'прокладка КБ-65 не подменяет прокладку КБ-50')
   assert.equal(kit.parts[9].product, undefined, 'прокладка Р65 не подменяет Р50')
 })
 
 test('ЖБР-65: таблица 27 на один узел, без подмены деталей более поздними исполнениями', () => {
-  const kit = kitForSku('TM-0230')
+  const kit = ZHBR65_ALBUM_1995
   assert.equal(kit.nodes, 1)
   assert.deepEqual(kit.parts.map(p => p.perNode), [2, 2, 2, 2, 1, 2, 2, 2, 0])
   assert.deepEqual(kit.parts.slice(0, 8).map(p => p.massKg), [.08, .73, .126, .635, .52, .055, .02, .82])
@@ -28,14 +28,18 @@ test('ЖБР-65: таблица 27 на один узел, без подмены
   for (const i of [0, 1, 4, 5, 6, 7]) assert.equal(kit.parts[i].product, undefined)
 })
 
-test('АРС: один рамный анкер, парные детали, масса регулятора только в сборе', () => {
+test('АРС: анкер в шпале не входит, монорегулятор (позиции 2 и 3) одной строкой', () => {
   const kit = kitForSku('TM-0757')
   assert.equal(kit.nodes, 1)
-  assert.deepEqual(kit.parts.map(p => p.perNode), [2, 2, 2, 2, 1, 2, 1, 0])
-  assert.deepEqual(kit.parts.map(p => p.massKg), [.825, null, null, .218, null, .032, .52, null])
-  assert.equal(kitMassKg(kit), null)
-  assert.equal(kit.parts[1].massLabel, '0,35 с фиксатором')
-  assert.equal(kit.parts[4].massLabel, '4,1–4,7')
+  assert.deepEqual(kit.parts.map(p => p.pos), [1, 2, 4, 5, 6, 7, 8])
+  assert.deepEqual(kit.parts.map(p => p.perNode), [2, 2, 2, 0, 2, 1, 0])
+  assert.deepEqual(kit.parts.map(p => p.massKg), [.825, .35, .218, null, .032, .52, null])
+  assert.equal(kitMassKg(kit), 3.4)
+  assert.equal(kit.parts[1].label, '2, 3')
+  assert.equal(kit.parts[1].product.sku, 'TM-0049')
+  assert.equal(kit.parts[3].massLabel, '4,1–4,7')
+  assert.deepEqual(kit.figures[0].callouts.filter(c => c.part === 2).map(c => c.n), [3])
+  assert.equal(kit.figures.length, 1)
 })
 
 test('неизвестная масса включённой детали скрывает итог; исключённый рельс не влияет', () => {
@@ -45,9 +49,10 @@ test('неизвестная масса включённой детали скр
 })
 
 test('позиции, координаты и адреса всех комплектов согласованы', () => {
-  for (const sku of ['TM-0890', 'TM-0756', 'TM-0889', 'TM-0230', 'TM-0757']) {
-    const kit = kitForSku(sku)
-    assert.deepEqual(kit.parts.map(p => p.pos), Array.from({ length: kit.parts.length }, (_, i) => i + 1))
+  for (const kit of [...['TM-0890', 'TM-0756', 'TM-0889', 'TM-0757'].map(kitForSku), ZHBR65_ALBUM_1995]) {
+    const order = kit.parts.map(p => p.pos)
+    assert.deepEqual(order, [...order].sort((a, b) => a - b))
+    assert.equal(new Set(order).size, order.length)
     assert.equal(kit.parts.at(-1).perNode, 0)
     for (const p of kit.parts) {
       if (p.product) {
@@ -63,7 +68,7 @@ test('позиции, координаты и адреса всех компле
       const positions = (f.callouts ?? []).map(c => c.n)
       assert.equal(new Set(positions).size, positions.length)
       for (const c of f.callouts ?? []) {
-        assert.ok(kit.parts.some(p => p.pos === c.n))
+        assert.ok(kit.parts.some(p => p.pos === (c.part ?? c.n)))
         assert.ok(c.x > 0 && c.x < f.w && c.y > 0 && c.y < f.h)
       }
     }
@@ -72,8 +77,8 @@ test('позиции, координаты и адреса всех компле
 
 test('чертежи комплектов автономны, векторны и соответствуют размерам данных', () => {
   const checked = new Set()
-  for (const sku of ['TM-0890', 'TM-0756', 'TM-0889', 'TM-0230', 'TM-0757']) {
-    for (const figure of kitForSku(sku).figures) {
+  for (const kit of [...['TM-0890', 'TM-0756', 'TM-0889', 'TM-0757'].map(kitForSku), ZHBR65_ALBUM_1995]) {
+    for (const figure of kit.figures) {
       if (checked.has(figure.src)) continue
       checked.add(figure.src)
       const svg = readFileSync(new URL(`../public${figure.src}`, import.meta.url), 'utf8')

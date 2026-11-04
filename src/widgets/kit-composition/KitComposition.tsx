@@ -6,6 +6,8 @@ import { kitMassKg, type Kit, type KitPart, type KitFigure, type KitCallout } fr
 const decimal = (value: number) => (Number.isInteger(value) ? value.toFixed(1) : String(value)).replace('.', ',')
 
 const rowId = (pos: number) => `kit-pos-${pos}`
+/** Строка таблицы, к которой ведёт номер на схеме. */
+const target = (callout: KitCallout) => callout.part ?? callout.n
 const left = (callout: KitCallout, figure: KitFigure) => `${(callout.x / figure.w) * 100}%`
 const top = (callout: KitCallout, figure: KitFigure) => `${(callout.y / figure.h) * 100}%`
 
@@ -23,7 +25,9 @@ function KitScheme({ figure, names, active, hovered, onHover, onPick }: {
   onHover: (pos: number | null) => void; onPick: (pos: number) => void
 }) {
   const callouts = figure.callouts ?? []
-  const tip = callouts.find((callout) => callout.n === hovered)
+  /** Номер под мышью: у сборной детали (монорегулятор АРС) два номера ведут к одной строке, подсказка — у того, что под мышью. */
+  const [under, setUnder] = useState<number | null>(null)
+  const tip = callouts.find((callout) => callout.n === under) ?? callouts.find((callout) => target(callout) === hovered)
   return (
     <div className={`relative [container-type:inline-size] ${figure.calloutSize ? 'lg:!min-w-0' : ''}`} style={{ minWidth: figure.minWidth ?? 520 }}>
       <img
@@ -39,17 +43,17 @@ function KitScheme({ figure, names, active, hovered, onHover, onPick }: {
         <a
           key={callout.n}
           href={`#${rowId(callout.n)}`}
-          aria-label={`${callout.n} — ${names.get(callout.n) ?? ''}`}
-          onMouseEnter={() => onHover(callout.n)}
-          onMouseLeave={() => onHover(null)}
-          onFocus={() => onHover(callout.n)}
-          onBlur={() => onHover(null)}
+          aria-label={`${callout.n} — ${callout.name ?? names.get(target(callout)) ?? ''}`}
+          onMouseEnter={() => { setUnder(callout.n); onHover(target(callout)) }}
+          onMouseLeave={() => { setUnder(null); onHover(null) }}
+          onFocus={() => { setUnder(callout.n); onHover(target(callout)) }}
+          onBlur={() => { setUnder(null); onHover(null) }}
           onClick={(event) => {
             event.preventDefault()
-            onPick(callout.n)
+            onPick(target(callout))
           }}
           className={`absolute flex aspect-square w-[3cqw] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-primary text-[1.8cqw] font-bold leading-none shadow-sm transition-colors ${
-            active === callout.n ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-primary hover:text-white'
+            active === target(callout) ? 'bg-primary text-white' : 'bg-white text-primary hover:bg-primary hover:text-white'
           }`}
           style={{ left: left(callout, figure), top: top(callout, figure), ...(figure.calloutSize ? { width: `${figure.calloutSize}cqw`, fontSize: `${figure.calloutSize * 0.6}cqw` } : {}) }}
         >
@@ -63,7 +67,7 @@ function KitScheme({ figure, names, active, hovered, onHover, onPick }: {
           className={`pointer-events-none absolute z-10 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-lg ${figure.calloutSize ? `w-max max-w-64 -translate-x-1/2 whitespace-normal ${tipBelow(tip, figure) ? '' : '-translate-y-full'}` : `whitespace-nowrap ${tipShift(tip, figure)}`}`}
           style={{ left: figure.calloutSize ? `clamp(8rem, ${left(tip, figure)}, calc(100% - 8rem))` : left(tip, figure), top: `calc(${top(tip, figure)} ${tipBelow(tip, figure) ? '+' : '-'} 2.6cqw)` }}
         >
-          {names.get(tip.n)}
+          {tip.name ?? names.get(target(tip))}
         </div>
       )}
     </div>
@@ -117,7 +121,7 @@ export function KitComposition({ kit }: { kit: Kit }) {
           : 'Детали, представленные в каталоге отдельно, доступны по ссылкам в таблице.'}
       </p>
 
-      <div className={`mb-8 grid items-start gap-4 ${kit.figures.length > 2 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+      <div className={`mb-8 grid items-start gap-4 ${kit.figures.length > 2 ? 'lg:grid-cols-3' : kit.figures.length === 2 ? 'lg:grid-cols-2' : 'max-w-4xl'}`}>
         {kit.figures.map((figure) => (
           <figure key={figure.src} className="min-w-0 rounded-lg border border-border bg-card p-4">
             {figure.callouts?.length ? (
@@ -153,7 +157,7 @@ export function KitComposition({ kit }: { kit: Kit }) {
                 onMouseLeave={() => setHovered(null)}
                 className={`scroll-mt-24 transition-colors ${picked === part.pos ? 'bg-primary/10' : hovered === part.pos ? 'bg-muted/60' : ''}`}
               >
-                <td className="px-3 py-3 align-top font-bold text-primary">{part.pos}</td>
+                <td className="whitespace-nowrap px-3 py-3 align-top font-bold text-primary">{part.label ?? part.pos}</td>
                 <td className="px-3 py-3 text-foreground">
                   {part.product ? (
                     <Link

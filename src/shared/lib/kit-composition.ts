@@ -8,6 +8,8 @@
 export type KitPart = {
   /** Номер позиции на схеме. */
   pos: number
+  /** Подпись в столбце «№», если строка объединяет несколько позиций схемы (монорегулятор АРС: «2, 3»). */
+  label?: string
   name: string
   /** Штук в одном узле; 0 — показана на схеме, но в комплект не входит (рельс). */
   perNode: number
@@ -23,7 +25,15 @@ export type KitPart = {
   product?: { sku: string; href: string }
 }
 
-export type KitCallout = { n: number; x: number; y: number }
+export type KitCallout = {
+  n: number
+  x: number
+  y: number
+  /** Строка таблицы, если номер на схеме — часть сборной детали (фиксатор АРС → монорегулятор). */
+  part?: number
+  /** Подсказка вместо названия строки. */
+  name?: string
+}
 export type KitFigure = {
   src: string
   w: number
@@ -117,9 +127,9 @@ const KB50_PARTS: KitPart[] = [
   {
     "pos": 3,
     "name": "Клемма СК (стыковая)",
-    "perNode": 2,
+    "perNode": 0,
     "massKg": 0.58,
-    "note": "Показана на разрезе А-А."
+    "note": "Ставится у рельсового стыка вместо клеммы ПК. Показана на разрезе А-А."
   },
   {
     "pos": 4,
@@ -341,18 +351,15 @@ const ARS4_PARTS: KitPart[] = [
   },
   {
     "pos": 2,
-    "name": "Регулятор АРС-4",
+    "label": "2, 3",
+    "name": "Монорегулятор АРС-4",
     "perNode": 2,
-    "massKg": null,
-    "massLabel": "0,35 с фиксатором",
-    "note": "Вместе с позицией 3 образует монорегулятор."
-  },
-  {
-    "pos": 3,
-    "name": "Фиксатор АРС-4",
-    "perNode": 2,
-    "massKg": null,
-    "massLabel": "в массе регулятора"
+    "massKg": 0.35,
+    "note": "Регулятор (2) и фиксатор (3) в сборе.",
+    "product": {
+      "sku": "TM-0049",
+      "href": "/catalog/relsovoe-skreplenie-zhbr-ars/skreplenie-ars/product/monoregulyator-ars-04-04-007-tm0049"
+    }
   },
   {
     "pos": 4,
@@ -367,10 +374,10 @@ const ARS4_PARTS: KitPart[] = [
   {
     "pos": 5,
     "name": "Анкер АРС-4",
-    "perNode": 1,
+    "perNode": 0,
     "massKg": null,
     "massLabel": "4,1–4,7",
-    "note": "Единый рамный анкер замоноличен в шпалу.",
+    "note": "Забетонирован в шпалу при её изготовлении.",
     "product": {
       "sku": "TM-0934",
       "href": "/catalog/relsovoe-skreplenie-zhbr-ars/skreplenie-ars/product/anker-ars-04-04-005-03"
@@ -584,12 +591,15 @@ const ARS4_FIGURES: KitFigure[] = [
       {
         "n": 2,
         "x": 438,
-        "y": 103
+        "y": 103,
+        "name": "Регулятор — часть монорегулятора АРС-4"
       },
       {
         "n": 3,
         "x": 500,
-        "y": 103
+        "y": 103,
+        "part": 2,
+        "name": "Фиксатор — часть монорегулятора АРС-4"
       },
       {
         "n": 4,
@@ -619,20 +629,18 @@ const ARS4_FIGURES: KitFigure[] = [
     ],
     "minWidth": 520,
     "calloutSize": 3
-  },
-  {
-    "src": "/schemes/ars-4-razrez-vid.svg",
-    "w": 705,
-    "h": 1017,
-    "caption": "Узел АРС-4: разрез и вид сбоку.",
-    "alt": "Разрез узла АРС-4 с рамным анкером в шпале и вид сбоку."
   }
 ]
+
+/**
+ * ЖБР-65 по черт. 109 альбома 1995 г. (полосовые клеммы, болты): в карточку TM-0230 не подключён —
+ * она описывает современный ЖБР-65 (скобы, упоры, клемма ЦП 369.102). Ждёт чертежа современного узла.
+ */
+export const ZHBR65_ALBUM_1995: Kit = { name: 'Состав комплекта ЖБР-65 на один узел', nodes: 1, unitLabel: 'на узел', parts: ZHBR65_PARTS, figures: ZHBR65_FIGURES }
 
 const KITS: Record<string, Kit> = {
   'TM-0890': { name: 'Состав комплекта КБ-65 на одну шпалу', nodes: 2, unitLabel: 'на шпалу', parts: KB65_PARTS, figures: KB65_FIGURES, allPartsLinked: true },
   'TM-0889': { name: 'Состав комплекта КБ-50 на одну шпалу', nodes: 2, unitLabel: 'на шпалу', parts: KB50_PARTS, figures: KB50_FIGURES },
-  'TM-0230': { name: 'Состав комплекта ЖБР-65 на один узел', nodes: 1, unitLabel: 'на узел', parts: ZHBR65_PARTS, figures: ZHBR65_FIGURES },
   'TM-0757': { name: 'Состав комплекта АРС-4 на один узел', nodes: 1, unitLabel: 'на узел', parts: ARS4_PARTS, figures: ARS4_FIGURES },
   'TM-0756': { name: 'Состав комплекта КБ-65 на один узел', nodes: 1, unitLabel: 'на узел', parts: KB65_PARTS, figures: KB65_FIGURES, allPartsLinked: true },
 }
