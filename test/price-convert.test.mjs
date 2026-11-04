@@ -39,6 +39,27 @@ test('мерные длины: метры, миллиметры, две длин
   assert.deepEqual(measuredLengths([{ label: 'Мерная длина', value: '12,5 и 25 м' }]), [12.5, 25])
   assert.deepEqual(measuredLengths([{ label: 'Мерная длина', value: '25000 мм' }]), [25])
   assert.deepEqual(measuredLengths([]), [])
+  // «Длина рельса» у трамвайных: число — мерная длина, «немерная» — нет; «Немерная длина 6-25 м» не мерная.
+  assert.deepEqual(measuredLengths([{ label: 'Длина рельса', value: '12,5 м' }]), [12.5])
+  assert.deepEqual(measuredLengths([{ label: 'Длина рельса', value: 'немерная' }]), [])
+  assert.deepEqual(measuredLengths([{ label: 'Длина рельса', value: 'отрезки по 2 м' }]), [2])
+  assert.deepEqual(measuredLengths([{ label: 'Немерная длина', value: '6-25 м' }]), [])
+})
+
+test('трамвайный РТ62: масса из карточки, отрезки по 2 м — «за отрезок 2 м»', () => {
+  const specs = [
+    { label: 'Тип', value: 'РТ62' },
+    { label: 'Длина рельса', value: 'отрезки по 2 м' },
+    { label: 'Масса 1 м', value: '62,10 кг' },
+    { label: 'Единица измерения', value: 'тонна' },
+  ]
+  const result = convertTonPrice(148500, specs, 'Рельс трамвайный РТ62, фрезерованный, отрезки по 2 м, новый')
+  assert.deepEqual(result.options.map((o) => [o.tab, o.unit, o.price]), [
+    ['т', 'за тонну', 148500],
+    ['кг', 'за кг', 148.5],
+    ['пог. м', 'за пог. м', 9222],
+    ['шт 2 м', 'за отрезок 2 м', 18444],
+  ])
 })
 
 test('без мерной длины — только т, кг и метр; не рельс — «шт.»', () => {

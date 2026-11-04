@@ -84,11 +84,14 @@ function railTypeFromTitle(title: string): string | undefined {
   return title.match(/(?:^|[^А-Яа-яЁёA-Za-z])Р-?(\d{1,3})(?!\d)/)?.[1]
 }
 
-const inRange = (meters: number) => meters >= 4 && meters <= 120
+const inRange = (meters: number) => meters >= 1 && meters <= 120
 
-/** Мерные длины, м: «12,5 м» → [12.5]; «12,5 и 25 м» → [12.5, 25]; «12500 мм» → [12.5]. */
+/**
+ * Мерные длины, м, из «Мерной длины» или «Длины рельса»: «12,5 м» → [12.5]; «12,5 и 25 м» → [12.5, 25];
+ * «12500 мм» → [12.5]; «отрезки по 2 м» → [2]; «немерная» → []. «Немерная длина 6-25 м» не читаем.
+ */
 export function measuredLengths(specs: SpecLike[] | undefined | null): number[] {
-  const spec = findSpec(specs, (label) => label.startsWith('мерная длина'))
+  const spec = findSpec(specs, (label) => label.startsWith('мерная длина') || label === 'длина рельса')
   const value = text(spec?.value)
   const inMm = /мм/.test(value)
   const lengths = (value.match(/\d+(?:[.,]\d+)?/g) ?? [])
@@ -133,7 +136,7 @@ export function convertTonPrice(
   const meterMass = ownMeterMass || (railType ? RAIL_MASS[railType] ?? 0 : 0)
   if (meterMass) {
     const perMeter = (price * meterMass) / 1000
-    const piece = isRailTitle(title) ? 'рельс' : 'шт.'
+    const piece = /отрез/i.test(title) ? 'отрезок' : isRailTitle(title) ? 'рельс' : 'шт.'
     const specLengths = measuredLengths(specs)
     const lengths = specLengths.length ? specLengths : isRailTitle(title) ? lengthsFromTitle(title) : []
     const source = ownMeterMass ? 'по массе 1 м' : `по массе 1 м нового рельса Р${railType}`
