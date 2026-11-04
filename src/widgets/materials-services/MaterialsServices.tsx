@@ -7,15 +7,21 @@ import { getImageUrl } from '@/shared/lib'
 import { UploadImg } from '@/shared/ui/UploadImg'
 import { CarouselArrows } from '@/shared/ui/CarouselArrows'
 
-// Карточки прежнего размера — две в ряд в колонке max-w-5xl; на телефоне одна и край следующей,
-// чтобы было видно, что блок листается (решение пользователя 04.11.2026: «оставь такими же большими,
-// сделай чтобы можно было листать»). Показываем все услуги, а не первые две.
-const slideClassName = 'min-w-0 flex-[0_0_88%] pl-8 md:flex-[0_0_50%]'
+// Решения пользователя 04.11.2026: карточки прежнего большого размера, листаются, закольцованы,
+// и «чтобы видно что там за стенкой ещё есть». Карусель во всю ширину контейнера: на компьютере
+// две карточки по центру (~40 % ширины каждая, как раньше в колонке max-w-5xl), на телефоне одна
+// (80 %); по бокам выглядывают края соседних услуг. Показываем все услуги, а не первые две.
+const slideClassName = 'min-w-0 flex-[0_0_80%] pl-8 md:flex-[0_0_45%] lg:flex-[0_0_40%]'
+
+/** Сколько карточек влезает целиком — столько ставим по центру, остаток поровну на края соседей. */
+const alignCenteredGroup = (viewSize: number, snapSize: number) => {
+  const whole = Math.max(1, Math.floor(viewSize / snapSize))
+  return (viewSize - whole * snapSize) / 2
+}
 
 export function MaterialsServices() {
   const { services: visibleServices, isLoading } = useServices()
-  // Закольцовано (04.11.2026): после последней услуги снова первая, листается в обе стороны.
-  const [emblaRef, emblaApi] = useEmblaCarousel({ align: 'start', loop: true })
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: alignCenteredGroup, loop: true })
   const subscribeToScroll = useCallback(
     (onChange: () => void) => {
       emblaApi?.on('select', onChange)
@@ -78,7 +84,7 @@ export function MaterialsServices() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="relative max-w-5xl mx-auto"
+            className="relative"
             aria-roledescription="карусель"
             aria-label="Услуги"
           >
