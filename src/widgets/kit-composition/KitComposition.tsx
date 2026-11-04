@@ -20,14 +20,15 @@ const tipShift = (callout: KitCallout, figure: KitFigure) =>
  * Разрез узла с интерактивными номерами у выносок: наведение показывает название детали, нажатие — строку таблицы.
  * Размер кружков и цифр — в долях ширины картинки (cqw), чтобы сохранять пропорции при масштабировании.
  */
-function KitScheme({ figure, names, active, hovered, onHover, onPick }: {
-  figure: KitFigure; names: Map<number, string>; active: number | null; hovered: number | null
+function KitScheme({ figure, main, names, active, hovered, onHover, onPick }: {
+  figure: KitFigure; main: boolean; names: Map<number, string>; active: number | null; hovered: number | null
   onHover: (pos: number | null) => void; onPick: (pos: number) => void
 }) {
   const callouts = figure.callouts ?? []
   /** Номер под мышью: у сборной детали (монорегулятор АРС) два номера ведут к одной строке, подсказка — у того, что под мышью. */
   const [under, setUnder] = useState<number | null>(null)
-  const tip = callouts.find((callout) => callout.n === under) ?? callouts.find((callout) => target(callout) === hovered)
+  // Подсказка от строки таблицы — только на главном рисунке, чтобы не дублировалась на втором разрезе.
+  const tip = callouts.find((callout) => callout.n === under) ?? (main ? callouts.find((callout) => target(callout) === hovered) : undefined)
   return (
     <div className={`relative [container-type:inline-size] ${figure.calloutSize ? 'lg:!min-w-0' : ''}`} style={{ minWidth: figure.minWidth ?? 520 }}>
       <img
@@ -122,11 +123,11 @@ export function KitComposition({ kit }: { kit: Kit }) {
       </p>
 
       <div className={`mb-8 grid items-start gap-4 ${kit.figures.length > 2 ? 'lg:grid-cols-3' : kit.figures.length === 2 ? 'lg:grid-cols-2' : 'max-w-4xl'}`}>
-        {kit.figures.map((figure) => (
+        {kit.figures.map((figure, index) => (
           <figure key={figure.src} className="min-w-0 rounded-lg border border-border bg-card p-4">
             {figure.callouts?.length ? (
               <div className="overflow-x-auto">
-                <KitScheme figure={figure} names={names} active={active} hovered={hovered} onHover={setHovered} onPick={pick} />
+                <KitScheme figure={figure} main={index === 0} names={names} active={active} hovered={hovered} onHover={setHovered} onPick={pick} />
               </div>
             ) : (
               <img src={figure.src} width={figure.w} height={figure.h} loading="lazy" alt={figure.alt} className="block h-auto w-full" />

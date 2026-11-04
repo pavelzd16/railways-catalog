@@ -17,6 +17,7 @@ test('КБ-50: таблица 21 ×2, на шпалу клеммы ПК, СК �
   assert.equal(kit.parts[11].product.sku, 'TM-0020')
   assert.equal(kit.parts[7].product, undefined, 'прокладка КБ-65 не подменяет прокладку КБ-50')
   assert.equal(kit.parts[9].product, undefined, 'прокладка Р65 не подменяет Р50')
+  assert.deepEqual(kit.figures[1].callouts.map(c => c.n).sort((a, b) => a - b), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12], 'на А-А клемма СК (3) вместо ПК (11)')
 })
 
 test('ЖБР-65: таблица 27 на один узел, без подмены деталей более поздними исполнениями', () => {
@@ -64,7 +65,7 @@ test('позиции, координаты и адреса всех компле
     for (const [i, f] of kit.figures.entries()) {
       assert.match(f.src, /^\/schemes\/[a-z0-9-]+\.svg$/)
       assert.ok(f.w > 0 && f.h > 0 && f.alt && f.caption)
-      if (i > 0) assert.equal(f.callouts, undefined)
+      if (i === 0) assert.ok(f.callouts?.length, 'у главного рисунка есть номера')
       const positions = (f.callouts ?? []).map(c => c.n)
       assert.equal(new Set(positions).size, positions.length)
       for (const c of f.callouts ?? []) {
