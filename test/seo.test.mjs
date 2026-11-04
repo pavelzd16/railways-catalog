@@ -292,6 +292,8 @@ test('article metadata: title with brand, Article/FAQPage markup without Breadcr
   assert.equal(meta.jsonLd[0].dateModified, base.updatedAt)
   const branded = getMetadata('/stati/relsy-r65', { url: '/stati/relsy-r65', siteUrl, status: 200, ssr: true, article: { ...base, title: 'Рельсы | ПроРельс', body: '<p>Текст</p>' } })
   assert.equal(branded.title, 'Рельсы | ПроРельс')
+  const midBrand = getMetadata('/stati/relsy-r65', { url: '/stati/relsy-r65', siteUrl, status: 200, ssr: true, article: { ...base, title: 'Паспорт поставщика #ПроРельс - реквизиты ООО «ИНВИА»', body: '<p>Текст</p>' } })
+  assert.equal(midBrand.title, 'Паспорт поставщика #ПроРельс - реквизиты ООО «ИНВИА»')
   assert.ok(!branded.jsonLd.some((item) => item['@type'] === 'FAQPage'))
   const gone = getMetadata('/stati/nope', { url: '/stati/nope', siteUrl, status: 404, ssr: true })
   assert.equal(gone.title, 'Статья не найдена | ПроРельс')

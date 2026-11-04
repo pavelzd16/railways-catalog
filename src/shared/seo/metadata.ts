@@ -112,7 +112,8 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
   } else if (route?.kind === 'article' && data.article?.slug === route.slug) {
     const article = data.article
     const articleTitle = plainText(article.title)
-    title = articleTitle.endsWith('ПроРельс') ? articleTitle : `${articleTitle} | ПроРельс`
+    // Бренд уже есть в title (в т.ч. «#ПроРельс» в середине) — второй раз не дописываем.
+    title = articleTitle.includes('ПроРельс') ? articleTitle : `${articleTitle} | ПроРельс`
     description = plainText(article.description)
     canonicalPath = `/stati/${encodeURIComponent(article.slug)}`
     if (article.image) image = new URL(article.image, data.siteUrl).href
