@@ -1,4 +1,5 @@
 import { plainText } from '../lib/plain-text.ts'
+import { stripTextLinks } from '../lib/text-links.ts'
 import { PHONE_CITY, PHONE_FREE, PHONE_MOBILE } from '../lib/phones.ts'
 import { buildProductFaq, type FaqItem } from '../lib/product-faq.ts'
 import { SITE_FAQ } from '../lib/site-faq.ts'
@@ -43,7 +44,7 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
       const label = subcategory?.name ?? category.name
       ;[title, description] = catalogMeta[subcategory ? `${category.slug}/${subcategory.slug}` : category.slug] ?? [
         `${label}: купить, цена | ПроРельс`,
-        subcategory ? `${label}: позиции каталога ПроРельс, ГОСТ и технические характеристики. Цена по запросу, доставка по России и СНГ.` : category.description,
+        subcategory ? `${label}: позиции каталога ПроРельс, ГОСТ и технические характеристики. Цена по запросу, доставка по России и СНГ.` : stripTextLinks(category.description),
       ]
       canonicalPath = catalogPath(category.slug, subcategory?.slug)
     } else [title, description] = pageMeta['/catalog'] ?? [title, description]

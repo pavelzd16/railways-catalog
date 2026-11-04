@@ -1,4 +1,6 @@
-import { useLocation, useParams, useSearchParams } from 'react-router'
+import { Fragment } from 'react'
+import { Link, useLocation, useParams, useSearchParams } from 'react-router'
+import { textLinkSegments } from '@/shared/lib/text-links'
 import { useCatalog } from '../model/use-catalog'
 import { catalogPath } from '@/shared/seo/route-data'
 import {
@@ -210,7 +212,19 @@ export function CatalogPage() {
               {currentCategory.name}: подбор материалов
             </h2>
             <p className="whitespace-pre-line leading-relaxed text-muted-foreground">
-              {currentCategory.description}
+              {textLinkSegments(currentCategory.description).map((segment, index) =>
+                segment.href ? (
+                  <Link
+                    key={index}
+                    to={segment.href}
+                    className="text-foreground underline decoration-[hsl(var(--primary))] underline-offset-4 transition-colors hover:text-[hsl(var(--primary))]"
+                  >
+                    {segment.text}
+                  </Link>
+                ) : (
+                  <Fragment key={index}>{segment.text}</Fragment>
+                ),
+              )}
             </p>
           </section>
         )}
