@@ -311,3 +311,27 @@ test('FAQ page is indexable and its FAQPage markup repeats the visible questions
   assert.equal(SITE_FAQ.length, 3)
   for (const item of SITE_FAQ) assert.ok(!/<|(^|[^а-яё])(мы|наш[а-яё]*|у нас)([^а-яё]|$)/i.test(item.answer), 'простой текст без HTML и без «мы/наш»')
 })
+
+// Аудит 11.11.2026: картинки без alt (карточки статей, миниатюры товара) и тяжёлый фон главной.
+test('content images carry alt text; only the Metrika pixel stays empty', async () => {
+  const { readdirSync, readFileSync, statSync } = await import('node:fs')
+  const { join } = await import('node:path')
+  const walk = dir => readdirSync(dir).flatMap(name => {
+    const path = join(dir, name)
+    return statSync(path).isDirectory() ? walk(path) : /\.tsx?$/.test(name) ? [path] : []
+  })
+  const offenders = walk('src')
+    .filter(path => !path.includes('admin'))
+    .flatMap(path => readFileSync(path, 'utf8').split('\n').filter(line => /alt=(""|\{''\}|\{""\})/.test(line) && !line.includes('mc.yandex.ru')).map(line => `${path}: ${line.trim()}`))
+  assert.deepEqual(offenders, [])
+})
+test('home hero loads light WebP via <img>, not the 2048px JPEG as CSS background', async () => {
+  const { readFileSync, statSync } = await import('node:fs')
+  const hero = readFileSync('src/widgets/hero/ui/Hero.tsx', 'utf8')
+  assert.ok(!hero.includes("bg-[url('/hero-fon.jpg')]"))
+  assert.match(hero, /fetchPriority="high"/)
+  for (const file of ['hero-fon-m.webp', 'hero-fon-1280.webp', 'hero-fon-1920.webp']) {
+    assert.ok(hero.includes(`/${file}`), file)
+    assert.ok(statSync(`public/${file}`).size < 150 * 1024, file)
+  }
+})

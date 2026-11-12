@@ -198,7 +198,7 @@ export function ProductPage() {
                   >
                     <ProductImage
                       src={getImageUrl(image)}
-                      alt=""
+                      alt={`${product.title}, фото ${index + 1}`}
                       sizes="80px"
                       className="h-full w-full object-cover"
                       fallbackClassName="h-full w-full"
