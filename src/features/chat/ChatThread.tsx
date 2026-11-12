@@ -65,14 +65,14 @@ export function ChatThread({
     if (!active || document.visibilityState !== 'visible' || !socket.connected)
       return
     const through = latest.current
-      .filter((message) => message.sender !== ownRole && !message.readAt)
+      .filter((message) => (manager ? message.sender === 'VISITOR' : message.sender !== 'VISITOR') && !message.readAt)
       .at(-1)?.id
     if (!through || through <= lastRead.current) return
     lastRead.current = through
     chatRequest(socket, 'chat:read', { conversationId, through }).catch(() => {
       lastRead.current = 0
     })
-  }, [socket, conversationId, ownRole, active])
+  }, [socket, conversationId, manager, active])
 
   useEffect(() => {
     let cancelled = false
@@ -110,7 +110,7 @@ export function ChatThread({
       if (event.conversationId === conversationId)
         setMessages((previous) =>
           previous.map((message) =>
-            message.id <= event.through && message.sender !== event.reader
+            message.id <= event.through && (event.reader === 'MANAGER' ? message.sender === 'VISITOR' : message.sender !== 'VISITOR')
               ? { ...message, readAt: event.readAt }
               : message,
           ),
@@ -248,17 +248,17 @@ export function ChatThread({
             <p>
               {manager
                 ? 'Здесь появится переписка с посетителем.'
-                : 'Напишите название, ГОСТ или задачу. Менеджер ответит здесь.'}
+                : 'Напишите название, ГОСТ или задачу. Ответ появится здесь.'}
             </p>
           </div>
         )}
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`chat-message ${message.sender === ownRole ? 'own' : ''}`}
+            className={`chat-message ${message.sender === ownRole || (manager && message.sender === 'AI') ? 'own' : ''}`}
           >
             <span className="chat-author">
-              {message.sender === 'MANAGER'
+              {message.sender === 'AI' ? 'ИИ-консультант ПроРельс' : message.sender === 'MANAGER'
                 ? 'Менеджер ПроРельс'
                 : manager
                   ? 'Посетитель'
