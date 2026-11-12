@@ -24,10 +24,20 @@ export function Hero() {
       ref={sectionRef}
       className="hero-section relative flex overflow-hidden bg-foreground text-white"
     >
-      <div
-        className="hero-photo absolute inset-0 bg-cover bg-center bg-[url('/hero-fon.jpg')]"
-        aria-hidden="true"
-      />
+      {/* Фон — <img>, а не CSS-фон: браузер находит его в HTML сразу и грузит первым (fetchPriority).
+          На телефоне видна только середина кадра, поэтому ему отдаётся вертикальная вырезка 720×1152 (~60 КБ)
+          вместо целого 2048×1152 JPEG (314 КБ); на широких экранах — WebP 1280 или 1920 px. */}
+      <picture className="hero-photo absolute inset-0" aria-hidden="true">
+        <source media="(max-width: 767px)" srcSet="/hero-fon-m.webp" type="image/webp" />
+        <source srcSet="/hero-fon-1280.webp 1280w, /hero-fon-1920.webp 1920w" sizes="100vw" type="image/webp" />
+        <img
+          src="/hero-fon.jpg"
+          alt="Железнодорожный путь: рельсы на железобетонных шпалах"
+          fetchPriority="high"
+          decoding="async"
+          className="h-full w-full object-cover object-center"
+        />
+      </picture>
       <div
         className="absolute inset-0 bg-linear-to-r from-[#1C1F22]/95 via-[#1C1F22]/80 to-[#1C1F22]/25"
         aria-hidden="true"

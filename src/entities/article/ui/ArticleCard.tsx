@@ -30,7 +30,7 @@ export function ArticleCard({ article, compact = false }: { article: ArticleList
             <UploadImg
               src={image}
               sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
-              alt=""
+              alt={article.h1}
               loading="lazy"
               className="h-full w-full object-cover"
             />
