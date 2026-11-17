@@ -5,7 +5,7 @@ export type Message = {
   id: number
   conversationId: string
   clientId: string
-  sender: 'VISITOR' | 'MANAGER'
+  sender: 'VISITOR' | 'MANAGER' | 'AI'
   body: string
   createdAt: string
   readAt: string | null
@@ -20,6 +20,21 @@ export type Conversation = {
   updatedAt: string
   unread?: number
   lastMessage?: Message
+  ai?: ChatAiState
+}
+export type ChatAiState = {
+  enabled: boolean
+  configured: boolean
+  revision: number
+  serverNow: string
+  draft: {
+    id: string
+    status: 'QUEUED' | 'GENERATING' | 'PENDING' | 'SENT' | 'CANCELLED' | 'FAILED'
+    body: string | null
+    sendAt: string | null
+    error: string | null
+    updatedAt: string
+  } | null
 }
 export type History = {
   conversation: Conversation
@@ -29,7 +44,7 @@ export type History = {
 export type ReadReceipt = {
   conversationId: string
   through: number
-  reader: Message['sender']
+  reader: 'VISITOR' | 'MANAGER'
   readAt: string
 }
 

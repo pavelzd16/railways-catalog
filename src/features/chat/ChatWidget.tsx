@@ -80,7 +80,7 @@ export default function ChatWidget() {
   useEffect(() => {
     if (!socket) return
     const receive = (message: Message) => {
-      if (message.sender === 'MANAGER' && !open) setUnread((count) => count + 1)
+      if (message.sender !== 'VISITOR' && !open) setUnread((count) => count + 1)
     }
     socket.on('chat:message', receive)
     return () => {

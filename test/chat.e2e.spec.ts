@@ -102,17 +102,16 @@ test('visitor and administrator exchange WebSocket messages, retain history and 
   const name = `Алексей, проверка ${Date.now()}`
   await visitor.goto('/catalog')
   await visitor.getByRole('button', { name: 'Написать менеджеру' }).click()
-  await visitor.getByLabel('Как к вам обращаться').fill(name)
-  await visitor.getByLabel(/Телефон или почта/).fill('test@example.invalid')
+  await visitor.getByRole('textbox', { name: 'Сообщение', exact: true }).fill('Здравствуйте! Нужны болты М22, 500 штук.')
+  await visitor.getByRole('button', { name: 'Отправить сообщение' }).click()
+  await visitor.getByLabel('Ваше имя').fill(name)
+  await visitor.getByLabel('Ваш e-mail').fill('test@example.invalid')
+  await visitor.getByLabel('Ваш телефон').fill('9991112233')
   await visitor.getByRole('checkbox').last().check()
-  await visitor.getByRole('button', { name: 'Начать переписку' }).click()
+  await visitor.getByRole('button', { name: 'Начать диалог' }).click()
   await expect(
     visitor.getByText('Соединение установлено', { exact: true }),
   ).toBeVisible()
-  await visitor
-    .getByRole('textbox', { name: 'Сообщение', exact: true })
-    .fill('Здравствуйте! Нужны болты М22, 500 штук.')
-  await visitor.getByRole('button', { name: 'Отправить сообщение' }).click()
   await expect(visitor.locator('.chat-message')).toContainText(
     'Здравствуйте! Нужны болты М22, 500 штук.',
   )

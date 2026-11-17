@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router'
 import { FiCheck, FiMessageSquare } from 'react-icons/fi'
 import { getToken } from '@/entities/auth/model/auth.model'
 import { ChatThread } from '@/features/chat/ChatThread'
+import { ChatAiPanel, AiCountdown } from '@/features/chat/ChatAiPanel'
 import {
   chatRequest,
   useChatConnection,
@@ -55,6 +56,7 @@ export function AdminChatsPage() {
       .on('chat:message', changed)
       .on('chat:read', changed)
       .on('chat:closed', changed)
+      .on('chat:ai', changed)
     return () => {
       listGeneration.current++
       clearTimeout(timer)
@@ -63,6 +65,7 @@ export function AdminChatsPage() {
         .off('chat:message', changed)
         .off('chat:read', changed)
         .off('chat:closed', changed)
+        .off('chat:ai', changed)
     }
   }, [socket, refresh])
   useEffect(() => {
@@ -143,8 +146,10 @@ export function AdminChatsPage() {
                 </span>
                 <span className="chat-preview">
                   {item.lastMessage?.sender === 'MANAGER' ? 'Менеджер: ' : ''}
+                  {item.lastMessage?.sender === 'AI' ? 'ИИ: ' : ''}
                   {item.lastMessage?.body}
                 </span>
+                {item.ai?.enabled && item.ai.draft?.status === 'PENDING' && <AiCountdown key={item.ai.draft.id} state={item.ai} />}
                 <span className="chat-conversation-bottom">
                   {item.closed ? 'Завершён' : 'Открыт'}
                   <time>
@@ -209,6 +214,7 @@ export function AdminChatsPage() {
                   {selected.closed ? 'Завершён' : 'Завершить'}
                 </button>
               </header>
+              <ChatAiPanel key={`ai:${selected.id}`} socket={socket} conversationId={selected.id} state={selected.ai} connected={connected} closed={selected.closed} />
               <ChatThread
                 key={selected.id}
                 socket={socket}
