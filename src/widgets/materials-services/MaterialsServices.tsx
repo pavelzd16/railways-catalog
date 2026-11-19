@@ -1,12 +1,62 @@
+import { useCallback, useSyncExternalStore } from 'react'
+import useEmblaCarousel from 'embla-carousel-react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router'
 import { useServices } from '@/entities/service/model/hooks/useServices'
 import { getImageUrl } from '@/shared/lib'
 import { UploadImg } from '@/shared/ui/UploadImg'
+import { CarouselArrows } from '@/shared/ui/CarouselArrows'
+
+// Решения пользователя 04.11.2026: карточки прежнего большого размера, листаются, закольцованы,
+// и «чтобы видно что там за стенкой ещё есть». Карусель во всю ширину контейнера: на компьютере
+// две карточки по центру (~40 % ширины каждая, как раньше в колонке max-w-5xl), на телефоне одна
+// (80 %); по бокам выглядывают края соседних услуг. Показываем все услуги, а не первые две.
+const slideClassName = 'min-w-0 flex-[0_0_80%] pl-8 md:flex-[0_0_45%] lg:flex-[0_0_40%]'
+
+/** Сколько карточек влезает целиком — столько ставим по центру, остаток поровну на края соседей. */
+const alignCenteredGroup = (viewSize: number, snapSize: number) => {
+  const whole = Math.max(1, Math.floor(viewSize / snapSize))
+  return (viewSize - whole * snapSize) / 2
+}
 
 export function MaterialsServices() {
-  const { services, isLoading } = useServices()
-  const visibleServices = services.slice(0, 2)
+  const { services: visibleServices, isLoading } = useServices()
+  // inViewThreshold 0.9: «в кадре» — только карточки, видные (почти) целиком; края соседей — нет.
+  const [emblaRef, emblaApi] = useEmblaCarousel({ align: alignCenteredGroup, loop: true, inViewThreshold: 0.9 })
+  // Крайние (выглядывающие) карточки — на 50 % прозрачности, чтобы не спорили с центральными (04.11.2026).
+  // До запуска карусели (и на сервере) все карточки яркие.
+  const subscribeToInView = useCallback(
+    (onChange: () => void) => {
+      emblaApi?.on('slidesInView', onChange)
+      emblaApi?.on('reInit', onChange)
+      return () => {
+        emblaApi?.off('slidesInView', onChange)
+        emblaApi?.off('reInit', onChange)
+      }
+    },
+    [emblaApi],
+  )
+  const inViewKey = useSyncExternalStore(
+    subscribeToInView,
+    () => (emblaApi ? `,${emblaApi.slidesInView().join(',')},` : ''),
+    () => '',
+  )
+  const isDimmed = (index: number) => inViewKey !== '' && !inViewKey.includes(`,${index},`)
+  const subscribeToScroll = useCallback(
+    (onChange: () => void) => {
+      emblaApi?.on('select', onChange)
+      emblaApi?.on('reInit', onChange)
+      return () => {
+        emblaApi?.off('select', onChange)
+        emblaApi?.off('reInit', onChange)
+      }
+    },
+    [emblaApi],
+  )
+  const canScrollPrev = useSyncExternalStore(subscribeToScroll, () => emblaApi?.canScrollPrev() ?? false, () => false)
+  const canScrollNext = useSyncExternalStore(subscribeToScroll, () => emblaApi?.canScrollNext() ?? false, () => false)
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi])
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi])
   if (!isLoading && !visibleServices.length) return null
 
   return (
@@ -49,14 +99,30 @@ export function MaterialsServices() {
         )}
 
         {!isLoading && visibleServices.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="relative"
+            aria-roledescription="карусель"
+            aria-label="Услуги"
+          >
+            {visibleServices.length > 1 && (
+              <CarouselArrows
+                placement="sides"
+                onPrev={scrollPrev}
+                onNext={scrollNext}
+                canScrollPrev={canScrollPrev}
+                canScrollNext={canScrollNext}
+              />
+            )}
+            <div ref={emblaRef} className="overflow-hidden">
+              <ul className="-ml-8 flex touch-pan-y touch-pinch-zoom">
             {visibleServices.map((service, index) => (
-              <motion.div
+              <li
                 key={service.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15, duration: 0.5 }}
+                className={`${slideClassName} transition-opacity duration-300 ${isDimmed(index) ? 'opacity-50' : ''}`}
               >
                 <Link
                   to={`/services/${service.slug}`}
@@ -100,9 +166,11 @@ export function MaterialsServices() {
                     </div>
                   </div>
                 </Link>
-              </motion.div>
+              </li>
             ))}
-          </div>
+              </ul>
+            </div>
+          </motion.div>
         )}
 
         {!isLoading && visibleServices.length > 0 && (
