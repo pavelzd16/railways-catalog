@@ -3,11 +3,13 @@ import { Link, useParams, useSearchParams } from 'react-router'
 import { FiChevronDown } from 'react-icons/fi'
 import type { Category } from '@/entities/category'
 import { catalogPath } from '@/shared/seo/route-data'
+import { groupCategories } from '@/shared/lib/category-groups'
 
 export function CatalogCategories({ categories }: { categories: Category[] }) {
   const [params] = useSearchParams()
   const { categorySlug: currentCategory = '', subcategorySlug: currentSubcategory = '' } = useParams()
   const [open, setOpen] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   // Раздел — в пути; поиск и общие фильтры переносим, страницу и фильтры раздела — нет.
   const categoryHref = (category = '', subcategory = '') => {
@@ -70,7 +72,10 @@ export function CatalogCategories({ categories }: { categories: Category[] }) {
               </span>
             )}
         </Link>
-        {categories.map((category) => {
+        {groupCategories(categories).map(group => (
+          <details key={group.id} open={showAll || group.categories.some(category => category.slug === currentCategory) || undefined} className="border-t border-border">
+            <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-bold hover:bg-white">{group.name}</summary>
+        {group.categories.map((category) => {
           const selected = category.slug === currentCategory
           const expandedCategory = expanded[category.slug] ?? selected
           const subcategories = category.subcategories ?? []
@@ -141,6 +146,9 @@ export function CatalogCategories({ categories }: { categories: Category[] }) {
             </div>
           )
         })}
+          </details>
+        ))}
+        <button type="button" onClick={() => setShowAll(!showAll)} aria-expanded={showAll} className="min-h-11 w-full px-4 py-3 text-left text-sm font-semibold text-primary">{showAll ? 'Свернуть разделы' : `Показать все разделы (${categories.length})`}</button>
       </nav>
     </aside>
   )

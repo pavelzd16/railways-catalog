@@ -7,6 +7,9 @@
   color: hsl(var(--foreground));
   font-size: 14px;
 }
+.chat-dock {
+  display: contents;
+}
 .chat-widget:not(.is-open) {
   bottom: max(var(--chat-edge), env(safe-area-inset-bottom), var(--cookie-banner-clearance, 0px));
 }
@@ -659,4 +662,14 @@
   .admin-chat-detail-header {
     padding: 12px;
   }
+}
+
+/* На телефоне и планшете чат занимает отдельную строку под панелью товара. */
+@media (max-width: 1023px) {
+  .chat-widget, .chat-widget:not(.is-open) { left: 0; right: 0; bottom: 0; }
+  .chat-dock { display: block; padding: 4px 12px calc(4px + env(safe-area-inset-bottom)); border-top: 1px solid hsl(var(--border)); background: white; }
+  .chat-dock .chat-launcher { width: 100%; height: 44px; padding: 0 12px; justify-content: center; box-shadow: none; }
+  .chat-dock .chat-launcher > span { display: inline; }
+  .chat-dock .chat-badge { position: static; }
+  .chat-widget .chat-panel { position: fixed; inset: max(12px, env(safe-area-inset-top)) 12px calc(var(--chat-dock-height, 56px) + 8px); width: auto; height: auto; max-height: none; }
 }

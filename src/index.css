@@ -108,6 +108,14 @@ button:disabled {
 .site-shell main {
   min-width: 0;
 }
+.site-shell {
+  padding-bottom: var(--chat-dock-height, 0px);
+}
+.cookie-notice {
+  --notice-bottom: max(1.5rem, calc(var(--chat-dock-height, 0px) + var(--product-bar-height, 0px) + .75rem), env(safe-area-inset-bottom));
+  bottom: var(--notice-bottom);
+  max-height: calc(100dvh - var(--notice-bottom) - .75rem);
+}
 .site-shell main h1,
 .site-shell main h2,
 .site-shell main h3 {

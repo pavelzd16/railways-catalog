@@ -78,7 +78,7 @@ export function Pagination({
   return (
     <nav
       aria-label="Страницы каталога"
-      className={cn('flex items-center justify-center gap-1', className)}
+      className={cn('flex flex-wrap items-center justify-center gap-1', className)}
     >
       {control(
         currentPage - 1,

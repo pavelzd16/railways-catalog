@@ -11,6 +11,7 @@ import { getMetadata } from './metadata'
 import { applyMetadata } from './apply-metadata'
 import type { MetaPair } from './meta-traer'
 import { PageDataContext, CategoriesContext } from './page-context'
+import { normalizeR65Offer } from '@/shared/lib/r65-offers'
 
 export function PageDataProvider({ initial, children }: { initial: PageData; children: ReactNode }) {
   const { pathname, search } = useLocation()
@@ -51,7 +52,8 @@ export function PageDataProvider({ initial, children }: { initial: PageData; chi
       : route.kind === 'service' ? serviceApi.getBySlug(route.slug) : route.kind === 'normativ' ? normativApi.getBySlug(route.slug) : articleApi.getBySlug(route.slug)
     request.then((value) => {
       if (cancelled) return
-      const next = { url, siteUrl: initial.siteUrl, ssr: false, status: 200, [route.kind]: value }
+      const detailValue = route.kind === 'product' ? normalizeR65Offer(value as NonNullable<PageData['product']>) : value
+      const next = { url, siteUrl: initial.siteUrl, ssr: false, status: 200, [route.kind]: detailValue }
       setLoaded(next)
       const canonical = route.kind === 'product' ? productPath(value as NonNullable<PageData['product']>) : `/${route.kind === 'service' ? 'services' : route.kind === 'normativ' ? 'normativ' : 'stati'}/${encodeURIComponent(value.slug)}`
       if (pathname !== canonical) navigate(canonical + search, { replace: true })
