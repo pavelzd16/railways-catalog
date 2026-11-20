@@ -5,6 +5,7 @@ import { fetchFromApi } from '@/renderer/api-fetch'
 import { articlesPage, articleSlugRedirect, catalogSelection, detailRoute, isKnownPath, isUnknownCatalogSelection, legacyCatalogRedirect, normativRedirect, productPath, rendersOnServer, type PageData } from '@/shared/seo/route-data'
 import { movedProductSlug } from '@/shared/seo/product-slug-moves'
 import { catalogQuery, productQueryString } from '@/shared/lib/catalog-query'
+import { normalizeR65Offer } from '@/shared/lib/r65-offers'
 
 export async function data(pageContext: PageContextServer): Promise<PageData> {
   const url = new URL(pageContext.urlOriginal, siteUrl)
@@ -36,7 +37,7 @@ export async function data(pageContext: PageContextServer): Promise<PageData> {
       else if (!response.ok) result.status = 503
       else {
         const value = await response.json()
-        if (route.kind === 'product') result.product = value
+        if (route.kind === 'product') result.product = normalizeR65Offer(value)
         else if (route.kind === 'service') result.service = value
         else if (route.kind === 'normativ') result.normativ = value
         else result.article = value

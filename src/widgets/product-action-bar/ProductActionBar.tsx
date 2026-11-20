@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/Button'
 import { Dialog } from '@/shared/ui/Dialog'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { PHONE_CALL, tel } from '@/shared/lib/phones'
+import { useBottomClearance } from '@/shared/lib/use-bottom-clearance'
 
 // Городского пока нет — значок звонит на мобильный (src/shared/lib/phones.ts).
 const PHONE = PHONE_CALL
@@ -21,13 +22,16 @@ export function ProductActionBar({
   onSpecification: () => void
 }) {
   const [messengersOpen, setMessengersOpen] = useState(false)
+  const bar = useBottomClearance('--product-bar-height')
 
   return (
     <>
       {/* Место под панелью, чтобы она не закрывала низ страницы. */}
-      <div className="h-[calc(4.5rem+env(safe-area-inset-bottom))] lg:hidden" aria-hidden="true" />
+      <div style={{ height: 'var(--product-bar-height, 4.5rem)' }} className="lg:hidden" aria-hidden="true" />
 
       <div
+        ref={bar}
+        style={{ bottom: 'var(--chat-dock-height, 0px)' }}
         role="region"
         aria-label="Заявка по товару"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 px-3 pt-2 pb-[max(.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgb(28_31_34/0.08)] backdrop-blur lg:hidden"

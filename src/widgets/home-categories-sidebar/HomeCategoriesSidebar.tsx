@@ -8,11 +8,13 @@ import {
 } from "react-icons/fi";
 import { useCategories } from "@/entities/category/model/hooks/useCategories";
 import { getCategoryUrl } from "@/shared/lib/catalog-helpers";
+import { groupCategories } from "@/shared/lib/category-groups";
 import "./home-categories-sidebar.css";
 
 export function HomeCategoriesSidebar() {
   const { categories, isLoading, error } = useCategories();
   const [open, setOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const panelId = useId();
 
   return (
@@ -63,7 +65,12 @@ export function HomeCategoriesSidebar() {
             </p>
           ) : categories.length ? (
             <ul className="hero-catalog-list px-1.5 py-1">
-              {categories.map((category) => (
+              {groupCategories(categories).map(group => (
+                <li key={group.id}>
+                <details open={showAll || undefined}>
+                  <summary className="min-h-11 cursor-pointer rounded-md px-2.5 py-3 text-sm font-bold hover:bg-white/8">{group.name}</summary>
+                  <ul className="pl-2">
+              {group.categories.map((category) => (
                 <li key={category.id}>
                   <Link
                     to={getCategoryUrl(category.slug)}
@@ -79,6 +86,11 @@ export function HomeCategoriesSidebar() {
                   </Link>
                 </li>
               ))}
+                  </ul>
+                </details>
+                </li>
+              ))}
+              <li><button type="button" onClick={() => setShowAll(!showAll)} aria-expanded={showAll} className="min-h-11 w-full px-2.5 py-2 text-left text-sm font-bold text-accent">{showAll ? 'Свернуть разделы' : `Показать все разделы (${categories.length})`}</button></li>
             </ul>
           ) : (
             <p className="px-4 py-4 text-sm text-white/70">

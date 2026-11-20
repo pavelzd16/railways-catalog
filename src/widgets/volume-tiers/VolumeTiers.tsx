@@ -3,9 +3,8 @@ import { cn } from '@/shared/lib/cn'
 import { productGroup, TIER_NAMES, tierVolumes } from '@/shared/lib/product-groups'
 
 /**
- * Ступени цены по объёму партии — словами, без процентов (решение пользователя
- * от 24.09.2026). Столбики-ступеньки растут к вагону: чем больше объём, тем
- * выгоднее тонна. В квадратиках — только объём, подпись осталась лишь у
+ * Примеры объёмов партии для индивидуального расчёта менеджером.
+ * Столбики растут к вагонной партии. В квадратиках — только объём, подпись лишь у
  * вагонной ступени (решение пользователя от 28.09.2026). Группы разделов и
  * объёмы — из общего модуля: из него же берёт ступени ответ про цену
  * в «Частых вопросах».
@@ -44,7 +43,7 @@ export function VolumeTiers({
       <div className="mb-4 flex items-center gap-2">
         <LuLayers aria-hidden className="size-4 shrink-0 text-primary" />
         <h2 id="volume-tiers-title" className="text-sm font-bold text-foreground">
-          Чем больше объём — тем ниже цена за тонну
+          Объём партии для расчёта цены
         </h2>
       </div>
 
@@ -68,7 +67,7 @@ export function VolumeTiers({
               </span>
               {best && (
                 <span className="mt-0.5 text-[11px] font-semibold leading-tight text-primary">
-                  {tier.name}
+                  Вагонная партия
                 </span>
               )}
             </li>
@@ -77,7 +76,7 @@ export function VolumeTiers({
       </ol>
 
       <p className="mt-3 text-xs text-muted-foreground">
-        Цену под ваш объём назовёт менеджер.{' '}
+        Стоимость зависит от объёма и условий поставки. Цену партии рассчитает менеджер; автоматическая скидка не применяется.{' '}
         {onRequest && (
           <button
             type="button"

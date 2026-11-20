@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { setSiteOverlay } from './site-overlays'
 
 const modalStack: HTMLElement[] = []
 let previousOverflow = ''
@@ -31,6 +32,7 @@ export function useModalFocus(
       if (root) root.inert = true
     }
     modalStack.push(panel)
+    setSiteOverlay({ modalActive: true })
     const focusable = () =>
       Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector)).filter(
         (element) =>
@@ -73,6 +75,7 @@ export function useModalFocus(
       document.removeEventListener('keydown', handleKey)
       const index = modalStack.indexOf(panel)
       if (index >= 0) modalStack.splice(index, 1)
+      setSiteOverlay({ modalActive: modalStack.length > 0 })
       if (!modalStack.length) {
         document.body.style.overflow = previousOverflow
         if (root) root.inert = rootWasInert

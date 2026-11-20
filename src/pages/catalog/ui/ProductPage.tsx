@@ -14,6 +14,8 @@ import { convertTonPrice } from '@/shared/lib/price-convert'
 import { kitForSku } from '@/shared/lib/kit-composition'
 import { buildProductFaq } from '@/shared/lib/product-faq'
 import { splitSpecs } from '@/shared/lib/product-specs'
+import { isR65Offer, R65_OFFERS } from '@/shared/lib/r65-offers'
+import { productPath } from '@/shared/seo/route-data'
 import { Breadcrumbs } from '@/shared/ui/Breadcrumbs'
 import { Button } from '@/shared/ui/Button'
 import { Input } from '@/shared/ui/Input'
@@ -45,7 +47,7 @@ const specLabels: Record<string, string> = {
 
 const REQUEST_TEXT = {
   price: { title: 'Узнать цену', description: 'Укажите объём партии — менеджер назовёт цену' },
-  specification: { title: 'Запросить спецификацию', description: 'Получите консультацию или коммерческое предложение' },
+  specification: { title: 'Запросить спецификацию', description: 'Свяжемся и уточним параметры партии' },
 }
 
 export function ProductPage() {
@@ -157,6 +159,7 @@ export function ProductPage() {
         open={requestFormOpen}
         onOpenChange={setRequestFormOpen}
         productId={product.id}
+        productName={`${product.title} · ${getConditionLabel(product.condition)}`}
         {...REQUEST_TEXT[requestKind]}
       />
 
@@ -240,6 +243,21 @@ export function ProductPage() {
             <h1 className="mb-4 text-3xl font-black leading-tight tracking-tight text-foreground md:text-4xl">
               {product.title}
             </h1>
+
+            {isR65Offer(product.slug) && (
+              <nav aria-label="Состояние рельса Р65" className="mb-6 rounded-lg border border-border p-4">
+                <p className="mb-3 text-sm font-semibold">Выберите состояние</p>
+                <div className="flex flex-wrap gap-2">
+                  {R65_OFFERS.map(offer => (
+                    <Link key={offer.slug} to={productPath(offer)} aria-current={offer.slug === product.slug ? 'page' : undefined}
+                      className={`rounded-lg border px-4 py-3 text-sm font-semibold ${offer.slug === product.slug ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary'}`}>
+                      {offer.label}
+                    </Link>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">У каждого варианта своя цена и наличие. Выбранное состояние будет указано в заявке.</p>
+              </nav>
+            )}
 
             {product.gost && (
               <p className="mb-5 text-sm text-muted-foreground">

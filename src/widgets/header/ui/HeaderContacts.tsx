@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FiChevronDown, FiClock, FiPhone } from 'react-icons/fi'
 import { Button } from '@/shared/ui/Button'
-import { CopyButton, CopyValue } from '@/shared/ui/CopyButton'
+import { CopyButton } from '@/shared/ui/CopyButton'
 import { MessengerLinks } from '@/shared/ui/MessengerLinks'
 import { useCopy } from '@/shared/ui/use-copy'
 import { emailCopyGoal } from '@/shared/analytics/metrika'
@@ -15,7 +15,7 @@ const COPY_PHONE = 'Скопировать номер телефона'
 // Мышь успевает дойти от номера до списка по диагонали — список закрывается не сразу.
 const CLOSE_DELAY = 200
 
-/** Строка списка: трубка звонит, номер и значок копируют — как в блоке контактов на главной. */
+/** Номер и трубка звонят; отдельный значок сохраняет копирование номера. */
 function PanelPhone({ phone }: { phone: string }) {
   const copy = useCopy(phone)
   return (
@@ -28,9 +28,9 @@ function PanelPhone({ phone }: { phone: string }) {
       >
         <FiPhone className="h-4 w-4" />
       </a>
-      <CopyValue state={copy} label={COPY_PHONE} className="whitespace-nowrap hover:text-primary">
+      <a href={tel(phone)} className="whitespace-nowrap hover:text-primary">
         {phone}
-      </CopyValue>
+      </a>
       <CopyButton compact state={copy} label={COPY_PHONE} />
     </div>
   )
@@ -93,9 +93,9 @@ export function HeaderContacts() {
       <div className="hidden h-6 items-center gap-2 px-2 text-sm md:flex">
         <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
         {/* Почта на ступень крупнее строки (16 px, как номер), разрядка 0,1 em — зазор вдвое шире обычного. */}
-        <CopyValue state={email} label={COPY_EMAIL} className="text-base font-bold tracking-widest text-current hover:text-primary">
+        <a href={`mailto:${EMAIL}`} className="text-base font-bold tracking-widest text-current hover:text-primary">
           {EMAIL}
-        </CopyValue>
+        </a>
       </div>
       {/* На телефоне — значок звонка, оба номера есть в меню. */}
       <a
@@ -108,9 +108,9 @@ export function HeaderContacts() {
       <div ref={root} className="relative hidden md:block" onPointerEnter={enter} onPointerLeave={leave}>
         <div className="flex h-6 items-center gap-2 pl-2">
           <CopyButton compact state={mobile} label={COPY_PHONE} className="-mx-0.5" />
-          <CopyValue state={mobile} label={COPY_PHONE} className="whitespace-nowrap font-bold text-current hover:text-primary">
+          <a href={tel(PHONE_MOBILE)} className="whitespace-nowrap font-bold text-current hover:text-primary">
             {PHONE_MOBILE}
-          </CopyValue>
+          </a>
           <button
             ref={toggle}
             type="button"
@@ -162,9 +162,9 @@ export function HeaderContacts() {
               </Button>
               <p className="mt-4 text-sm text-muted-foreground">Наша почта:</p>
               <div className="mt-1 flex items-center gap-2 font-bold">
-                <CopyValue state={panelEmail} label={COPY_EMAIL} className="hover:text-primary">
+                <a href={`mailto:${EMAIL}`} className="hover:text-primary">
                   {EMAIL}
-                </CopyValue>
+                </a>
                 <CopyButton compact state={panelEmail} label={COPY_EMAIL} />
               </div>
             </div>

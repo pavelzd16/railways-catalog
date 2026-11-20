@@ -44,7 +44,7 @@ export function Footer() {
             <p className="footer-muted max-w-xs text-sm leading-relaxed">
               Поставки железнодорожных материалов по России и СНГ.
             </p>
-            <p className="mt-5 text-sm font-bold">Группа компаний ИНВИА</p>
+            <p className="mt-5 text-sm font-bold">ПроРельс — торговая площадка ООО «ИНВИА»</p>
             <p className="footer-muted mt-1 text-sm">
               Юридическое лицо — ООО «ИНВИА»
               <br />

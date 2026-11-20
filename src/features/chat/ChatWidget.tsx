@@ -7,21 +7,12 @@ import {
   type Message,
 } from './chat-client'
 import { ChatSessionError, readChatSession, type ChatSession } from './chat-session'
+import { useSiteOverlays, setChatOpen as setOpen } from '@/shared/lib/site-overlays'
+import { useBottomClearance } from '@/shared/lib/use-bottom-clearance'
 import './chat.css'
 
 const SESSION_KEY = 'prorels-chat-session-v1'
 const QUICK_REPLIES = ['Купить рельсы', 'Купить ж/д крепёж', 'Получить КП']
-/** Окно само открывается один раз на браузер, через 12 с после входа на сайт. */
-const AUTO_OPEN_KEY = 'prorels-chat-auto-opened'
-const AUTO_OPEN_DELAY = 12000
-
-function markAutoOpened() {
-  try {
-    localStorage.setItem(AUTO_OPEN_KEY, '1')
-  } catch {
-    /* No storage. */
-  }
-}
 
 /** 10 цифр номера после +7: «8 917…», «+7 917…» и «917…» дают одно и то же. */
 function phoneDigits(value: string) {
@@ -48,7 +39,6 @@ function managersOnline() {
 
 export default function ChatWidget() {
   const { pathname } = useLocation()
-  const [open, setOpen] = useState(false)
   const [session, setSession] = useState<ChatSession | null>(() => {
     try {
       const stored = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null')
@@ -70,7 +60,8 @@ export default function ChatWidget() {
   const opener = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLElement>(null)
   const phoneInput = useRef<HTMLInputElement>(null)
-  const autoOpened = useRef(false)
+  const { modalActive, chatOpen: open } = useSiteOverlays()
+  const dock = useBottomClearance('--chat-dock-height')
   const online = managersOnline()
   const {
     socket,
@@ -87,33 +78,10 @@ export default function ChatWidget() {
       socket.off('chat:message', receive)
     }
   }, [socket, open])
-  useEffect(() => {
-    if (session) return
-    try {
-      // Без хранилища не открываем: иначе окно выскакивало бы на каждом заходе.
-      if (localStorage.getItem(AUTO_OPEN_KEY)) return
-    } catch {
-      return
-    }
-    const timer = window.setTimeout(() => {
-      try {
-        // Посетитель уже открывал чат сам — повторно не навязываем.
-        if (localStorage.getItem(AUTO_OPEN_KEY)) return
-      } catch {
-        return
-      }
-      markAutoOpened()
-      autoOpened.current = true
-      setOpen(true)
-    }, AUTO_OPEN_DELAY)
-    return () => window.clearTimeout(timer)
-  }, [session])
+  useEffect(() => () => setOpen(false), [])
   useEffect(() => {
     if (!open) return
-    markAutoOpened()
-    // Само открывшееся окно не забирает фокус у поля, где посетитель печатает.
-    if (!autoOpened.current) panel.current?.focus()
-    autoOpened.current = false
+    panel.current?.focus()
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setOpen(false)
@@ -179,22 +147,24 @@ export default function ChatWidget() {
   }
   if (pathname.startsWith('/admin')) return null
   return (
-    <div className={`chat-widget${open ? ' is-open' : ''}`}>
-      <button
-        ref={opener}
-        className="chat-launcher"
-        aria-label={open ? 'Свернуть чат' : 'Написать менеджеру'}
-        aria-expanded={open}
-        aria-controls="prorels-chat"
-        onClick={() => {
-          setOpen((value) => !value)
-          setUnread(0)
-        }}
-      >
-        <FiMessageSquare aria-hidden="true" />
-        <span>Поможем рассчитать стоимость!</span>
-        {unread > 0 && <b className="chat-badge">{unread}</b>}
-      </button>
+    <div className={`chat-widget${open ? ' is-open' : ''}`} hidden={modalActive}>
+      <div ref={dock} className="chat-dock">
+        <button
+          ref={opener}
+          className="chat-launcher"
+          aria-label={open ? 'Свернуть чат' : 'Написать менеджеру'}
+          aria-expanded={open}
+          aria-controls="prorels-chat"
+          onClick={() => {
+            setOpen((value) => !value)
+            setUnread(0)
+          }}
+        >
+          <FiMessageSquare aria-hidden="true" />
+          <span>Написать менеджеру</span>
+          {unread > 0 && <b className="chat-badge">{unread}</b>}
+        </button>
+      </div>
       <section
         ref={panel}
         id="prorels-chat"
