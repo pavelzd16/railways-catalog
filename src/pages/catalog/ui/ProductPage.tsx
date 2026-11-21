@@ -10,7 +10,7 @@ import {
 } from '@/shared/lib/catalog-helpers'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { priceUnitLabel } from '@/shared/lib/price-unit'
-import { convertTonPrice } from '@/shared/lib/price-convert'
+import { productPriceConversion } from '@/shared/lib/price-convert'
 import { kitForSku } from '@/shared/lib/kit-composition'
 import { buildProductFaq } from '@/shared/lib/product-faq'
 import { splitSpecs } from '@/shared/lib/product-specs'
@@ -140,7 +140,7 @@ export function ProductPage() {
   }
   const specRows = [...mainSpecs, ...restSpecs]
   const kit = kitForSku(product.sku)
-  const priceConversion = convertTonPrice(product.price, product.specs, product.title)
+  const priceConversion = productPriceConversion(product)
   // Прячем хвост, только когда под кнопкой хотя бы три строки: ради одной-двух кнопка лишняя.
   // Скрытые строки остаются в HTML — поисковики видят все характеристики.
   const specsCollapsible = restSpecs.length >= 3

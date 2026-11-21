@@ -5,6 +5,7 @@ import type { Product } from '@/entities/product/model/types'
 import { AddToCartButton } from '@/features/cart/ui/AddToCartButton'
 import { formatPrice, getConditionLabel } from '@/shared/lib/catalog-helpers'
 import { formatSpec, plainText } from '@/shared/lib/plain-text'
+import { primaryRailPrice } from '@/shared/lib/price-convert'
 import { getImageUrl } from '@/shared/lib/product-helpers'
 import { productPath } from '@/shared/seo/route-data'
 import { ProductImage } from '@/shared/ui/ProductImage'
@@ -74,9 +75,12 @@ export function CatalogList({
             const unitSpec = product.specs?.find((spec) =>
               spec.label.toLowerCase().includes('единица'),
             )
-            const unit = unitSpec
-              ? plainText(unitSpec.value).replace(/[;.]$/, '')
+            const railPrice = primaryRailPrice(product)
+            const price = railPrice?.price ?? product.price
+            const unit = railPrice?.unit ?? (unitSpec
+              ? `/ ${plainText(unitSpec.value).replace(/[;.]$/, '')}`
               : ''
+            )
             return (
               <tr key={product.id}>
                 <td className="catalog-list-name">
@@ -138,13 +142,13 @@ export function CatalogList({
                     aria-label={`Запросить цену и спецификацию: ${product.title}`}
                     className="text-left font-bold text-primary hover:underline"
                   >
-                    {product.price
-                      ? `${formatPrice(product.price)} ₽`
+                    {price
+                      ? `${railPrice ? 'от ' : ''}${formatPrice(price)} ₽`
                       : 'По запросу'}
                   </button>
-                  {product.price != null && product.price > 0 && unit && (
+                  {price != null && price > 0 && unit && (
                     <span className="mt-0.5 block text-xs font-normal text-muted-foreground">
-                      / {unit}
+                      {unit}
                     </span>
                   )}
                   <PriceNote className="mt-0.5" />

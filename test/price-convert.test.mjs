@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { convertTonPrice, massPerMeter, massPerPiece, measuredLengths } from '../src/shared/lib/price-convert.ts'
+import { convertTonPrice, massPerMeter, massPerPiece, measuredLengths, primaryRailPrice, productPriceConversion, railOrderUnit } from '../src/shared/lib/price-convert.ts'
 
 // Характеристики как у карточки Р-50 на боевом (TM-0020).
 const r50 = [
@@ -120,4 +120,38 @@ test('штучный товар за тонну: т, кг, шт и скольк�
   assert.equal(massPerPiece([{ label: 'Масса 1 шт.', value: 'около 0,12 кг' }]), 0.12)
   assert.equal(massPerPiece([{ label: 'Масса 1000 шт. (теоретическая), кг', value: '135,83' }]), 0.13583)
   assert.equal(massPerPiece([{ label: 'Теоретическая масса 1 шт., кг', value: '0,458' }]), 0.458)
+})
+
+test('у рельса Р43 сначала цена за 12,5 м, остальные цены рассчитаны из той же ставки', () => {
+  const pricePerTon = 81000 * 1000 / (44.745 * 12.5)
+  const rail = {
+    price: pricePerTon,
+    title: 'Рудничные рельсы Р43',
+    categorySlug: 'zheleznodorozhnye-relsy',
+    specs: [...tonOnly,
+      { label: 'Масса 1 м', value: '44,745 кг' },
+      { label: 'Мерная длина', value: '12,5 и 25 м' },
+    ],
+  }
+  const { options } = productPriceConversion(rail)
+  assert.deepEqual(options.map(({ key }) => key), ['pc-12.5', 't', 'kg', 'm', 'pc-25'])
+  assert.equal(primaryRailPrice(rail).price, 81000)
+  assert.equal(options[1].price, pricePerTon)
+  assert.equal(options[3].price, 6480)
+  assert.equal(options[4].price, 162000)
+  assert.equal(railOrderUnit(rail), 'т')
+})
+
+test('длина из отдельной единицы API распознаётся, немерный рельс и крепёж сохраняют порядок', () => {
+  const rail = {
+    price: 99000,
+    title: 'Рельс Р50',
+    categorySlug: 'zheleznodorozhnye-relsy',
+    specs: [...tonOnly, { label: 'Длина', value: 12500, unit: 'мм' }],
+  }
+  assert.equal(primaryRailPrice(rail).key, 'pc-12.5')
+  assert.equal(primaryRailPrice({ ...rail, specs: [...tonOnly, { label: 'Длина рельса', value: '6–12,5 м' }] }), undefined)
+  const fastening = { ...rail, title: 'Накладка рельсовая Р50', categorySlug: 'stykovye-zhd-nakladki', specs: [...tonOnly, { label: 'Масса 1 шт.', value: '15 кг' }] }
+  assert.equal(primaryRailPrice(fastening), undefined)
+  assert.equal(productPriceConversion(fastening).options[0].key, 't')
 })

@@ -17,6 +17,14 @@ import { getImageUrl } from '@/shared/lib/product-helpers'
 import { UploadImg } from '@/shared/ui/UploadImg'
 import { orderApi } from '@/entities/order/api/order.api'
 import { FORM_GOAL, metrikaReachGoal } from '@/shared/analytics/metrika'
+import { primaryRailPrice, railOrderUnit } from '@/shared/lib/price-convert'
+import { formatPrice } from '@/shared/lib/catalog-helpers'
+
+function RailUnitPrice({ product }: { product: CartItem['product'] }) {
+  const price = primaryRailPrice(product)
+  if (!price) return null
+  return <p className="text-xs text-muted-foreground">От {formatPrice(price.price)} ₽ {price.unit}</p>
+}
 
 export function CartPage() {
   const { items, totalItems, totalPrice, removeFromCart, updateQuantity, clearCart } = useCart()
@@ -323,8 +331,9 @@ export function CartPage() {
                         <p className="text-sm font-medium text-foreground truncate">
                           {item.product.title}
                         </p>
+                        <RailUnitPrice product={item.product} />
                         <p className="text-xs text-muted-foreground">
-                          {item.quantity} шт × {!item.product.price ? 'По запросу' : `${item.product.price.toLocaleString('ru-RU')} ₽`}
+                          {item.quantity} {railOrderUnit(item.product)} × {!item.product.price ? 'По запросу' : `${formatPrice(item.product.price)} ₽`}
                         </p>
                       </div>
                       <div className="text-right">
@@ -388,6 +397,7 @@ export function CartPage() {
                       <p className="text-sm text-muted-foreground mt-1">
                         Арт. {item.product.sku}
                       </p>
+                      <RailUnitPrice product={item.product} />
 
                       {!item.product.price && (
                         <p className="text-xs text-primary font-medium mt-1">
@@ -403,7 +413,7 @@ export function CartPage() {
                         >
                           <FiMinus className="h-4 w-4" />
                         </button>
-                        <span className="w-10 text-center text-sm font-semibold">{item.quantity}</span>
+                        <span className="w-10 text-center text-sm font-semibold">{item.quantity} {railOrderUnit(item.product)}</span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                           className="w-8 h-8 flex items-center justify-center rounded-lg border border-border hover:bg-muted transition-colors"
@@ -428,7 +438,7 @@ export function CartPage() {
                         </p>
                         {item.product.price && (
                           <p className="text-xs text-muted-foreground">
-                            {item.product.price.toLocaleString('ru-RU')} ₽/шт
+                            {formatPrice(item.product.price)} ₽/{railOrderUnit(item.product)}
                           </p>
                         )}
                       </div>
