@@ -1,5 +1,6 @@
 import { productPath } from '@/shared/seo/route-data'
 import { plainText } from '@/shared/lib/plain-text'
+import { primaryRailPrice } from '@/shared/lib/price-convert'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import type { Product } from '../model/types'
@@ -16,7 +17,9 @@ export function ProductCard({ product }: { product: Product }) {
   const unitSpec = product.specs?.find((spec) =>
     spec.label.toLowerCase().includes('единица'),
   )
-  const unit = unitSpec ? plainText(unitSpec.value).replace(/[;.]$/, '') : ''
+  const railPrice = primaryRailPrice(product)
+  const price = railPrice?.price ?? product.price
+  const unit = railPrice?.unit ?? (unitSpec ? `/ ${plainText(unitSpec.value).replace(/[;.]$/, '')}` : '')
   return (
     <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-white transition duration-200 hover:-translate-y-1 hover:border-accent hover:shadow-sm">
       <Link
@@ -61,13 +64,13 @@ export function ProductCard({ product }: { product: Product }) {
         </dl>
         <div className="mt-auto">
           <p className="mb-4 text-xl font-bold">
-            {!product.price
+            {!price
               ? 'Цена по запросу'
-              : `${formatPrice(product.price)} ₽`}
-            {product.price != null && unit && (
+              : `${railPrice ? 'от ' : ''}${formatPrice(price)} ₽`}
+            {!!price && unit && (
               <span className="text-sm font-normal text-muted-foreground">
                 {' '}
-                / {unit}
+                {unit}
               </span>
             )}
             <PriceNote className="mt-1" />

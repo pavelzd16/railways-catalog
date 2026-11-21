@@ -1,6 +1,8 @@
 import {createContext, useContext, useState, useEffect, type ReactNode} from 'react'
 import type {Product} from '../../product/model/types'
 import type {CartItem, CartState} from '../model/types'
+import {productApi} from '../../product/api/product.api'
+import {isRailProduct} from '@/shared/lib/price-convert'
 
 interface CartContextType extends CartState {
     addToCart: (product: Product, quantity?: number) => void
@@ -23,11 +25,25 @@ export function CartProvider({children}: { children: ReactNode }) {
     const [items, setItems] = useState<CartItem[]>([])
     const [storageReady, setStorageReady] = useState(false)
     useEffect(() => {
+        let active = true
         try {
             const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-            if (Array.isArray(stored)) setItems(stored.filter(item => item?.product?.id && Number.isFinite(item.quantity) && item.quantity > 0))
+            if (Array.isArray(stored)) {
+                const valid: CartItem[] = stored.filter(item => item?.product?.id && Number.isFinite(item.quantity) && item.quantity > 0)
+                setItems(valid)
+                for (const {product} of valid) {
+                    if (!isRailProduct(product) || !product.slug) continue
+                    void productApi.getBySlug(product.slug).then(latest => {
+                        if (!active || latest.id !== product.id) return
+                        setItems(previous => previous.map(item => item.product === product
+                            ? {...item, product: {...product, price: latest.price, specs: latest.specs}}
+                            : item))
+                    }).catch(() => { /* A saved cart remains usable if the catalog is unavailable. */ })
+                }
+            }
         } catch { /* Storage can be unavailable in private browsing. */ }
         setStorageReady(true)
+        return () => { active = false }
     }, [])
     useEffect(() => {
         if (!storageReady) return
@@ -43,6 +59,7 @@ export function CartProvider({children}: { children: ReactNode }) {
                 const updated = [...prev]
                 updated[existingIndex] = {
                     ...updated[existingIndex],
+                    product,
                     quantity: updated[existingIndex].quantity + quantity
                 }
                 return updated

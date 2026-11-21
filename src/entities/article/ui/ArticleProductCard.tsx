@@ -4,6 +4,7 @@ import type { Product, ProductCondition } from '@/entities/product/model/types'
 import { formatPrice } from '@/shared/lib/catalog-helpers'
 import { formatSpec, plainText } from '@/shared/lib/plain-text'
 import { priceUnitLabel } from '@/shared/lib/price-unit'
+import { primaryRailPrice } from '@/shared/lib/price-convert'
 import { productPath } from '@/shared/seo/route-data'
 import { CatalogImage } from '@/shared/ui/CatalogImage'
 import type { ArticleProduct, ArticleSpec } from '../model/types'
@@ -23,6 +24,7 @@ function toCartProduct(product: ArticleProduct): Product {
     images: product.images,
     categorySlug: product.categorySlug,
     subcategorySlug: product.subcategorySlug ?? undefined,
+    specs: product.specs.map((spec) => ({ ...spec, id: spec.label, unit: spec.unit ?? undefined })),
   }
 }
 
@@ -39,7 +41,9 @@ function pickSpecs(specs: ArticleSpec[], labels: string[]): ArticleSpec[] {
 /** Живая карточка товара в тексте статьи: фото, название, характеристики, наличие, цена, «В корзину». */
 export function ArticleProductCard({ product, specs }: { product: ArticleProduct; specs: string[] }) {
   const url = productPath({ ...product, subcategorySlug: product.subcategorySlug ?? undefined })
-  const unit = priceUnitLabel(product.specs)
+  const railPrice = primaryRailPrice(product)
+  const price = railPrice?.price ?? product.price
+  const unit = railPrice?.unit ?? priceUnitLabel(product.specs)
   const shown = pickSpecs(product.specs, specs)
   return (
     <article className="flex h-full min-w-0 flex-col overflow-hidden rounded-[10px] border border-[#e1e5e9] bg-white">
@@ -67,8 +71,8 @@ export function ArticleProductCard({ product, specs }: { product: ArticleProduct
             {product.stock > 0 ? 'В наличии' : 'Под заказ'}
           </span>
           <span className="font-bold text-foreground">
-            {product.price ? `${formatPrice(product.price)} ₽` : 'Цена по запросу'}
-            {!!product.price && !!unit ? <span className="text-[13px] font-normal text-muted-foreground"> {unit}</span> : null}
+            {price ? `${railPrice ? 'от ' : ''}${formatPrice(price)} ₽` : 'Цена по запросу'}
+            {!!price && !!unit ? <span className="text-[13px] font-normal text-muted-foreground"> {unit}</span> : null}
           </span>
         </div>
         <div className="mt-3">
