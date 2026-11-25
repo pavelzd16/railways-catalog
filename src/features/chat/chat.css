@@ -10,6 +10,9 @@
 .chat-dock {
   display: contents;
 }
+.chat-dock[hidden] {
+  display: none;
+}
 .chat-widget:not(.is-open) {
   bottom: max(var(--chat-edge), env(safe-area-inset-bottom), var(--cookie-banner-clearance, 0px));
 }
@@ -664,12 +667,32 @@
   }
 }
 
-/* На телефоне и планшете чат занимает отдельную строку под панелью товара. */
-@media (max-width: 1023px) {
+/* На узком экране чат открывается из нижней полосы или из панели товара. */
+@media (width < 64rem) {
   .chat-widget, .chat-widget:not(.is-open) { left: 0; right: 0; bottom: 0; }
   .chat-dock { display: block; padding: 4px 12px calc(4px + env(safe-area-inset-bottom)); border-top: 1px solid hsl(var(--border)); background: white; }
   .chat-dock .chat-launcher { width: 100%; height: 44px; padding: 0 12px; justify-content: center; box-shadow: none; }
   .chat-dock .chat-launcher > span { display: inline; }
   .chat-dock .chat-badge { position: static; }
   .chat-widget .chat-panel { position: fixed; inset: max(12px, env(safe-area-inset-top)) 12px calc(var(--chat-dock-height, 56px) + 8px); width: auto; height: auto; max-height: none; }
+  .chat-widget.has-product-launcher .chat-panel { bottom: calc(var(--product-bar-height, 61px) + 8px); }
+  .chat-launcher.product-chat-launcher {
+    position: relative;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted) / .5);
+    color: hsl(var(--foreground));
+    box-shadow: none;
+  }
+  .chat-launcher.product-chat-launcher:is(:hover, [aria-expanded="true"]) {
+    border-color: hsl(var(--primary));
+    color: hsl(var(--primary));
+  }
+  .product-chat-launcher:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+  .product-chat-launcher:disabled { opacity: .5; }
+  .product-chat-launcher > span { display: none; }
+  .product-chat-launcher .chat-badge { position: absolute; top: -6px; right: -6px; }
 }

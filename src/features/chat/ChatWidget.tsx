@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { createPortal } from 'react-dom'
 import { FiArrowUp, FiMessageSquare, FiX } from 'react-icons/fi'
 import { useLocation } from 'react-router'
 import { ChatThread } from './ChatThread'
@@ -13,6 +14,13 @@ import './chat.css'
 
 const SESSION_KEY = 'prorels-chat-session-v1'
 const QUICK_REPLIES = ['Купить рельсы', 'Купить ж/д крепёж', 'Получить КП']
+const mobileLayout = '(width < 64rem)'
+const isMobileLayout = () => window.matchMedia(mobileLayout).matches
+function subscribeToLayout(listener: () => void) {
+  const query = window.matchMedia(mobileLayout)
+  query.addEventListener('change', listener)
+  return () => query.removeEventListener('change', listener)
+}
 
 /** 10 цифр номера после +7: «8 917…», «+7 917…» и «917…» дают одно и то же. */
 function phoneDigits(value: string) {
@@ -60,7 +68,9 @@ export default function ChatWidget() {
   const opener = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLElement>(null)
   const phoneInput = useRef<HTMLInputElement>(null)
-  const { modalActive, chatOpen: open } = useSiteOverlays()
+  const { modalActive, chatOpen: open, productChatTarget } = useSiteOverlays()
+  const mobile = useSyncExternalStore(subscribeToLayout, isMobileLayout, () => false)
+  const launcherTarget = mobile ? productChatTarget : null
   const dock = useBottomClearance('--chat-dock-height')
   const online = managersOnline()
   const {
@@ -146,25 +156,32 @@ export default function ChatWidget() {
     }
   }
   if (pathname.startsWith('/admin')) return null
+  const launcher = (
+    <button
+      ref={opener}
+      type="button"
+      className={launcherTarget ? 'chat-launcher product-chat-launcher' : 'chat-launcher'}
+      aria-label={open ? 'Свернуть чат' : 'Написать менеджеру'}
+      title={launcherTarget ? 'Написать менеджеру' : undefined}
+      aria-expanded={open}
+      aria-controls="prorels-chat"
+      disabled={modalActive}
+      onClick={() => {
+        setOpen((value) => !value)
+        setUnread(0)
+      }}
+    >
+      <FiMessageSquare aria-hidden="true" />
+      <span>Написать менеджеру</span>
+      {unread > 0 && <b className="chat-badge">{unread}</b>}
+    </button>
+  )
   return (
-    <div className={`chat-widget${open ? ' is-open' : ''}`} hidden={modalActive}>
-      <div ref={dock} className="chat-dock">
-        <button
-          ref={opener}
-          className="chat-launcher"
-          aria-label={open ? 'Свернуть чат' : 'Написать менеджеру'}
-          aria-expanded={open}
-          aria-controls="prorels-chat"
-          onClick={() => {
-            setOpen((value) => !value)
-            setUnread(0)
-          }}
-        >
-          <FiMessageSquare aria-hidden="true" />
-          <span>Написать менеджеру</span>
-          {unread > 0 && <b className="chat-badge">{unread}</b>}
-        </button>
+    <div className={`chat-widget${open ? ' is-open' : ''}${launcherTarget ? ' has-product-launcher' : ''}`} hidden={modalActive}>
+      <div ref={dock} className="chat-dock" hidden={Boolean(launcherTarget)}>
+        {launcherTarget ? null : launcher}
       </div>
+      {launcherTarget && createPortal(launcher, launcherTarget)}
       <section
         ref={panel}
         id="prorels-chat"

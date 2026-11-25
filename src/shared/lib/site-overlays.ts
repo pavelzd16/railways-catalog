@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 
-const initial = { modalActive: false, chatOpen: false }
+const initial = { modalActive: false, chatOpen: false, productChatTarget: null as HTMLDivElement | null }
 let state = initial
 const listeners = new Set<() => void>()
 const subscribe = (listener: () => void) => {
@@ -18,6 +18,10 @@ export function setSiteOverlay(patch: Partial<typeof state>) {
 
 export function setChatOpen(next: boolean | ((open: boolean) => boolean)) {
   setSiteOverlay({ chatOpen: !state.modalActive && (typeof next === 'function' ? next(state.chatOpen) : next) })
+}
+
+export function setProductChatTarget(productChatTarget: HTMLDivElement | null) {
+  setSiteOverlay({ productChatTarget })
 }
 
 export function useSiteOverlays() {
