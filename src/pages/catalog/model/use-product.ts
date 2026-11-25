@@ -38,7 +38,7 @@ export function useProduct(slug: string | undefined) {
   const selectedProductImage =
     product?.images[selectedImage] ||
     product?.images[0] ||
-    '/placeholders/product.svg'
+    ''
 
   const similarProducts = product?.similarProducts ?? []
   const isRail = product?.categorySlug === 'rails'
