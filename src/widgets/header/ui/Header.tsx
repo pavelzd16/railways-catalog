@@ -79,7 +79,7 @@ export function Header() {
               aria-label="Основная навигация"
               className="hidden items-center divide-x divide-foreground/25 lg:flex"
             >
-              {links.map(([label, to]) => (
+              {links.filter(([, to]) => to !== '/calculator').map(([label, to]) => (
                 <NavLink
                   key={to}
                   to={to}
@@ -138,6 +138,13 @@ export function Header() {
                 {totalItems > 99 ? '99+' : totalItems}
               </span>
             )}
+          </Link>
+          {/* Калькулятор — кнопкой, а не обычной ссылкой: это сильная сторона сайта. */}
+          <Link
+            to="/calculator"
+            className="hidden h-12 shrink-0 items-center justify-center rounded-lg bg-accent px-4 font-bold whitespace-nowrap text-accent-foreground transition-colors hover:bg-[#E85E14] lg:inline-flex"
+          >
+            Калькулятор
           </Link>
           <div className="hidden shrink-0 lg:block">
             {/* Срок перезвона прямо на кнопке. Две строки — кнопка 48 px,
