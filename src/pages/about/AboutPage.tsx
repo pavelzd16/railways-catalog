@@ -4,6 +4,8 @@ import { Button } from '@/shared/ui/Button'
 import { StatCard } from '@/shared/ui/StatCard'
 import { Layout } from '@/widgets/Layout'
 import { Requisites } from '@/widgets/requisites/Requisites'
+import { WarehouseGallery } from '@/widgets/warehouse-gallery/WarehouseGallery'
+import { LeadForm } from '@/widgets/lead-form/LeadForm'
 
 
 const PRODUCT_RANGE = [
@@ -129,6 +131,8 @@ export function AboutPage() {
           ))}
         </div>
 
+        <WarehouseGallery />
+
         <Requisites titleClassName="text-2xl font-bold text-foreground" />
 
         <div className="text-center">
@@ -138,6 +142,7 @@ export function AboutPage() {
           </Button>
         </div>
       </div>
+      <LeadForm source="О компании" />
     </Layout>
   )
 }

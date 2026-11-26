@@ -6,6 +6,9 @@ import { MaterialsServices } from '@/widgets/materials-services/MaterialsService
 import { CompanyInfo } from '@/widgets/company-info/CompanyInfo'
 import { FastenersSection } from '@/widgets/fasteners-section/FastenersSection'
 import { HomeContacts } from '@/widgets/home-contacts/HomeContacts'
+import { HowWeWork } from '@/widgets/how-we-work'
+import { ClientLogos } from '@/widgets/client-logos/ui/ClientLogos'
+import { LeadForm } from '@/widgets/lead-form/LeadForm'
 
 export function HomePage() {
   return (
@@ -15,9 +18,11 @@ export function HomePage() {
       <PopularProducts />
       <MaterialsServices />
       <CompanyInfo />
+      <HowWeWork />
+      <ClientLogos />
       <FastenersSection />
       <HomeContacts />
-
+      <LeadForm source="Главная" />
     </Layout>
   )
 }

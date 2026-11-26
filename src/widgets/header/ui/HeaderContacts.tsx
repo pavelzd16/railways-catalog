@@ -53,7 +53,7 @@ export function HeaderContacts() {
   const closeTimer = useRef<number | undefined>(undefined)
   const email = useCopy(EMAIL, emailCopyGoal('Шапка'))
   const panelEmail = useCopy(EMAIL, emailCopyGoal('Шапка, список контактов'))
-  const mobile = useCopy(PHONE_MOBILE)
+  const free = useCopy(PHONE_FREE)
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), [])
   useEffect(() => {
@@ -107,10 +107,11 @@ export function HeaderContacts() {
       </a>
       <div ref={root} className="relative hidden md:block" onPointerEnter={enter} onPointerLeave={leave}>
         <div className="flex h-6 items-center gap-2 pl-2">
-          <CopyButton compact state={mobile} label={COPY_PHONE} className="-mx-0.5" />
-          <a href={tel(PHONE_MOBILE)} className="whitespace-nowrap font-bold text-current hover:text-primary">
-            {PHONE_MOBILE}
+          <CopyButton compact state={free} label={COPY_PHONE} className="-mx-0.5" />
+          <a href={tel(PHONE_FREE)} className="whitespace-nowrap font-bold text-current hover:text-primary">
+            {PHONE_FREE}
           </a>
+          <span className="hidden whitespace-nowrap text-xs text-muted-foreground 2xl:inline">{PHONE_FREE_NOTE}</span>
           <button
             ref={toggle}
             type="button"
