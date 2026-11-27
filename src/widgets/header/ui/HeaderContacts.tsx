@@ -10,7 +10,6 @@ import { ContactMeModal } from './ContactMeModal'
 
 const EMAIL = 'zakaz@prorelsa.ru'
 const COPY_EMAIL = 'Скопировать адрес почты'
-// В шапке виден мобильный (на нём и мессенджеры), городской — в списке под ним.
 const COPY_PHONE = 'Скопировать номер телефона'
 // Мышь успевает дойти от номера до списка по диагонали — список закрывается не сразу.
 const CLOSE_DELAY = 200
@@ -41,7 +40,7 @@ function PanelLabel({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Почта и мобильный столбиком; под мобильным — список всех контактов.
+ * Почта и бесплатный номер столбиком; под номером — список всех контактов.
  * Мышью список открывается наведением, нажатие на стрелку закрепляет его
  * (на планшете наведения нет — только стрелка). Esc и нажатие мимо закрывают.
  */
@@ -91,7 +90,7 @@ export function HeaderContacts() {
   return (
     <div className="ml-auto flex shrink-0 flex-col justify-center">
       <div className="hidden h-6 items-center gap-2 px-2 text-sm md:flex">
-        <CopyButton compact state={email} label={COPY_EMAIL} className="-mx-0.5" />
+        <CopyButton compact state={email} label={COPY_EMAIL} className="header-contact-copy -mx-0.5" />
         {/* Почта на ступень крупнее строки (16 px, как номер), разрядка 0,1 em — зазор вдвое шире обычного. */}
         <a href={`mailto:${EMAIL}`} className="text-base font-bold tracking-widest text-current hover:text-primary">
           {EMAIL}
@@ -107,11 +106,10 @@ export function HeaderContacts() {
       </a>
       <div ref={root} className="relative hidden md:block" onPointerEnter={enter} onPointerLeave={leave}>
         <div className="flex h-6 items-center gap-2 pl-2">
-          <CopyButton compact state={free} label={COPY_PHONE} className="-mx-0.5" />
+          <CopyButton compact state={free} label={COPY_PHONE} className="header-contact-copy -mx-0.5" />
           <a href={tel(PHONE_FREE)} className="whitespace-nowrap font-bold text-current hover:text-primary">
             {PHONE_FREE}
           </a>
-          <span className="hidden whitespace-nowrap text-xs text-muted-foreground 2xl:inline">{PHONE_FREE_NOTE}</span>
           <button
             ref={toggle}
             type="button"
@@ -125,6 +123,7 @@ export function HeaderContacts() {
             <FiChevronDown strokeWidth={3.5} className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`} />
           </button>
         </div>
+        <p className="whitespace-nowrap pl-9 text-xs leading-3 text-current/75">{PHONE_FREE_NOTE}</p>
         {open && (
           // Отступ сверху — часть списка: мышь идёт от номера к списку, не выходя из блока.
           <div id="header-contacts-panel" aria-label="Контакты" className="absolute right-0 top-full z-50 pt-2">
