@@ -208,6 +208,12 @@ button:disabled {
 .site-header.is-scrolled .header-main {
   min-height: 72px;
 }
+.site-header .copy-icon {
+  color: #15803d;
+}
+.site-header.is-scrolled .header-contact-copy .copy-icon {
+  color: #4ade80;
+}
 .site-header .header-logo-dark,
 .site-header.is-scrolled .header-logo-light {
   display: none;
