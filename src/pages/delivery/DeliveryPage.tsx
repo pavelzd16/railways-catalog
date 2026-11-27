@@ -9,6 +9,7 @@ import { DeliveryCTA } from '../../widgets/delivery-cta/DeliveryCTA'
 import { PaymentTerms } from '../../widgets/payment-terms/PaymentTerms'
 import { ShipmentMap } from '../../widgets/shipment-map/ShipmentMap'
 import { Layout } from '../../widgets/Layout'
+import { WARRANTY_SHORT, WARRANTY_TEXT } from '@/shared/lib/warranty'
 
 const METHODS = [
   {
@@ -35,6 +36,12 @@ const METHODS = [
 ]
 
 const ADVANTAGES = [
+  {
+    icon: '✅',
+    title: WARRANTY_SHORT,
+    description: WARRANTY_TEXT,
+    accent: 'from-accent to-primary',
+  },
   {
     icon: '⏱️',
     title: 'Отгрузка 48 часов',
@@ -74,7 +81,7 @@ const STATS = [
   { value: '48ч', label: 'До отгрузки' },
   { value: 'РФ + СНГ', label: 'География доставки' },
   { value: 'Ж/Д + Авто', label: 'Виды транспорта' },
-  { value: '100%', label: 'Пакет документов' },
+  { value: '3 года', label: 'Гарантия на материалы' },
 ]
 
 export function DeliveryPage() {
