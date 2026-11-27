@@ -77,8 +77,6 @@ export function LeadForm({ source = 'Блок заявки' }: { source?: string
 
     setIsSubmitting(true)
     try {
-      // Почта, способ связи и адрес страницы отдельных полей в заявке не имеют — идут в комментарий,
-      // как в форме расчёта доставки.
       const comment = [
         `Заявка с сайта (${source})`,
         `Удобный способ связи: ${method}`,

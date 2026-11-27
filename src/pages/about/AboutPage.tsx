@@ -46,7 +46,7 @@ const STATS = [
   { value: '16+', label: 'Лет на рынке' },
   { value: '5000+', label: 'Довольных партнёров' },
   { value: '100%', label: 'Наличие по ключевым позициям' },
-  { value: '48ч', label: 'Отгрузка' },
+  { value: '3 года', label: 'Гарантия на все материалы' },
 ]
 
 export function AboutPage() {
