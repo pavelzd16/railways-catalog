@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router'
 import { FiChevronDown } from 'react-icons/fi'
 import type { Category } from '@/entities/category'
+import { CategoryIcon } from '@/entities/category/ui/CategoryIcon'
 import { catalogPath } from '@/shared/seo/route-data'
 import { groupCategories } from '@/shared/lib/category-groups'
 
@@ -92,7 +93,10 @@ export function CatalogCategories({ categories }: { categories: Category[] }) {
                   }
                   className={`flex min-h-12 min-w-0 flex-1 items-center justify-between gap-2 py-2.5 pl-4 pr-1 text-sm leading-5 hover:text-primary ${selected ? 'font-bold text-primary' : ''}`}
                 >
-                  <span className="min-w-0 break-words">{category.name}</span>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <CategoryIcon slug={category.slug} />
+                    <span className="min-w-0 break-words">{category.name}</span>
+                  </span>
                   {category.productCount != null && (
                     <span className="text-xs font-normal tabular-nums text-muted-foreground">
                       {category.productCount}
