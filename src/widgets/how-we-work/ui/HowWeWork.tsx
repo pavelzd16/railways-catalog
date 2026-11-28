@@ -34,9 +34,6 @@ export function HowWeWork() {
           <Link to="/delivery" className="hover:underline">
             Доставка и оплата
           </Link>
-          <Link to="/documents" className="hover:underline">
-            Документы на партию
-          </Link>
         </div>
       </div>
     </section>

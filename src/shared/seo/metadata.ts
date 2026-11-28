@@ -7,7 +7,7 @@ import { splitArticleBody } from '../../entities/article/lib/article-body.ts'
 import { articlesPage, catalogPath, catalogSelection, detailRoute, isKnownPath, productPath, type PageData } from './route-data.ts'
 import { catalogMeta, pageMeta, type MetaPair } from './meta-traer.ts'
 
-export type Metadata = { title: string; description: string; socialDescription: string; canonical: string; robots: string; image: string; jsonLd: Record<string, unknown>[] }
+export type Metadata = { title: string; description: string; socialDescription: string; canonical: string | null; robots: string; image: string; jsonLd: Record<string, unknown>[] }
 // Title и description страниц, услуг, каталога и товаров — из таблицы мета-тегов (meta-traer.ts, meta-tovary.ts).
 // Ниже — запасные шаблоны в том же стиле: для корзины и для того, что появится на сайте позже таблицы.
 const pages: Record<string, MetaPair> = {
@@ -165,5 +165,6 @@ export function getMetadata(urlValue: string, data: PageData, products: Record<s
   if (path === '/faq' && data.status < 400) jsonLd.push(faqPage(SITE_FAQ))
   if (path === '/') jsonLd.push({ '@context': 'https://schema.org', ...company, url: data.siteUrl, logo: `${data.siteUrl}/logo.png`, telephone: [PHONE_FREE, PHONE_CITY, PHONE_MOBILE].filter(Boolean), email: 'zakaz@prorelsa.ru' })
   const socialDescription = summary(description)
-  return { title, description: socialDescription, socialDescription, canonical: data.siteUrl + canonicalPath, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }
+  const canonical = data.status === 404 ? null : data.siteUrl + canonicalPath
+  return { title, description: socialDescription, socialDescription, canonical, robots: noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large', image, jsonLd }
 }

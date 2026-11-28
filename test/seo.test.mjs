@@ -32,6 +32,13 @@ test('product metadata is unique, self canonical and uses the configured domain'
   assert.match(meta.description, /^Болт М22\. /)
   assert.deepEqual(detailRoute(url), { kind: 'product', slug: 'bolt' })
 })
+test('404 pages omit canonical and stay out of the index', () => {
+  for (const url of ['/catalog/fasteners/product/missing', '/documents']) {
+    const meta = getMetadata(url, { url, siteUrl: 'https://catalog.example', status: 404, ssr: true })
+    assert.equal(meta.canonical, null)
+    assert.match(meta.robots, /^noindex/)
+  }
+})
 test('public navigation clears noindex and stale service metadata', () => {
   const data = { url: '/', siteUrl: 'https://catalog.example', status: 200, ssr: false }
   assert.match(getMetadata('/cart', data).robots, /noindex/)
