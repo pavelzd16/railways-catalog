@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react'
+import { useId, type KeyboardEventHandler, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/shared/lib/cn'
@@ -7,6 +7,7 @@ import { useModalFocus } from '@/shared/lib/use-modal-focus'
 export interface DialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onKeyDown?: KeyboardEventHandler<HTMLDivElement>
   title?: string
   description?: string
   children: ReactNode
@@ -17,6 +18,7 @@ export interface DialogProps {
 export function Dialog({
   open,
   onOpenChange,
+  onKeyDown,
   title,
   description,
   children,
@@ -67,6 +69,7 @@ export function Dialog({
                 className,
               )}
               onClick={(event: any) => event.stopPropagation()}
+              onKeyDown={onKeyDown}
             >
               <button
                 type="button"
