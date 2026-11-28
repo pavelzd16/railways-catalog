@@ -7,6 +7,7 @@ import {
   FiGrid,
 } from "react-icons/fi";
 import { useCategories } from "@/entities/category/model/hooks/useCategories";
+import { CategoryIcon } from "@/entities/category/ui/CategoryIcon";
 import { getCategoryUrl } from "@/shared/lib/catalog-helpers";
 import { groupCategories } from "@/shared/lib/category-groups";
 import "./home-categories-sidebar.css";
@@ -76,6 +77,7 @@ export function HomeCategoriesSidebar() {
                     to={getCategoryUrl(category.slug)}
                     className="hero-catalog-link group flex min-h-11 items-center gap-2 rounded-md border-l-2 border-transparent px-2.5 py-1.5 text-sm leading-5 text-white/90 transition-colors hover:border-accent hover:bg-white/8 hover:text-white lg:min-h-8 lg:py-1 lg:text-[13px] lg:leading-[18px]"
                   >
+                    <CategoryIcon slug={category.slug} dark />
                     <span className="min-w-0 flex-1 break-words">
                       {category.name}
                     </span>
